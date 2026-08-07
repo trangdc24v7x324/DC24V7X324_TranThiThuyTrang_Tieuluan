@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "123166561737",
+    "project_id": "yourfood-chat-test-2026",
+    "storage_bucket": "yourfood-chat-test-2026.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:123166561737:android:b5fd35d5630412f3a94418",
+        "android_client_info": {
+          "package_name": "com.example.Project_trangdc24v7x324"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmONs_gGEYYge3obToybkrncfwLuPmiKc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
