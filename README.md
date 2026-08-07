@@ -1,6 +1,6 @@
-Nien luan
+Tiểu luận tốt nghiệp
 
-Học kỳ 2, Năm học 2025-2026
+Học kỳ 3, Năm học 2025-2026
 
 **Tên dự án**: ỨNG DỤNG ĐẶT THỨC ĂN NHANH
 
