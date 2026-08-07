@@ -1,4 +1,4 @@
-import 'package:CT466_project_trangdc24v7x324/models/payment_method_model.dart';
+import 'package:project_trangdc24v7x324/models/payment_method_model.dart';
 import 'package:flutter/material.dart';
 
 import '../../../shared/widgets/section_card.dart';

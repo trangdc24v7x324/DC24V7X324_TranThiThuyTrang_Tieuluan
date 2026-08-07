@@ -1,8 +1,8 @@
-import 'package:CT466_project_trangdc24v7x324/features/product/widgets/food_card.dart';
-import 'package:CT466_project_trangdc24v7x324/models/cart_item_model.dart';
-import 'package:CT466_project_trangdc24v7x324/models/product_model.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/cart_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/product_provider.dart';
+import 'package:project_trangdc24v7x324/features/product/widgets/food_card.dart';
+import 'package:project_trangdc24v7x324/models/cart_item_model.dart';
+import 'package:project_trangdc24v7x324/models/product_model.dart';
+import 'package:project_trangdc24v7x324/providers/cart_provider.dart';
+import 'package:project_trangdc24v7x324/providers/product_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
-import 'package:CT466_project_trangdc24v7x324/core/pocketbase_client.dart';
-import 'package:CT466_project_trangdc24v7x324/models/delivery_quote_model.dart';
+import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
+import 'package:project_trangdc24v7x324/models/delivery_quote_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geocoding/geocoding.dart';

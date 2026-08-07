@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:CT466_project_trangdc24v7x324/providers/order_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/utils/order_status_helper.dart';
-import 'package:CT466_project_trangdc24v7x324/routes/app_routes.dart';
+import 'package:project_trangdc24v7x324/providers/order_provider.dart';
+import 'package:project_trangdc24v7x324/utils/order_status_helper.dart';
+import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 
 // DESIGN SYSTEM
-import 'package:CT466_project_trangdc24v7x324/shared/theme/app_colors.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/theme/app_text.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/widgets/app_layout.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/widgets/app_body.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/widgets/app_card.dart';
+import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
+import 'package:project_trangdc24v7x324/shared/theme/app_text.dart';
+import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
+import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
+import 'package:project_trangdc24v7x324/shared/widgets/app_card.dart';
 
 class OrdersPage extends StatefulWidget {
   const OrdersPage({super.key});

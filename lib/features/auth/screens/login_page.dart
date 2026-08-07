@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:CT466_project_trangdc24v7x324/routes/app_routes.dart';
-import 'package:CT466_project_trangdc24v7x324/services/auth_service.dart';
+import 'package:project_trangdc24v7x324/routes/app_routes.dart';
+import 'package:project_trangdc24v7x324/services/auth_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -428,14 +428,15 @@ class _LoginPageState extends State<LoginPage> {
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton(
-                              onPressed: _isLoading
-                                  ? null
-                                  : () {
-                                      Navigator.pushNamed(
-                                        context,
-                                        AppRoutes.forgotPassword,
-                                      );
-                                    },
+                              onPressed:
+                                  _isLoading
+                                      ? null
+                                      : () {
+                                        Navigator.pushNamed(
+                                          context,
+                                          AppRoutes.forgotPassword,
+                                        );
+                                      },
                               style: TextButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 4,

@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'package:CT466_project_trangdc24v7x324/models/product_model.dart';
-import 'package:CT466_project_trangdc24v7x324/routes/app_routes.dart';
+import 'package:project_trangdc24v7x324/models/product_model.dart';
+import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 
 class FoodCard extends StatefulWidget {
   final ProductModel product;

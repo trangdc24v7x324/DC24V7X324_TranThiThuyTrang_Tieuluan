@@ -1,9 +1,9 @@
-import 'package:CT466_project_trangdc24v7x324/models/order_item_model.dart';
-import 'package:CT466_project_trangdc24v7x324/models/payment_record_model.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/order_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/routes/app_routes.dart';
-import 'package:CT466_project_trangdc24v7x324/services/payment_service.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/theme/app_colors.dart';
+import 'package:project_trangdc24v7x324/models/order_item_model.dart';
+import 'package:project_trangdc24v7x324/models/payment_record_model.dart';
+import 'package:project_trangdc24v7x324/providers/order_provider.dart';
+import 'package:project_trangdc24v7x324/routes/app_routes.dart';
+import 'package:project_trangdc24v7x324/services/payment_service.dart';
+import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

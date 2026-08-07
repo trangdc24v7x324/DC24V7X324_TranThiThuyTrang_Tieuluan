@@ -3,21 +3,20 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:CT466_project_trangdc24v7x324/core/pocketbase_client.dart';
-import 'package:CT466_project_trangdc24v7x324/features/manager/web/screens/manager_web_product_form_page.dart';
-import 'package:CT466_project_trangdc24v7x324/features/manager/web/widgets/manager_web_layout.dart';
-import 'package:CT466_project_trangdc24v7x324/models/product_model.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/product_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/profile_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/routes/app_routes.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/theme/app_colors.dart';
+import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
+import 'package:project_trangdc24v7x324/features/manager/web/screens/manager_web_product_form_page.dart';
+import 'package:project_trangdc24v7x324/features/manager/web/widgets/manager_web_layout.dart';
+import 'package:project_trangdc24v7x324/models/product_model.dart';
+import 'package:project_trangdc24v7x324/providers/product_provider.dart';
+import 'package:project_trangdc24v7x324/providers/profile_provider.dart';
+import 'package:project_trangdc24v7x324/routes/app_routes.dart';
+import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 
 class ManagerWebProductsPage extends StatefulWidget {
   const ManagerWebProductsPage({super.key});
 
   @override
-  State<ManagerWebProductsPage> createState() =>
-      _ManagerWebProductsPageState();
+  State<ManagerWebProductsPage> createState() => _ManagerWebProductsPageState();
 }
 
 class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
@@ -64,15 +63,17 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
   }
 
   List<String> _getCategories(List<ProductModel> products) {
-    final categories = products
-        .map(
-          (product) => product.categoryTitle.trim().isEmpty
-              ? 'Khác'
-              : product.categoryTitle.trim(),
-        )
-        .toSet()
-        .toList()
-      ..sort();
+    final categories =
+        products
+            .map(
+              (product) =>
+                  product.categoryTitle.trim().isEmpty
+                      ? 'Khác'
+                      : product.categoryTitle.trim(),
+            )
+            .toSet()
+            .toList()
+          ..sort();
 
     return ['Tất cả', ...categories];
   }
@@ -81,18 +82,21 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
     final query = _searchController.text.trim().toLowerCase();
 
     return products.where((product) {
-      final category = product.categoryTitle.trim().isEmpty
-          ? 'Khác'
-          : product.categoryTitle.trim();
+      final category =
+          product.categoryTitle.trim().isEmpty
+              ? 'Khác'
+              : product.categoryTitle.trim();
 
-      final matchesQuery = query.isEmpty ||
+      final matchesQuery =
+          query.isEmpty ||
           product.title.toLowerCase().contains(query) ||
           category.toLowerCase().contains(query);
 
       final matchesCategory =
           _selectedCategory == 'Tất cả' || category == _selectedCategory;
 
-      final matchesStatus = _selectedStatus == 'Tất cả' ||
+      final matchesStatus =
+          _selectedStatus == 'Tất cả' ||
           (_selectedStatus == 'Đang bán' && product.isAvailable) ||
           (_selectedStatus == 'Ngừng bán' && !product.isAvailable);
 
@@ -111,9 +115,7 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
   Future<void> _openCreatePage() async {
     final result = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(
-        builder: (_) => const ManagerWebProductFormPage(),
-      ),
+      MaterialPageRoute(builder: (_) => const ManagerWebProductFormPage()),
     );
 
     if (result == true && mounted) {
@@ -177,9 +179,9 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
       return;
     }
 
-    final success = await context
-        .read<ProductProvider>()
-        .deleteProduct(product.id);
+    final success = await context.read<ProductProvider>().deleteProduct(
+      product.id,
+    );
 
     if (!mounted) {
       return;
@@ -187,9 +189,7 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          success ? 'Đã xóa sản phẩm' : 'Xóa sản phẩm thất bại',
-        ),
+        content: Text(success ? 'Đã xóa sản phẩm' : 'Xóa sản phẩm thất bại'),
       ),
     );
   }
@@ -209,32 +209,30 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
     final provider = context.watch<ProductProvider>();
     final profile = context.watch<ProfileProvider>().profile;
 
-    final managerName = profile?.fullName.trim().isNotEmpty == true
-        ? profile!.fullName
-        : 'Manager';
+    final managerName =
+        profile?.fullName.trim().isNotEmpty == true
+            ? profile!.fullName
+            : 'Manager';
     final avatarUrl = profile?.avatarUrl ?? '';
 
     final categories = _getCategories(provider.products);
     final filteredProducts = _filterProducts(provider.products);
 
-    final totalPages = math.max(
-      1,
-      (filteredProducts.length / _rowsPerPage).ceil(),
-    ).toInt();
+    final totalPages =
+        math.max(1, (filteredProducts.length / _rowsPerPage).ceil()).toInt();
 
     if (_currentPage > totalPages) {
       _currentPage = totalPages;
     }
 
     final startIndex = (_currentPage - 1) * _rowsPerPage;
-    final endIndex = math.min(
-      startIndex + _rowsPerPage,
-      filteredProducts.length,
-    ).toInt();
+    final endIndex =
+        math.min(startIndex + _rowsPerPage, filteredProducts.length).toInt();
 
-    final visibleProducts = filteredProducts.isEmpty
-        ? <ProductModel>[]
-        : filteredProducts.sublist(startIndex, endIndex);
+    final visibleProducts =
+        filteredProducts.isEmpty
+            ? <ProductModel>[]
+            : filteredProducts.sublist(startIndex, endIndex);
 
     return ManagerWebLayout(
       title: 'Quản lý sản phẩm',
@@ -249,14 +247,15 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
           icon: const Icon(Icons.refresh_rounded),
         ),
       ],
-      floatingActionButton: MediaQuery.sizeOf(context).width < 720
-          ? FloatingActionButton(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              onPressed: _openCreatePage,
-              child: const Icon(Icons.add_rounded),
-            )
-          : null,
+      floatingActionButton:
+          MediaQuery.sizeOf(context).width < 720
+              ? FloatingActionButton(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                onPressed: _openCreatePage,
+                child: const Icon(Icons.add_rounded),
+              )
+              : null,
       child: RefreshIndicator(
         onRefresh: _loadData,
         child: SingleChildScrollView(
@@ -270,12 +269,14 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
                 children: [
                   _ProductsSummary(
                     totalProducts: provider.products.length,
-                    availableProducts: provider.products
-                        .where((product) => product.isAvailable)
-                        .length,
-                    unavailableProducts: provider.products
-                        .where((product) => !product.isAvailable)
-                        .length,
+                    availableProducts:
+                        provider.products
+                            .where((product) => product.isAvailable)
+                            .length,
+                    unavailableProducts:
+                        provider.products
+                            .where((product) => !product.isAvailable)
+                            .length,
                   ),
                   const SizedBox(height: 20),
                   _Toolbar(
@@ -321,8 +322,7 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
                   ),
                   const SizedBox(height: 16),
                   _ProductsPanel(
-                    isLoading:
-                        provider.isLoading && provider.products.isEmpty,
+                    isLoading: provider.isLoading && provider.products.isEmpty,
                     products: visibleProducts,
                     filteredCount: filteredProducts.length,
                     startIndex: startIndex,
@@ -330,8 +330,7 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
                     onEdit: _openEditPage,
                     onDelete: _confirmDelete,
                   ),
-                  if (!provider.isLoading &&
-                      filteredProducts.isNotEmpty) ...[
+                  if (!provider.isLoading && filteredProducts.isNotEmpty) ...[
                     const SizedBox(height: 14),
                     _PaginationBar(
                       currentPage: _currentPage,
@@ -350,20 +349,22 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
                           _currentPage = 1;
                         });
                       },
-                      onPrevious: _currentPage > 1
-                          ? () {
-                              setState(() {
-                                _currentPage--;
-                              });
-                            }
-                          : null,
-                      onNext: _currentPage < totalPages
-                          ? () {
-                              setState(() {
-                                _currentPage++;
-                              });
-                            }
-                          : null,
+                      onPrevious:
+                          _currentPage > 1
+                              ? () {
+                                setState(() {
+                                  _currentPage--;
+                                });
+                              }
+                              : null,
+                      onNext:
+                          _currentPage < totalPages
+                              ? () {
+                                setState(() {
+                                  _currentPage++;
+                                });
+                              }
+                              : null,
                     ),
                   ],
                 ],
@@ -416,14 +417,15 @@ class _ProductsSummary extends StatelessWidget {
 
         if (compact) {
           return Column(
-            children: items
-                .map(
-                  (item) => Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: item,
-                  ),
-                )
-                .toList(),
+            children:
+                items
+                    .map(
+                      (item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: item,
+                      ),
+                    )
+                    .toList(),
           );
         }
 
@@ -548,16 +550,17 @@ class _Toolbar extends StatelessWidget {
             decoration: InputDecoration(
               hintText: 'Tìm theo tên sản phẩm hoặc danh mục',
               prefixIcon: const Icon(Icons.search_rounded),
-              suffixIcon: searchController.text.isNotEmpty
-                  ? IconButton(
-                      tooltip: 'Xóa từ khóa',
-                      onPressed: () {
-                        searchController.clear();
-                        onSearchChanged('');
-                      },
-                      icon: const Icon(Icons.close_rounded),
-                    )
-                  : null,
+              suffixIcon:
+                  searchController.text.isNotEmpty
+                      ? IconButton(
+                        tooltip: 'Xóa từ khóa',
+                        onPressed: () {
+                          searchController.clear();
+                          onSearchChanged('');
+                        },
+                        icon: const Icon(Icons.close_rounded),
+                      )
+                      : null,
               filled: true,
               fillColor: AppColors.inputBg,
               contentPadding: const EdgeInsets.symmetric(
@@ -578,17 +581,15 @@ class _Toolbar extends StatelessWidget {
               label: 'Danh mục',
               icon: Icons.category_outlined,
             ),
-            items: categories
-                .map(
-                  (category) => DropdownMenuItem(
-                    value: category,
-                    child: Text(
-                      category,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                )
-                .toList(),
+            items:
+                categories
+                    .map(
+                      (category) => DropdownMenuItem(
+                        value: category,
+                        child: Text(category, overflow: TextOverflow.ellipsis),
+                      ),
+                    )
+                    .toList(),
             onChanged: onCategoryChanged,
           );
 
@@ -600,18 +601,9 @@ class _Toolbar extends StatelessWidget {
               icon: Icons.toggle_on_outlined,
             ),
             items: const [
-              DropdownMenuItem(
-                value: 'Tất cả',
-                child: Text('Tất cả'),
-              ),
-              DropdownMenuItem(
-                value: 'Đang bán',
-                child: Text('Đang bán'),
-              ),
-              DropdownMenuItem(
-                value: 'Ngừng bán',
-                child: Text('Ngừng bán'),
-              ),
+              DropdownMenuItem(value: 'Tất cả', child: Text('Tất cả')),
+              DropdownMenuItem(value: 'Đang bán', child: Text('Đang bán')),
+              DropdownMenuItem(value: 'Ngừng bán', child: Text('Ngừng bán')),
             ],
             onChanged: onStatusChanged,
           );
@@ -623,10 +615,7 @@ class _Toolbar extends StatelessWidget {
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.textPrimary,
               side: const BorderSide(color: AppColors.border),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 18,
-                vertical: 17,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 17),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
@@ -640,10 +629,7 @@ class _Toolbar extends StatelessWidget {
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 17,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
@@ -701,10 +687,7 @@ class _Toolbar extends StatelessWidget {
       prefixIcon: Icon(icon),
       filled: true,
       fillColor: AppColors.inputBg,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 14,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide.none,
@@ -774,16 +757,11 @@ class _ProductsPanel extends StatelessWidget {
             const SizedBox(
               height: 360,
               child: Center(
-                child: CircularProgressIndicator(
-                  color: AppColors.primary,
-                ),
+                child: CircularProgressIndicator(color: AppColors.primary),
               ),
             )
           else if (products.isEmpty)
-            const SizedBox(
-              height: 360,
-              child: _EmptyProducts(),
-            )
+            const SizedBox(height: 360, child: _EmptyProducts())
           else
             LayoutBuilder(
               builder: (context, constraints) {
@@ -829,9 +807,7 @@ class _ProductTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: const BorderRadius.vertical(
-        bottom: Radius.circular(20),
-      ),
+      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: ConstrainedBox(
@@ -862,9 +838,10 @@ class _ProductTable extends StatelessWidget {
             ],
             rows: List.generate(products.length, (index) {
               final product = products[index];
-              final category = product.categoryTitle.trim().isEmpty
-                  ? 'Khác'
-                  : product.categoryTitle;
+              final category =
+                  product.categoryTitle.trim().isEmpty
+                      ? 'Khác'
+                      : product.categoryTitle;
 
               return DataRow(
                 cells: [
@@ -874,10 +851,7 @@ class _ProductTable extends StatelessWidget {
                       width: 280,
                       child: Row(
                         children: [
-                          _ProductImage(
-                            imageUrl: product.image,
-                            size: 54,
-                          ),
+                          _ProductImage(imageUrl: product.image, size: 54),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -912,9 +886,7 @@ class _ProductTable extends StatelessWidget {
                       ),
                     ),
                   ),
-                  DataCell(
-                    _StatusChip(isAvailable: product.isAvailable),
-                  ),
+                  DataCell(_StatusChip(isAvailable: product.isAvailable)),
                   DataCell(
                     Row(
                       mainAxisSize: MainAxisSize.min,
@@ -972,9 +944,10 @@ class _ProductCards extends StatelessWidget {
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final product = products[index];
-        final category = product.categoryTitle.trim().isEmpty
-            ? 'Khác'
-            : product.categoryTitle;
+        final category =
+            product.categoryTitle.trim().isEmpty
+                ? 'Khác'
+                : product.categoryTitle;
 
         return Container(
           padding: const EdgeInsets.all(12),
@@ -985,10 +958,7 @@ class _ProductCards extends StatelessWidget {
           ),
           child: Row(
             children: [
-              _ProductImage(
-                imageUrl: product.image,
-                size: 68,
-              ),
+              _ProductImage(imageUrl: product.image, size: 68),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -1020,9 +990,7 @@ class _ProductCards extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 7),
-                    _StatusChip(
-                      isAvailable: product.isAvailable,
-                    ),
+                    _StatusChip(isAvailable: product.isAvailable),
                   ],
                 ),
               ),
@@ -1060,20 +1028,14 @@ class _ProductImage extends StatelessWidget {
   final String imageUrl;
   final double size;
 
-  const _ProductImage({
-    required this.imageUrl,
-    required this.size,
-  });
+  const _ProductImage({required this.imageUrl, required this.size});
 
   @override
   Widget build(BuildContext context) {
     final placeholder = Container(
       color: AppColors.backgroundSecondary,
       alignment: Alignment.center,
-      child: const Icon(
-        Icons.fastfood_rounded,
-        color: AppColors.textSecondary,
-      ),
+      child: const Icon(Icons.fastfood_rounded, color: AppColors.textSecondary),
     );
 
     return ClipRRect(
@@ -1081,13 +1043,14 @@ class _ProductImage extends StatelessWidget {
       child: SizedBox(
         width: size,
         height: size,
-        child: imageUrl.trim().isEmpty
-            ? placeholder
-            : Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => placeholder,
-              ),
+        child:
+            imageUrl.trim().isEmpty
+                ? placeholder
+                : Image.network(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => placeholder,
+                ),
       ),
     );
   }
@@ -1096,20 +1059,14 @@ class _ProductImage extends StatelessWidget {
 class _StatusChip extends StatelessWidget {
   final bool isAvailable;
 
-  const _StatusChip({
-    required this.isAvailable,
-  });
+  const _StatusChip({required this.isAvailable});
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        isAvailable ? AppColors.success : const Color(0xFFEF4444);
+    final color = isAvailable ? AppColors.success : const Color(0xFFEF4444);
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 6,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: color.withOpacity(0.11),
         borderRadius: BorderRadius.circular(99),
@@ -1152,11 +1109,7 @@ class _ActionButton extends StatelessWidget {
           child: SizedBox(
             width: 38,
             height: 38,
-            child: Icon(
-              icon,
-              color: color,
-              size: 19,
-            ),
+            child: Icon(icon, color: color, size: 19),
           ),
         ),
       ),
@@ -1173,11 +1126,7 @@ class _EmptyProducts extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.inventory_2_outlined,
-            color: AppColors.textGrey,
-            size: 58,
-          ),
+          Icon(Icons.inventory_2_outlined, color: AppColors.textGrey, size: 58),
           SizedBox(height: 12),
           Text(
             'Không tìm thấy sản phẩm',
@@ -1190,10 +1139,7 @@ class _EmptyProducts extends StatelessWidget {
           SizedBox(height: 6),
           Text(
             'Hãy thay đổi từ khóa hoặc bộ lọc đang chọn.',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 13,
-            ),
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
           ),
         ],
       ),
@@ -1227,10 +1173,7 @@ class _PaginationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 18,
-        vertical: 12,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(18),
@@ -1255,10 +1198,7 @@ class _PaginationBar extends StatelessWidget {
             children: [
               const Text(
                 'Số dòng:',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
               ),
               const SizedBox(width: 8),
               DropdownButton<int>(

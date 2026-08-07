@@ -3,12 +3,12 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:CT466_project_trangdc24v7x324/core/pocketbase_client.dart';
-import 'package:CT466_project_trangdc24v7x324/features/manager/web/widgets/manager_web_layout.dart';
-import 'package:CT466_project_trangdc24v7x324/models/category_model.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/profile_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/routes/app_routes.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/theme/app_colors.dart';
+import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
+import 'package:project_trangdc24v7x324/features/manager/web/widgets/manager_web_layout.dart';
+import 'package:project_trangdc24v7x324/models/category_model.dart';
+import 'package:project_trangdc24v7x324/providers/profile_provider.dart';
+import 'package:project_trangdc24v7x324/routes/app_routes.dart';
+import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 
 class ManagerWebCategoriesPage extends StatefulWidget {
   const ManagerWebCategoriesPage({super.key});
@@ -18,8 +18,7 @@ class ManagerWebCategoriesPage extends StatefulWidget {
       _ManagerWebCategoriesPageState();
 }
 
-class _ManagerWebCategoriesPageState
-    extends State<ManagerWebCategoriesPage> {
+class _ManagerWebCategoriesPageState extends State<ManagerWebCategoriesPage> {
   final TextEditingController _searchController = TextEditingController();
   final List<CategoryModel> _categories = [];
 
@@ -59,18 +58,18 @@ class _ManagerWebCategoriesPageState
           .collection('categories')
           .getFullList(sort: 'sortOrder');
 
-      final loadedCategories = records.map((record) {
-        return CategoryModel.fromJson({
-          'id': record.id,
-          ...record.data,
-          'created': record.created,
-          'updated': record.updated,
-        });
-      }).toList()
-        ..sort(
-          (first, second) =>
-              first.sortOrder.compareTo(second.sortOrder),
-        );
+      final loadedCategories =
+          records.map((record) {
+              return CategoryModel.fromJson({
+                'id': record.id,
+                ...record.data,
+                'created': record.created,
+                'updated': record.updated,
+              });
+            }).toList()
+            ..sort(
+              (first, second) => first.sortOrder.compareTo(second.sortOrder),
+            );
 
       if (!mounted) {
         return;
@@ -81,10 +80,10 @@ class _ManagerWebCategoriesPageState
           ..clear()
           ..addAll(loadedCategories);
 
-        final totalPages = math.max(
-          1,
-          (_filteredCategories.length / _rowsPerPage).ceil(),
-        ).toInt();
+        final totalPages =
+            math
+                .max(1, (_filteredCategories.length / _rowsPerPage).ceil())
+                .toInt();
 
         if (_currentPage > totalPages) {
           _currentPage = totalPages;
@@ -105,21 +104,19 @@ class _ManagerWebCategoriesPageState
     final query = _searchController.text.trim().toLowerCase();
 
     return _categories.where((category) {
-      final matchesQuery = query.isEmpty ||
-          category.title.toLowerCase().contains(query) ||
-          category.slug.toLowerCase().contains(query);
+        final matchesQuery =
+            query.isEmpty ||
+            category.title.toLowerCase().contains(query) ||
+            category.slug.toLowerCase().contains(query);
 
-      final matchesStatus = _selectedStatus == 'Tất cả' ||
-          (_selectedStatus == 'Đang hoạt động' &&
-              category.isActive) ||
-          (_selectedStatus == 'Đã ẩn' && !category.isActive);
+        final matchesStatus =
+            _selectedStatus == 'Tất cả' ||
+            (_selectedStatus == 'Đang hoạt động' && category.isActive) ||
+            (_selectedStatus == 'Đã ẩn' && !category.isActive);
 
-      return matchesQuery && matchesStatus;
-    }).toList()
-      ..sort(
-        (first, second) =>
-            first.sortOrder.compareTo(second.sortOrder),
-      );
+        return matchesQuery && matchesStatus;
+      }).toList()
+      ..sort((first, second) => first.sortOrder.compareTo(second.sortOrder));
   }
 
   IconData _getIcon(String icon) {
@@ -174,18 +171,14 @@ class _ManagerWebCategoriesPageState
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _openForm({CategoryModel? category}) async {
-    final titleController = TextEditingController(
-      text: category?.title ?? '',
-    );
-    final slugController = TextEditingController(
-      text: category?.slug ?? '',
-    );
+    final titleController = TextEditingController(text: category?.title ?? '');
+    final slugController = TextEditingController(text: category?.slug ?? '');
     final sortController = TextEditingController(
       text: category != null ? category.sortOrder.toString() : '0',
     );
@@ -204,8 +197,7 @@ class _ManagerWebCategoriesPageState
             Future<void> saveCategory() async {
               final title = titleController.text.trim();
               final slug = slugController.text.trim();
-              final sortOrder =
-                  int.tryParse(sortController.text.trim()) ?? 0;
+              final sortOrder = int.tryParse(sortController.text.trim()) ?? 0;
 
               if (title.isEmpty || slug.isEmpty) {
                 _showMessage('Vui lòng nhập tên và slug');
@@ -230,9 +222,7 @@ class _ManagerWebCategoriesPageState
                       .collection('categories')
                       .update(category.id, body: body);
                 } else {
-                  await pb
-                      .collection('categories')
-                      .create(body: body);
+                  await pb.collection('categories').create(body: body);
                 }
 
                 if (dialogContext.mounted) {
@@ -270,12 +260,7 @@ class _ManagerWebCategoriesPageState
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        24,
-                        22,
-                        16,
-                        16,
-                      ),
+                      padding: const EdgeInsets.fromLTRB(24, 22, 16, 16),
                       child: Row(
                         children: [
                           Container(
@@ -286,17 +271,14 @@ class _ManagerWebCategoriesPageState
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: Icon(
-                              isEdit
-                                  ? Icons.edit_rounded
-                                  : Icons.add_rounded,
+                              isEdit ? Icons.edit_rounded : Icons.add_rounded,
                               color: AppColors.primary,
                             ),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
                             child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   isEdit
@@ -323,14 +305,12 @@ class _ManagerWebCategoriesPageState
                           ),
                           IconButton(
                             tooltip: 'Đóng',
-                            onPressed: isSaving
-                                ? null
-                                : () {
-                                    Navigator.pop(
-                                      dialogContext,
-                                      false,
-                                    );
-                                  },
+                            onPressed:
+                                isSaving
+                                    ? null
+                                    : () {
+                                      Navigator.pop(dialogContext, false);
+                                    },
                             icon: const Icon(Icons.close_rounded),
                           ),
                         ],
@@ -342,11 +322,11 @@ class _ManagerWebCategoriesPageState
                         padding: const EdgeInsets.all(24),
                         child: LayoutBuilder(
                           builder: (context, constraints) {
-                            final twoColumns =
-                                constraints.maxWidth >= 520;
-                            final fieldWidth = twoColumns
-                                ? (constraints.maxWidth - 14) / 2
-                                : constraints.maxWidth;
+                            final twoColumns = constraints.maxWidth >= 520;
+                            final fieldWidth =
+                                twoColumns
+                                    ? (constraints.maxWidth - 14) / 2
+                                    : constraints.maxWidth;
 
                             return Wrap(
                               spacing: 14,
@@ -363,8 +343,7 @@ class _ManagerWebCategoriesPageState
                                     ),
                                     onChanged: (value) {
                                       if (!isEdit) {
-                                        slugController.text =
-                                            _makeSlug(value);
+                                        slugController.text = _makeSlug(value);
                                         setDialogState(() {});
                                       }
                                     },
@@ -387,25 +366,21 @@ class _ManagerWebCategoriesPageState
                                   child: TextField(
                                     controller: sortController,
                                     enabled: !isSaving,
-                                    keyboardType:
-                                        TextInputType.number,
+                                    keyboardType: TextInputType.number,
                                     decoration: _inputDecoration(
                                       label: 'Thứ tự hiển thị',
-                                      icon:
-                                          Icons.format_list_numbered_rounded,
+                                      icon: Icons.format_list_numbered_rounded,
                                     ),
                                   ),
                                 ),
                                 SizedBox(
                                   width: fieldWidth,
-                                  child:
-                                      DropdownButtonFormField<String>(
+                                  child: DropdownButtonFormField<String>(
                                     value: selectedIcon,
                                     isExpanded: true,
                                     decoration: _inputDecoration(
                                       label: 'Biểu tượng',
-                                      icon:
-                                          Icons.emoji_symbols_rounded,
+                                      icon: Icons.emoji_symbols_rounded,
                                     ),
                                     items: const [
                                       DropdownMenuItem(
@@ -422,8 +397,7 @@ class _ManagerWebCategoriesPageState
                                       ),
                                       DropdownMenuItem(
                                         value: 'fastfood',
-                                        child:
-                                            Text('Combo / Fastfood'),
+                                        child: Text('Combo / Fastfood'),
                                       ),
                                       DropdownMenuItem(
                                         value: 'bakery_dining',
@@ -438,17 +412,18 @@ class _ManagerWebCategoriesPageState
                                         child: Text('Mì / bún'),
                                       ),
                                     ],
-                                    onChanged: isSaving
-                                        ? null
-                                        : (value) {
-                                            if (value == null) {
-                                              return;
-                                            }
+                                    onChanged:
+                                        isSaving
+                                            ? null
+                                            : (value) {
+                                              if (value == null) {
+                                                return;
+                                              }
 
-                                            setDialogState(() {
-                                              selectedIcon = value;
-                                            });
-                                          },
+                                              setDialogState(() {
+                                                selectedIcon = value;
+                                              });
+                                            },
                                   ),
                                 ),
                                 SizedBox(
@@ -459,10 +434,8 @@ class _ManagerWebCategoriesPageState
                                       vertical: 8,
                                     ),
                                     decoration: BoxDecoration(
-                                      color:
-                                          AppColors.backgroundSecondary,
-                                      borderRadius:
-                                          BorderRadius.circular(14),
+                                      color: AppColors.backgroundSecondary,
+                                      borderRadius: BorderRadius.circular(14),
                                     ),
                                     child: SwitchListTile(
                                       contentPadding: EdgeInsets.zero,
@@ -476,22 +449,21 @@ class _ManagerWebCategoriesPageState
                                       subtitle: const Text(
                                         'Danh mục hoạt động sẽ được hiển thị cho khách hàng.',
                                         style: TextStyle(
-                                          color:
-                                              AppColors.textSecondary,
+                                          color: AppColors.textSecondary,
                                           fontSize: 12,
                                         ),
                                       ),
                                       value: isActive,
                                       activeColor: Colors.white,
-                                      activeTrackColor:
-                                          AppColors.success,
-                                      onChanged: isSaving
-                                          ? null
-                                          : (value) {
-                                              setDialogState(() {
-                                                isActive = value;
-                                              });
-                                            },
+                                      activeTrackColor: AppColors.success,
+                                      onChanged:
+                                          isSaving
+                                              ? null
+                                              : (value) {
+                                                setDialogState(() {
+                                                  isActive = value;
+                                                });
+                                              },
                                     ),
                                   ),
                                 ),
@@ -508,34 +480,28 @@ class _ManagerWebCategoriesPageState
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           OutlinedButton(
-                            onPressed: isSaving
-                                ? null
-                                : () {
-                                    Navigator.pop(
-                                      dialogContext,
-                                      false,
-                                    );
-                                  },
+                            onPressed:
+                                isSaving
+                                    ? null
+                                    : () {
+                                      Navigator.pop(dialogContext, false);
+                                    },
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.textPrimary,
-                              side: const BorderSide(
-                                color: AppColors.border,
-                              ),
+                              side: const BorderSide(color: AppColors.border),
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 22,
                                 vertical: 15,
                               ),
                               shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(13),
+                                borderRadius: BorderRadius.circular(13),
                               ),
                             ),
                             child: const Text('Hủy'),
                           ),
                           const SizedBox(width: 10),
                           FilledButton.icon(
-                            onPressed:
-                                isSaving ? null : saveCategory,
+                            onPressed: isSaving ? null : saveCategory,
                             style: FilledButton.styleFrom(
                               backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
@@ -544,28 +510,26 @@ class _ManagerWebCategoriesPageState
                                 vertical: 15,
                               ),
                               shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(13),
+                                borderRadius: BorderRadius.circular(13),
                               ),
                             ),
-                            icon: isSaving
-                                ? const SizedBox(
-                                    width: 17,
-                                    height: 17,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
+                            icon:
+                                isSaving
+                                    ? const SizedBox(
+                                      width: 17,
+                                      height: 17,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                    : Icon(
+                                      isEdit
+                                          ? Icons.save_rounded
+                                          : Icons.add_rounded,
+                                      size: 18,
                                     ),
-                                  )
-                                : Icon(
-                                    isEdit
-                                        ? Icons.save_rounded
-                                        : Icons.add_rounded,
-                                    size: 18,
-                                  ),
-                            label: Text(
-                              isEdit ? 'Cập nhật' : 'Thêm danh mục',
-                            ),
+                            label: Text(isEdit ? 'Cập nhật' : 'Thêm danh mục'),
                           ),
                         ],
                       ),
@@ -586,11 +550,7 @@ class _ManagerWebCategoriesPageState
     if (result == true) {
       await _loadCategories();
 
-      _showMessage(
-        isEdit
-            ? 'Đã cập nhật danh mục'
-            : 'Đã thêm danh mục',
-      );
+      _showMessage(isEdit ? 'Đã cập nhật danh mục' : 'Đã thêm danh mục');
     }
   }
 
@@ -615,10 +575,7 @@ class _ManagerWebCategoriesPageState
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(
-          color: AppColors.primary,
-          width: 1.4,
-        ),
+        borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
       ),
     );
   }
@@ -654,10 +611,7 @@ class _ManagerWebCategoriesPageState
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
               ),
-              icon: const Icon(
-                Icons.delete_outline_rounded,
-                size: 18,
-              ),
+              icon: const Icon(Icons.delete_outline_rounded, size: 18),
               label: const Text('Xóa danh mục'),
             ),
           ],
@@ -700,24 +654,21 @@ class _ManagerWebCategoriesPageState
     final avatarUrl = profile?.avatarUrl ?? '';
 
     final filteredCategories = _filteredCategories;
-    final totalPages = math.max(
-      1,
-      (filteredCategories.length / _rowsPerPage).ceil(),
-    ).toInt();
+    final totalPages =
+        math.max(1, (filteredCategories.length / _rowsPerPage).ceil()).toInt();
 
     if (_currentPage > totalPages) {
       _currentPage = totalPages;
     }
 
     final startIndex = (_currentPage - 1) * _rowsPerPage;
-    final endIndex = math.min(
-      startIndex + _rowsPerPage,
-      filteredCategories.length,
-    ).toInt();
+    final endIndex =
+        math.min(startIndex + _rowsPerPage, filteredCategories.length).toInt();
 
-    final visibleCategories = filteredCategories.isEmpty
-        ? <CategoryModel>[]
-        : filteredCategories.sublist(startIndex, endIndex);
+    final visibleCategories =
+        filteredCategories.isEmpty
+            ? <CategoryModel>[]
+            : filteredCategories.sublist(startIndex, endIndex);
 
     return ManagerWebLayout(
       title: 'Quản lý danh mục',
@@ -732,24 +683,25 @@ class _ManagerWebCategoriesPageState
           icon: const Icon(Icons.refresh_rounded),
         ),
       ],
-      floatingActionButton: MediaQuery.sizeOf(context).width < 720
-          ? FloatingActionButton(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              onPressed: () {
-                _openForm();
-              },
-              child: const Icon(Icons.add_rounded),
-            )
-          : null,
+      floatingActionButton:
+          MediaQuery.sizeOf(context).width < 720
+              ? FloatingActionButton(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                onPressed: () {
+                  _openForm();
+                },
+                child: const Icon(Icons.add_rounded),
+              )
+              : null,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final horizontalPadding =
               constraints.maxWidth >= 1100
                   ? 24.0
                   : constraints.maxWidth >= 700
-                      ? 18.0
-                      : 12.0;
+                  ? 18.0
+                  : 12.0;
 
           return RefreshIndicator(
             onRefresh: _loadInitialData,
@@ -769,12 +721,14 @@ class _ManagerWebCategoriesPageState
                     children: [
                       _CategoriesSummary(
                         totalCategories: _categories.length,
-                        activeCategories: _categories
-                            .where((category) => category.isActive)
-                            .length,
-                        hiddenCategories: _categories
-                            .where((category) => !category.isActive)
-                            .length,
+                        activeCategories:
+                            _categories
+                                .where((category) => category.isActive)
+                                .length,
+                        hiddenCategories:
+                            _categories
+                                .where((category) => !category.isActive)
+                                .length,
                       ),
                       const SizedBox(height: 18),
                       _CategoryToolbar(
@@ -809,8 +763,7 @@ class _ManagerWebCategoriesPageState
                       ),
                       const SizedBox(height: 14),
                       _CategoriesPanel(
-                        isLoading:
-                            _isLoading && _categories.isEmpty,
+                        isLoading: _isLoading && _categories.isEmpty,
                         categories: visibleCategories,
                         filteredCount: filteredCategories.length,
                         startIndex: startIndex,
@@ -821,8 +774,7 @@ class _ManagerWebCategoriesPageState
                         },
                         onDelete: _confirmDelete,
                       ),
-                      if (!_isLoading &&
-                          filteredCategories.isNotEmpty) ...[
+                      if (!_isLoading && filteredCategories.isNotEmpty) ...[
                         const SizedBox(height: 14),
                         _PaginationBar(
                           currentPage: _currentPage,
@@ -841,20 +793,22 @@ class _ManagerWebCategoriesPageState
                               _currentPage = 1;
                             });
                           },
-                          onPrevious: _currentPage > 1
-                              ? () {
-                                  setState(() {
-                                    _currentPage--;
-                                  });
-                                }
-                              : null,
-                          onNext: _currentPage < totalPages
-                              ? () {
-                                  setState(() {
-                                    _currentPage++;
-                                  });
-                                }
-                              : null,
+                          onPrevious:
+                              _currentPage > 1
+                                  ? () {
+                                    setState(() {
+                                      _currentPage--;
+                                    });
+                                  }
+                                  : null,
+                          onNext:
+                              _currentPage < totalPages
+                                  ? () {
+                                    setState(() {
+                                      _currentPage++;
+                                    });
+                                  }
+                                  : null,
                         ),
                       ],
                     ],
@@ -920,14 +874,10 @@ class _CategoriesSummary extends StatelessWidget {
         return Wrap(
           spacing: spacing,
           runSpacing: spacing,
-          children: items
-              .map(
-                (item) => SizedBox(
-                  width: itemWidth,
-                  child: item,
-                ),
-              )
-              .toList(),
+          children:
+              items
+                  .map((item) => SizedBox(width: itemWidth, child: item))
+                  .toList(),
         );
       },
     );
@@ -1031,13 +981,15 @@ class _CategoryToolbar extends StatelessWidget {
           final isWide = constraints.maxWidth >= 980;
           final isMedium = constraints.maxWidth >= 620;
 
-          final searchWidth = isWide
-              ? math.max(320.0, constraints.maxWidth - 570).toDouble()
-              : constraints.maxWidth;
+          final searchWidth =
+              isWide
+                  ? math.max(320.0, constraints.maxWidth - 570).toDouble()
+                  : constraints.maxWidth;
 
-          final secondaryWidth = isWide
-              ? 190.0
-              : isMedium
+          final secondaryWidth =
+              isWide
+                  ? 190.0
+                  : isMedium
                   ? (constraints.maxWidth - 12) / 2
                   : constraints.maxWidth;
 
@@ -1054,16 +1006,17 @@ class _CategoryToolbar extends StatelessWidget {
                   decoration: InputDecoration(
                     hintText: 'Tìm theo tên hoặc slug danh mục',
                     prefixIcon: const Icon(Icons.search_rounded),
-                    suffixIcon: searchController.text.isNotEmpty
-                        ? IconButton(
-                            tooltip: 'Xóa từ khóa',
-                            onPressed: () {
-                              searchController.clear();
-                              onSearchChanged('');
-                            },
-                            icon: const Icon(Icons.close_rounded),
-                          )
-                        : null,
+                    suffixIcon:
+                        searchController.text.isNotEmpty
+                            ? IconButton(
+                              tooltip: 'Xóa từ khóa',
+                              onPressed: () {
+                                searchController.clear();
+                                onSearchChanged('');
+                              },
+                              icon: const Icon(Icons.close_rounded),
+                            )
+                            : null,
                     filled: true,
                     fillColor: AppColors.inputBg,
                     border: OutlineInputBorder(
@@ -1080,8 +1033,7 @@ class _CategoryToolbar extends StatelessWidget {
                   isExpanded: true,
                   decoration: InputDecoration(
                     labelText: 'Trạng thái',
-                    prefixIcon:
-                        const Icon(Icons.visibility_outlined),
+                    prefixIcon: const Icon(Icons.visibility_outlined),
                     filled: true,
                     fillColor: AppColors.inputBg,
                     border: OutlineInputBorder(
@@ -1090,18 +1042,12 @@ class _CategoryToolbar extends StatelessWidget {
                     ),
                   ),
                   items: const [
-                    DropdownMenuItem(
-                      value: 'Tất cả',
-                      child: Text('Tất cả'),
-                    ),
+                    DropdownMenuItem(value: 'Tất cả', child: Text('Tất cả')),
                     DropdownMenuItem(
                       value: 'Đang hoạt động',
                       child: Text('Đang hoạt động'),
                     ),
-                    DropdownMenuItem(
-                      value: 'Đã ẩn',
-                      child: Text('Đã ẩn'),
-                    ),
+                    DropdownMenuItem(value: 'Đã ẩn', child: Text('Đã ẩn')),
                   ],
                   onChanged: onStatusChanged,
                 ),
@@ -1209,16 +1155,11 @@ class _CategoriesPanel extends StatelessWidget {
             const SizedBox(
               height: 340,
               child: Center(
-                child: CircularProgressIndicator(
-                  color: AppColors.primary,
-                ),
+                child: CircularProgressIndicator(color: AppColors.primary),
               ),
             )
           else if (categories.isEmpty)
-            const SizedBox(
-              height: 340,
-              child: _EmptyCategories(),
-            )
+            const SizedBox(height: 340, child: _EmptyCategories())
           else
             LayoutBuilder(
               builder: (context, constraints) {
@@ -1268,9 +1209,7 @@ class _CategoryTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: const BorderRadius.vertical(
-        bottom: Radius.circular(20),
-      ),
+      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: ConstrainedBox(
@@ -1310,16 +1249,12 @@ class _CategoryTable extends StatelessWidget {
                       width: 260,
                       child: Row(
                         children: [
-                          _CategoryIcon(
-                            icon: getIcon(category.icon),
-                          ),
+                          _CategoryIcon(icon: getIcon(category.icon)),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.center,
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   category.title,
@@ -1333,8 +1268,7 @@ class _CategoryTable extends StatelessWidget {
                                 Text(
                                   getIconLabel(category.icon),
                                   style: const TextStyle(
-                                    color:
-                                        AppColors.textSecondary,
+                                    color: AppColors.textSecondary,
                                     fontSize: 11,
                                   ),
                                 ),
@@ -1358,14 +1292,10 @@ class _CategoryTable extends StatelessWidget {
                   DataCell(
                     Text(
                       '${category.sortOrder}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w800,
-                      ),
+                      style: const TextStyle(fontWeight: FontWeight.w800),
                     ),
                   ),
-                  DataCell(
-                    _StatusChip(isActive: category.isActive),
-                  ),
+                  DataCell(_StatusChip(isActive: category.isActive)),
                   DataCell(
                     Row(
                       mainAxisSize: MainAxisSize.min,
@@ -1424,96 +1354,91 @@ class _CategoryCards extends StatelessWidget {
           final columns = constraints.maxWidth >= 620 ? 2 : 1;
           const spacing = 11.0;
           final cardWidth =
-              (constraints.maxWidth - spacing * (columns - 1)) /
-                  columns;
+              (constraints.maxWidth - spacing * (columns - 1)) / columns;
 
           return Wrap(
             spacing: spacing,
             runSpacing: spacing,
-            children: categories.map((category) {
-              return SizedBox(
-                width: cardWidth,
-                child: Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.bg,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Row(
-                    children: [
-                      _CategoryIcon(
-                        icon: getIcon(category.icon),
+            children:
+                categories.map((category) {
+                  return SizedBox(
+                    width: cardWidth,
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppColors.bg,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.border),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              category.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              category.slug,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 12,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${getIconLabel(category.icon)} • thứ tự ${category.sortOrder}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 11,
-                              ),
-                            ),
-                            const SizedBox(height: 7),
-                            _StatusChip(
-                              isActive: category.isActive,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Column(
+                      child: Row(
                         children: [
-                          _ActionButton(
-                            tooltip: 'Chỉnh sửa',
-                            icon: Icons.edit_rounded,
-                            color: const Color(0xFF4F46E5),
-                            onTap: () {
-                              onEdit(category);
-                            },
+                          _CategoryIcon(icon: getIcon(category.icon)),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  category.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: AppColors.textPrimary,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  category.slug,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${getIconLabel(category.icon)} • thứ tự ${category.sortOrder}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                                const SizedBox(height: 7),
+                                _StatusChip(isActive: category.isActive),
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 8),
-                          _ActionButton(
-                            tooltip: 'Xóa',
-                            icon: Icons.delete_outline_rounded,
-                            color: Colors.red,
-                            onTap: () {
-                              onDelete(category);
-                            },
+                          const SizedBox(width: 8),
+                          Column(
+                            children: [
+                              _ActionButton(
+                                tooltip: 'Chỉnh sửa',
+                                icon: Icons.edit_rounded,
+                                color: const Color(0xFF4F46E5),
+                                onTap: () {
+                                  onEdit(category);
+                                },
+                              ),
+                              const SizedBox(height: 8),
+                              _ActionButton(
+                                tooltip: 'Xóa',
+                                icon: Icons.delete_outline_rounded,
+                                color: Colors.red,
+                                onTap: () {
+                                  onDelete(category);
+                                },
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
+                    ),
+                  );
+                }).toList(),
           );
         },
       ),
@@ -1524,9 +1449,7 @@ class _CategoryCards extends StatelessWidget {
 class _CategoryIcon extends StatelessWidget {
   final IconData icon;
 
-  const _CategoryIcon({
-    required this.icon,
-  });
+  const _CategoryIcon({required this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -1537,11 +1460,7 @@ class _CategoryIcon extends StatelessWidget {
         color: AppColors.primary.withOpacity(0.1),
         borderRadius: BorderRadius.circular(15),
       ),
-      child: Icon(
-        icon,
-        color: AppColors.primary,
-        size: 25,
-      ),
+      child: Icon(icon, color: AppColors.primary, size: 25),
     );
   }
 }
@@ -1549,20 +1468,14 @@ class _CategoryIcon extends StatelessWidget {
 class _StatusChip extends StatelessWidget {
   final bool isActive;
 
-  const _StatusChip({
-    required this.isActive,
-  });
+  const _StatusChip({required this.isActive});
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        isActive ? AppColors.success : AppColors.textGrey;
+    final color = isActive ? AppColors.success : AppColors.textGrey;
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 6,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: color.withOpacity(0.11),
         borderRadius: BorderRadius.circular(99),
@@ -1605,11 +1518,7 @@ class _ActionButton extends StatelessWidget {
           child: SizedBox(
             width: 38,
             height: 38,
-            child: Icon(
-              icon,
-              color: color,
-              size: 19,
-            ),
+            child: Icon(icon, color: color, size: 19),
           ),
         ),
       ),
@@ -1626,11 +1535,7 @@ class _EmptyCategories extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.category_outlined,
-            color: AppColors.textGrey,
-            size: 58,
-          ),
+          Icon(Icons.category_outlined, color: AppColors.textGrey, size: 58),
           SizedBox(height: 12),
           Text(
             'Không tìm thấy danh mục',
@@ -1643,10 +1548,7 @@ class _EmptyCategories extends StatelessWidget {
           SizedBox(height: 6),
           Text(
             'Hãy thay đổi từ khóa hoặc trạng thái đang lọc.',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 13,
-            ),
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
           ),
         ],
       ),
@@ -1680,10 +1582,7 @@ class _PaginationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 18,
-        vertical: 12,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(18),
@@ -1708,10 +1607,7 @@ class _PaginationBar extends StatelessWidget {
             children: [
               const Text(
                 'Số dòng:',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
               ),
               const SizedBox(width: 8),
               DropdownButton<int>(

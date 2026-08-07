@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:CT466_project_trangdc24v7x324/models/product_review_model.dart';
-import 'package:CT466_project_trangdc24v7x324/services/review_service.dart';
+import 'package:project_trangdc24v7x324/models/product_review_model.dart';
+import 'package:project_trangdc24v7x324/services/review_service.dart';
 
 class ReviewProvider extends ChangeNotifier {
   final ReviewService _service = ReviewService();

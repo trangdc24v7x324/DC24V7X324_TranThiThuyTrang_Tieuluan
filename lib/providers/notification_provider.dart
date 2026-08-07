@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:CT466_project_trangdc24v7x324/core/pocketbase_client.dart';
-import 'package:CT466_project_trangdc24v7x324/models/app_notification_model.dart';
-import 'package:CT466_project_trangdc24v7x324/services/notification_service.dart';
+import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
+import 'package:project_trangdc24v7x324/models/app_notification_model.dart';
+import 'package:project_trangdc24v7x324/services/notification_service.dart';
 
 class NotificationProvider extends ChangeNotifier {
   final NotificationService _service = NotificationService();

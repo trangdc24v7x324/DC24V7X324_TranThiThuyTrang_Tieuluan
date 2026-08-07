@@ -1,6 +1,6 @@
 import 'package:pocketbase/pocketbase.dart';
 
-import 'package:CT466_project_trangdc24v7x324/core/pocketbase_client.dart';
+import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
 
 class AuthService {
   PocketBase get _pb => getPocketBase();

@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 
-import 'package:CT466_project_trangdc24v7x324/models/address_model.dart';
-import 'package:CT466_project_trangdc24v7x324/services/delivery_service.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/widgets/section_card.dart';
+import 'package:project_trangdc24v7x324/models/address_model.dart';
+import 'package:project_trangdc24v7x324/services/delivery_service.dart';
+import 'package:project_trangdc24v7x324/shared/widgets/section_card.dart';
 
 class AddressSection extends StatefulWidget {
   final List<AddressModel> addresses;
   final bool isEditing;
   final VoidCallback onEdit;
 
-  final Future<void> Function(
-    List<AddressModel> updatedAddresses,
-  ) onSave;
+  final Future<void> Function(List<AddressModel> updatedAddresses) onSave;
 
   const AddressSection({
     super.key,
@@ -22,17 +20,13 @@ class AddressSection extends StatefulWidget {
   });
 
   @override
-  State<AddressSection> createState() =>
-      _AddressSectionState();
+  State<AddressSection> createState() => _AddressSectionState();
 }
 
-class _AddressSectionState
-    extends State<AddressSection> {
-  final DeliveryService _deliveryService =
-      DeliveryService();
+class _AddressSectionState extends State<AddressSection> {
+  final DeliveryService _deliveryService = DeliveryService();
 
-  late List<AddressModel>
-      _localAddresses;
+  late List<AddressModel> _localAddresses;
 
   bool _isSaving = false;
   int? _resolvingIndex;
@@ -41,37 +35,20 @@ class _AddressSectionState
   void initState() {
     super.initState();
 
-    _localAddresses =
-        _copyAddresses(
-      widget.addresses,
-    );
+    _localAddresses = _copyAddresses(widget.addresses);
   }
 
   @override
-  void didUpdateWidget(
-    covariant AddressSection oldWidget,
-  ) {
-    super.didUpdateWidget(
-      oldWidget,
-    );
+  void didUpdateWidget(covariant AddressSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
 
     if (!widget.isEditing) {
-      _localAddresses =
-          _copyAddresses(
-        widget.addresses,
-      );
+      _localAddresses = _copyAddresses(widget.addresses);
     }
   }
 
-  List<AddressModel> _copyAddresses(
-    List<AddressModel> addresses,
-  ) {
-    return addresses
-        .map(
-          (address) =>
-              address.copyWith(),
-        )
-        .toList();
+  List<AddressModel> _copyAddresses(List<AddressModel> addresses) {
+    return addresses.map((address) => address.copyWith()).toList();
   }
 
   void _addNewAddress() {
@@ -81,18 +58,14 @@ class _AddressSectionState
           // Record mới chưa có PocketBase id.
           id: '',
           userId: '',
-          label:
-              _localAddresses.isEmpty
-                  ? 'Nhà'
-                  : 'Khác',
+          label: _localAddresses.isEmpty ? 'Nhà' : 'Khác',
           receiverName: '',
           phoneNumber: '',
           addressLine: '',
           note: '',
           latitude: 0,
           longitude: 0,
-          isDefault:
-              _localAddresses.isEmpty,
+          isDefault: _localAddresses.isEmpty,
         ),
       );
     });
@@ -100,68 +73,43 @@ class _AddressSectionState
 
   void _removeAddress(int index) {
     setState(() {
-      final wasDefault =
-          _localAddresses[index]
-              .isDefault;
+      final wasDefault = _localAddresses[index].isDefault;
 
-      _localAddresses
-          .removeAt(index);
+      _localAddresses.removeAt(index);
 
-      if (wasDefault &&
-          _localAddresses
-              .isNotEmpty) {
-        _localAddresses[0] =
-            _localAddresses[0]
-                .copyWith(
-          isDefault: true,
-        );
+      if (wasDefault && _localAddresses.isNotEmpty) {
+        _localAddresses[0] = _localAddresses[0].copyWith(isDefault: true);
       }
     });
   }
 
-  void _setDefaultAddress(
-    int index,
-  ) {
+  void _setDefaultAddress(int index) {
     setState(() {
       _localAddresses =
           _localAddresses
               .asMap()
               .entries
               .map(
-                (entry) =>
-                    entry.value
-                        .copyWith(
-                  isDefault:
-                      entry.key ==
-                          index,
-                ),
+                (entry) => entry.value.copyWith(isDefault: entry.key == index),
               )
               .toList();
     });
   }
 
-  Future<void> _resolveAddress(
-    int index, {
-    bool showMessage = true,
-  }) async {
+  Future<void> _resolveAddress(int index, {bool showMessage = true}) async {
     if (_resolvingIndex != null ||
         index < 0 ||
-        index >=
-            _localAddresses.length) {
+        index >= _localAddresses.length) {
       return;
     }
 
-    final address =
-        _localAddresses[index];
+    final address = _localAddresses[index];
 
-    final text =
-        address.addressLine.trim();
+    final text = address.addressLine.trim();
 
     if (text.isEmpty) {
       if (showMessage) {
-        _showMessage(
-          'Vui lòng nhập địa chỉ đầy đủ trước.',
-        );
+        _showMessage('Vui lòng nhập địa chỉ đầy đủ trước.');
       }
       return;
     }
@@ -171,35 +119,24 @@ class _AddressSectionState
     });
 
     try {
-      final coordinates =
-          await _deliveryService
-              .resolveAddressText(
-        text,
-      );
+      final coordinates = await _deliveryService.resolveAddressText(text);
 
       if (!mounted) {
         return;
       }
 
       setState(() {
-        _localAddresses[index] =
-            _localAddresses[index]
-                .copyWith(
-          latitude:
-              coordinates.latitude,
-          longitude:
-              coordinates.longitude,
+        _localAddresses[index] = _localAddresses[index].copyWith(
+          latitude: coordinates.latitude,
+          longitude: coordinates.longitude,
         );
       });
 
       if (showMessage) {
-        _showMessage(
-          'Đã xác định tọa độ địa chỉ.',
-        );
+        _showMessage('Đã xác định tọa độ địa chỉ.');
       }
     } catch (e) {
-      if (showMessage &&
-          mounted) {
+      if (showMessage && mounted) {
         _showMessage(
           'Chưa xác định được tọa độ. '
           'Bạn vẫn có thể lưu và tính lại ở bước thanh toán.',
@@ -214,114 +151,63 @@ class _AddressSectionState
     }
   }
 
-  Future<void>
-      _resolveMissingCoordinates() async {
-    for (int i = 0;
-        i <
-            _localAddresses.length;
-        i++) {
-      final address =
-          _localAddresses[i];
+  Future<void> _resolveMissingCoordinates() async {
+    for (int i = 0; i < _localAddresses.length; i++) {
+      final address = _localAddresses[i];
 
-      if (address
-              .addressLine
-              .trim()
-              .isEmpty ||
-          address.hasCoordinates) {
+      if (address.addressLine.trim().isEmpty || address.hasCoordinates) {
         continue;
       }
 
-      await _resolveAddress(
-        i,
-        showMessage: false,
-      );
+      await _resolveAddress(i, showMessage: false);
     }
   }
 
-  bool _isPhoneValid(
-    String value,
-  ) {
-    final normalized =
-        value.replaceAll(
-      RegExp(r'[\s\-.()]'),
-      '',
-    );
+  bool _isPhoneValid(String value) {
+    final normalized = value.replaceAll(RegExp(r'[\s\-.()]'), '');
 
-    return RegExp(
-      r'^(0|\+84)[0-9]{9,10}$',
-    ).hasMatch(normalized);
+    return RegExp(r'^(0|\+84)[0-9]{9,10}$').hasMatch(normalized);
   }
 
-  Future<void>
-      _saveAddresses() async {
+  Future<void> _saveAddresses() async {
     if (_isSaving) {
       return;
     }
 
-    final invalidRequired =
-        _localAddresses.any(
+    final invalidRequired = _localAddresses.any(
       (address) =>
-          address.receiverName
-              .trim()
-              .isEmpty ||
-          address.phoneNumber
-              .trim()
-              .isEmpty ||
-          address.addressLine
-              .trim()
-              .isEmpty,
+          address.receiverName.trim().isEmpty ||
+          address.phoneNumber.trim().isEmpty ||
+          address.addressLine.trim().isEmpty,
     );
 
     if (invalidRequired) {
-      _showMessage(
-        'Vui lòng nhập đầy đủ tên, số điện thoại và địa chỉ.',
-      );
+      _showMessage('Vui lòng nhập đầy đủ tên, số điện thoại và địa chỉ.');
       return;
     }
 
-    final invalidPhone =
-        _localAddresses.any(
-      (address) =>
-          !_isPhoneValid(
-        address.phoneNumber,
-      ),
+    final invalidPhone = _localAddresses.any(
+      (address) => !_isPhoneValid(address.phoneNumber),
     );
 
     if (invalidPhone) {
-      _showMessage(
-        'Có số điện thoại chưa đúng định dạng.',
-      );
+      _showMessage('Có số điện thoại chưa đúng định dạng.');
       return;
     }
 
-    final hasDefault =
-        _localAddresses.any(
-      (address) =>
-          address.isDefault,
-    );
+    final hasDefault = _localAddresses.any((address) => address.isDefault);
 
     _localAddresses =
         _localAddresses
             .asMap()
             .entries
             .map(
-              (entry) =>
-                  entry.value
-                      .copyWith(
+              (entry) => entry.value.copyWith(
                 label:
-                    entry.value.label
-                            .trim()
-                            .isEmpty
+                    entry.value.label.trim().isEmpty
                         ? 'Khác'
-                        : entry.value
-                            .label
-                            .trim(),
-                isDefault:
-                    hasDefault
-                        ? entry.value
-                            .isDefault
-                        : entry.key ==
-                            0,
+                        : entry.value.label.trim(),
+                isDefault: hasDefault ? entry.value.isDefault : entry.key == 0,
               ),
             )
             .toList();
@@ -335,9 +221,7 @@ class _AddressSectionState
       // Không chặn lưu nếu native geocoding không resolve được.
       await _resolveMissingCoordinates();
 
-      await widget.onSave(
-        _localAddresses,
-      );
+      await widget.onSave(_localAddresses);
     } finally {
       if (mounted) {
         setState(() {
@@ -347,253 +231,141 @@ class _AddressSectionState
     }
   }
 
-  void _showMessage(
-    String message,
-  ) {
+  void _showMessage(String message) {
     if (!mounted) {
       return;
     }
 
-    ScaffoldMessenger.of(context)
-        .showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  Widget _buildViewItem(
-    AddressModel address,
-  ) {
+  Widget _buildViewItem(AddressModel address) {
     return Container(
       width: double.infinity,
-      margin:
-          const EdgeInsets.only(
-        bottom: 10,
-      ),
-      padding:
-          const EdgeInsets.all(
-        12,
-      ),
-      decoration:
-          BoxDecoration(
-        color:
-            const Color(
-          0xfff7f7f7,
-        ),
-        borderRadius:
-            BorderRadius.circular(
-          14,
-        ),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xfff7f7f7),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Container(
-                padding:
-                    const EdgeInsets
-                        .symmetric(
-                  horizontal: 8,
-                  vertical: 3,
-                ),
-                decoration:
-                    BoxDecoration(
-                  color:
-                      const Color(
-                    0xFFE3F2FD,
-                  ),
-                  borderRadius:
-                      BorderRadius
-                          .circular(
-                    20,
-                  ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE3F2FD),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  address.label
-                          .trim()
-                          .isEmpty
-                      ? 'Khác'
-                      : address.label,
-                  style:
-                      const TextStyle(
-                    color:
-                        Color(
-                      0xFF1565C0,
-                    ),
+                  address.label.trim().isEmpty ? 'Khác' : address.label,
+                  style: const TextStyle(
+                    color: Color(0xFF1565C0),
                     fontSize: 11,
-                    fontWeight:
-                        FontWeight.w600,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-              const SizedBox(
-                width: 8,
-              ),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  address.receiverName
-                          .trim()
-                          .isEmpty
+                  address.receiverName.trim().isEmpty
                       ? 'Chưa có tên người nhận'
-                      : address
-                          .receiverName,
-                  style:
-                      const TextStyle(
-                    fontWeight:
-                        FontWeight.bold,
-                  ),
+                      : address.receiverName,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
-              if (address
-                  .isDefault)
+              if (address.isDefault)
                 Container(
-                  padding:
-                      const EdgeInsets
-                          .symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: 8,
                     vertical: 3,
                   ),
-                  decoration:
-                      BoxDecoration(
-                    color:
-                        Colors.red
-                            .shade50,
-                    borderRadius:
-                        BorderRadius
-                            .circular(
-                      20,
-                    ),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     'Mặc định',
-                    style:
-                        TextStyle(
-                      color:
-                          Colors.red
-                              .shade700,
+                    style: TextStyle(
+                      color: Colors.red.shade700,
                       fontSize: 11,
-                      fontWeight:
-                          FontWeight
-                              .w600,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
             ],
           ),
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
           Row(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(
-                Icons.phone_outlined,
-                size: 17,
-                color:
-                    Colors.grey,
-              ),
-              const SizedBox(
-                width: 7,
-              ),
+              const Icon(Icons.phone_outlined, size: 17, color: Colors.grey),
+              const SizedBox(width: 7),
               Expanded(
                 child: Text(
-                  address.phoneNumber
-                          .trim()
-                          .isEmpty
+                  address.phoneNumber.trim().isEmpty
                       ? 'Chưa có số điện thoại'
-                      : address
-                          .phoneNumber,
+                      : address.phoneNumber,
                 ),
               ),
             ],
           ),
-          const SizedBox(
-            height: 6,
-          ),
+          const SizedBox(height: 6),
           Row(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Icon(
-                Icons
-                    .location_on_outlined,
+                Icons.location_on_outlined,
                 size: 17,
-                color:
-                    Colors.grey,
+                color: Colors.grey,
               ),
-              const SizedBox(
-                width: 7,
-              ),
+              const SizedBox(width: 7),
               Expanded(
                 child: Text(
-                  address.addressLine
-                          .trim()
-                          .isEmpty
+                  address.addressLine.trim().isEmpty
                       ? 'Chưa có địa chỉ giao hàng'
-                      : address
-                          .addressLine,
+                      : address.addressLine,
                 ),
               ),
             ],
           ),
-          const SizedBox(
-            height: 6,
-          ),
+          const SizedBox(height: 6),
           Row(
             children: [
               Icon(
                 address.hasCoordinates
-                    ? Icons
-                        .check_circle_outline
-                    : Icons
-                        .location_searching,
+                    ? Icons.check_circle_outline
+                    : Icons.location_searching,
                 size: 16,
-                color:
-                    address
-                            .hasCoordinates
-                        ? Colors.green
-                        : Colors.orange,
+                color: address.hasCoordinates ? Colors.green : Colors.orange,
               ),
-              const SizedBox(
-                width: 6,
-              ),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   address.hasCoordinates
                       ? 'Đã có tọa độ giao hàng'
                       : 'Chưa có tọa độ; hệ thống sẽ xác định khi thanh toán',
-                  style:
-                      TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     color:
-                        address
-                                .hasCoordinates
+                        address.hasCoordinates
                             ? Colors.green
-                            : Colors
-                                .orange
-                                .shade800,
+                            : Colors.orange.shade800,
                   ),
                 ),
               ),
             ],
           ),
-          if (address.note
-              .trim()
-              .isNotEmpty) ...[
-            const SizedBox(
-              height: 6,
-            ),
+          if (address.note.trim().isNotEmpty) ...[
+            const SizedBox(height: 6),
             Text(
               'Ghi chú: ${address.note}',
-              style:
-                  const TextStyle(
-                color:
-                    Colors.grey,
-              ),
+              style: const TextStyle(color: Colors.grey),
             ),
           ],
         ],
@@ -601,46 +373,22 @@ class _AddressSectionState
     );
   }
 
-  Widget _buildEditItem(
-    int index,
-  ) {
-    final address =
-        _localAddresses[index];
+  Widget _buildEditItem(int index) {
+    final address = _localAddresses[index];
 
-    final bool resolving =
-        _resolvingIndex ==
-            index;
+    final bool resolving = _resolvingIndex == index;
 
     final String keyValue =
-        address.id
-                .trim()
-                .isNotEmpty
-            ? address.id
-            : 'new-$index';
+        address.id.trim().isNotEmpty ? address.id : 'new-$index';
 
     return Container(
-      key: ValueKey(
-        keyValue,
-      ),
+      key: ValueKey(keyValue),
       width: double.infinity,
-      margin:
-          const EdgeInsets.only(
-        bottom: 12,
-      ),
-      padding:
-          const EdgeInsets.all(
-        12,
-      ),
-      decoration:
-          BoxDecoration(
-        color:
-            const Color(
-          0xfff7f7f7,
-        ),
-        borderRadius:
-            BorderRadius.circular(
-          14,
-        ),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xfff7f7f7),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
         children: [
@@ -649,134 +397,77 @@ class _AddressSectionState
               Expanded(
                 child: Text(
                   'Địa chỉ ${index + 1}',
-                  style:
-                      const TextStyle(
-                    fontWeight:
-                        FontWeight.w600,
-                  ),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
               IconButton(
-                tooltip:
-                    'Xóa địa chỉ',
-                onPressed:
-                    _isSaving
-                        ? null
-                        : () =>
-                            _removeAddress(
-                              index,
-                            ),
-                icon:
-                    const Icon(
-                  Icons.delete_outline,
-                  color: Colors.red,
-                ),
+                tooltip: 'Xóa địa chỉ',
+                onPressed: _isSaving ? null : () => _removeAddress(index),
+                icon: const Icon(Icons.delete_outline, color: Colors.red),
               ),
             ],
           ),
 
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
 
           TextFormField(
-            initialValue:
-                address.label,
-            decoration:
-                const InputDecoration(
-              labelText:
-                  'Nhãn địa chỉ',
-              hintText:
-                  'Nhà, Trường, Công ty...',
-              border:
-                  OutlineInputBorder(),
+            initialValue: address.label,
+            decoration: const InputDecoration(
+              labelText: 'Nhãn địa chỉ',
+              hintText: 'Nhà, Trường, Công ty...',
+              border: OutlineInputBorder(),
             ),
             onChanged: (value) {
-              _localAddresses[index] =
-                  _localAddresses[
-                          index]
-                      .copyWith(
+              _localAddresses[index] = _localAddresses[index].copyWith(
                 label: value,
               );
             },
           ),
 
-          const SizedBox(
-            height: 10,
-          ),
+          const SizedBox(height: 10),
 
           TextFormField(
-            initialValue:
-                address
-                    .receiverName,
-            decoration:
-                const InputDecoration(
-              labelText:
-                  'Tên người nhận',
-              border:
-                  OutlineInputBorder(),
+            initialValue: address.receiverName,
+            decoration: const InputDecoration(
+              labelText: 'Tên người nhận',
+              border: OutlineInputBorder(),
             ),
             onChanged: (value) {
-              _localAddresses[index] =
-                  _localAddresses[
-                          index]
-                      .copyWith(
+              _localAddresses[index] = _localAddresses[index].copyWith(
                 receiverName: value,
               );
             },
           ),
 
-          const SizedBox(
-            height: 10,
-          ),
+          const SizedBox(height: 10),
 
           TextFormField(
-            initialValue:
-                address
-                    .phoneNumber,
-            decoration:
-                const InputDecoration(
-              labelText:
-                  'Số điện thoại',
-              border:
-                  OutlineInputBorder(),
+            initialValue: address.phoneNumber,
+            decoration: const InputDecoration(
+              labelText: 'Số điện thoại',
+              border: OutlineInputBorder(),
             ),
-            keyboardType:
-                TextInputType.phone,
+            keyboardType: TextInputType.phone,
             onChanged: (value) {
-              _localAddresses[index] =
-                  _localAddresses[
-                          index]
-                      .copyWith(
+              _localAddresses[index] = _localAddresses[index].copyWith(
                 phoneNumber: value,
               );
             },
           ),
 
-          const SizedBox(
-            height: 10,
-          ),
+          const SizedBox(height: 10),
 
           TextFormField(
-            initialValue:
-                address
-                    .addressLine,
-            decoration:
-                const InputDecoration(
-              labelText:
-                  'Địa chỉ đầy đủ',
-              hintText:
-                  'Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành',
-              border:
-                  OutlineInputBorder(),
+            initialValue: address.addressLine,
+            decoration: const InputDecoration(
+              labelText: 'Địa chỉ đầy đủ',
+              hintText: 'Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành',
+              border: OutlineInputBorder(),
             ),
             maxLines: 2,
             onChanged: (value) {
               // Address text đổi thì tọa độ cũ không còn đáng tin.
-              _localAddresses[index] =
-                  _localAddresses[
-                          index]
-                      .copyWith(
+              _localAddresses[index] = _localAddresses[index].copyWith(
                 addressLine: value,
                 latitude: 0,
                 longitude: 0,
@@ -784,41 +475,24 @@ class _AddressSectionState
             },
           ),
 
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
 
           SizedBox(
-            width:
-                double.infinity,
-            child:
-                OutlinedButton.icon(
+            width: double.infinity,
+            child: OutlinedButton.icon(
               onPressed:
-                  _isSaving ||
-                          _resolvingIndex !=
-                              null
+                  _isSaving || _resolvingIndex != null
                       ? null
-                      : () =>
-                          _resolveAddress(
-                            index,
-                          ),
+                      : () => _resolveAddress(index),
               icon:
                   resolving
                       ? const SizedBox(
                         width: 16,
                         height: 16,
-                        child:
-                            CircularProgressIndicator(
-                          strokeWidth:
-                              2,
-                        ),
+                        child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                      : const Icon(
-                        Icons
-                            .location_searching,
-                      ),
-              label:
-                  Text(
+                      : const Icon(Icons.location_searching),
+              label: Text(
                 address.hasCoordinates
                     ? 'Xác định lại tọa độ'
                     : 'Xác định tọa độ từ địa chỉ',
@@ -827,78 +501,50 @@ class _AddressSectionState
           ),
 
           if (address.hasCoordinates) ...[
-            const SizedBox(
-              height: 6,
-            ),
+            const SizedBox(height: 6),
             Align(
-              alignment:
-                  Alignment
-                      .centerLeft,
+              alignment: Alignment.centerLeft,
               child: Text(
                 'Lat: ${address.latitude.toStringAsFixed(6)}  •  '
                 'Lng: ${address.longitude.toStringAsFixed(6)}',
-                style:
-                    const TextStyle(
-                  fontSize: 11,
-                  color: Colors.green,
-                ),
+                style: const TextStyle(fontSize: 11, color: Colors.green),
               ),
             ),
           ],
 
-          const SizedBox(
-            height: 10,
-          ),
+          const SizedBox(height: 10),
 
           TextFormField(
-            initialValue:
-                address.note,
-            decoration:
-                const InputDecoration(
-              labelText:
-                  'Ghi chú giao hàng',
-              hintText:
-                  'Ví dụ: gọi trước khi giao, cổng sau...',
-              border:
-                  OutlineInputBorder(),
+            initialValue: address.note,
+            decoration: const InputDecoration(
+              labelText: 'Ghi chú giao hàng',
+              hintText: 'Ví dụ: gọi trước khi giao, cổng sau...',
+              border: OutlineInputBorder(),
             ),
             maxLines: 2,
             onChanged: (value) {
-              _localAddresses[index] =
-                  _localAddresses[
-                          index]
-                      .copyWith(
+              _localAddresses[index] = _localAddresses[index].copyWith(
                 note: value,
               );
             },
           ),
 
-          const SizedBox(
-            height: 10,
-          ),
+          const SizedBox(height: 10),
 
           Row(
             children: [
               Checkbox(
-                value:
-                    address.isDefault,
+                value: address.isDefault,
                 onChanged:
                     _isSaving
                         ? null
                         : (value) {
-                          if (value ==
-                              true) {
-                            _setDefaultAddress(
-                              index,
-                            );
+                          if (value == true) {
+                            _setDefaultAddress(index);
                           }
                         },
               ),
-              const Expanded(
-                child: Text(
-                  'Đặt làm địa chỉ mặc định',
-                ),
-              ),
+              const Expanded(child: Text('Đặt làm địa chỉ mặc định')),
             ],
           ),
         ],
@@ -907,19 +553,15 @@ class _AddressSectionState
   }
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
     return SectionCard(
-      title:
-          'Địa chỉ giao hàng',
+      title: 'Địa chỉ giao hàng',
       action: IconButton(
         onPressed:
             _isSaving
                 ? null
                 : () {
-                  if (widget
-                      .isEditing) {
+                  if (widget.isEditing) {
                     _saveAddresses();
                   } else {
                     widget.onEdit();
@@ -930,75 +572,38 @@ class _AddressSectionState
                 ? const SizedBox(
                   height: 18,
                   width: 18,
-                  child:
-                      CircularProgressIndicator(
-                    strokeWidth: 2,
-                  ),
+                  child: CircularProgressIndicator(strokeWidth: 2),
                 )
                 : Icon(
-                  widget.isEditing
-                      ? Icons.check
-                      : Icons
-                          .edit_outlined,
-                  color:
-                      const Color(
-                    0xFF8E1F16,
-                  ),
+                  widget.isEditing ? Icons.check : Icons.edit_outlined,
+                  color: const Color(0xFF8E1F16),
                 ),
       ),
       child: Column(
         children: [
-          if (_localAddresses
-                  .isEmpty &&
-              !widget
-                  .isEditing)
+          if (_localAddresses.isEmpty && !widget.isEditing)
             const Align(
-              alignment:
-                  Alignment
-                      .centerLeft,
+              alignment: Alignment.centerLeft,
               child: Text(
                 'Chưa có địa chỉ giao hàng',
-                style:
-                    TextStyle(
-                  color:
-                      Colors.grey,
-                ),
+                style: TextStyle(color: Colors.grey),
               ),
             ),
 
-          ..._localAddresses
-              .asMap()
-              .entries
-              .map(
-                (entry) =>
-                    widget
-                            .isEditing
-                        ? _buildEditItem(
-                          entry.key,
-                        )
-                        : _buildViewItem(
-                          entry.value,
-                        ),
-              ),
+          ..._localAddresses.asMap().entries.map(
+            (entry) =>
+                widget.isEditing
+                    ? _buildEditItem(entry.key)
+                    : _buildViewItem(entry.value),
+          ),
 
           if (widget.isEditing)
             SizedBox(
-              width:
-                  double.infinity,
-              child:
-                  OutlinedButton.icon(
-                onPressed:
-                    _isSaving
-                        ? null
-                        : _addNewAddress,
-                icon:
-                    const Icon(
-                  Icons.add,
-                ),
-                label:
-                    const Text(
-                  'Thêm địa chỉ',
-                ),
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _isSaving ? null : _addNewAddress,
+                icon: const Icon(Icons.add),
+                label: const Text('Thêm địa chỉ'),
               ),
             ),
         ],

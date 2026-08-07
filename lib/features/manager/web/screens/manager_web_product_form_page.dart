@@ -1,13 +1,13 @@
 import 'dart:typed_data';
 
-import 'package:CT466_project_trangdc24v7x324/core/pocketbase_client.dart';
-import 'package:CT466_project_trangdc24v7x324/features/manager/web/widgets/manager_web_layout.dart';
-import 'package:CT466_project_trangdc24v7x324/models/category_model.dart';
-import 'package:CT466_project_trangdc24v7x324/models/product_model.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/product_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/profile_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/routes/app_routes.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/theme/app_colors.dart';
+import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
+import 'package:project_trangdc24v7x324/features/manager/web/widgets/manager_web_layout.dart';
+import 'package:project_trangdc24v7x324/models/category_model.dart';
+import 'package:project_trangdc24v7x324/models/product_model.dart';
+import 'package:project_trangdc24v7x324/providers/product_provider.dart';
+import 'package:project_trangdc24v7x324/providers/profile_provider.dart';
+import 'package:project_trangdc24v7x324/routes/app_routes.dart';
+import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';

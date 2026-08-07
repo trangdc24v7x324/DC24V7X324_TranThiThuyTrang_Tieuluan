@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
-import 'package:CT466_project_trangdc24v7x324/models/category_model.dart';
-import 'package:CT466_project_trangdc24v7x324/models/product_model.dart';
-import 'package:CT466_project_trangdc24v7x324/services/product_service.dart';
+import 'package:project_trangdc24v7x324/models/category_model.dart';
+import 'package:project_trangdc24v7x324/models/product_model.dart';
+import 'package:project_trangdc24v7x324/services/product_service.dart';
 import 'package:flutter/material.dart';
 
 class ProductProvider extends ChangeNotifier {

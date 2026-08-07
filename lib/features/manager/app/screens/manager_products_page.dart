@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:CT466_project_trangdc24v7x324/features/manager/app/screens/product_form_page.dart';
-import 'package:CT466_project_trangdc24v7x324/models/product_model.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/product_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/widgets/app_body.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/widgets/app_layout.dart';
+import 'package:project_trangdc24v7x324/features/manager/app/screens/product_form_page.dart';
+import 'package:project_trangdc24v7x324/models/product_model.dart';
+import 'package:project_trangdc24v7x324/providers/product_provider.dart';
+import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
+import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
 
 class ManagerProductsPage extends StatefulWidget {
   const ManagerProductsPage({super.key});

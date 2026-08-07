@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:CT466_project_trangdc24v7x324/models/cart_item_model.dart';
-import 'package:CT466_project_trangdc24v7x324/models/order_model.dart';
-import 'package:CT466_project_trangdc24v7x324/services/order_service.dart';
+import 'package:project_trangdc24v7x324/models/cart_item_model.dart';
+import 'package:project_trangdc24v7x324/models/order_model.dart';
+import 'package:project_trangdc24v7x324/services/order_service.dart';
 
 class OrderProvider extends ChangeNotifier {
   final OrderService _orderService = OrderService();

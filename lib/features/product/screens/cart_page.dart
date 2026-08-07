@@ -1,11 +1,11 @@
-import 'package:CT466_project_trangdc24v7x324/models/cart_item_model.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/cart_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/routes/app_routes.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/theme/app_colors.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/theme/app_text.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/widgets/app_body.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/widgets/app_card.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/widgets/app_layout.dart';
+import 'package:project_trangdc24v7x324/models/cart_item_model.dart';
+import 'package:project_trangdc24v7x324/providers/cart_provider.dart';
+import 'package:project_trangdc24v7x324/routes/app_routes.dart';
+import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
+import 'package:project_trangdc24v7x324/shared/theme/app_text.dart';
+import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
+import 'package:project_trangdc24v7x324/shared/widgets/app_card.dart';
+import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

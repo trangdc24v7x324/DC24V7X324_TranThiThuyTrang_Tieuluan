@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:CT466_project_trangdc24v7x324/core/pocketbase_client.dart';
-import 'package:CT466_project_trangdc24v7x324/features/manager/web/widgets/manager_web_layout.dart';
-import 'package:CT466_project_trangdc24v7x324/models/product_model.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/notification_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/product_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/profile_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/routes/app_routes.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/theme/app_colors.dart';
+import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
+import 'package:project_trangdc24v7x324/features/manager/web/widgets/manager_web_layout.dart';
+import 'package:project_trangdc24v7x324/models/product_model.dart';
+import 'package:project_trangdc24v7x324/providers/notification_provider.dart';
+import 'package:project_trangdc24v7x324/providers/product_provider.dart';
+import 'package:project_trangdc24v7x324/providers/profile_provider.dart';
+import 'package:project_trangdc24v7x324/routes/app_routes.dart';
+import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 
-class ManagerWebNotificationsPage
-    extends StatefulWidget {
+class ManagerWebNotificationsPage extends StatefulWidget {
   const ManagerWebNotificationsPage({super.key});
 
   @override
@@ -21,10 +20,8 @@ class ManagerWebNotificationsPage
 
 class _ManagerWebNotificationsPageState
     extends State<ManagerWebNotificationsPage> {
-  final TextEditingController _titleController =
-      TextEditingController();
-  final TextEditingController _contentController =
-      TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _contentController = TextEditingController();
 
   String _selectedType = 'promotion';
   String? _selectedProductId;
@@ -43,10 +40,8 @@ class _ManagerWebNotificationsPageState
 
   @override
   void dispose() {
-    _titleController
-        .removeListener(_refreshPreview);
-    _contentController
-        .removeListener(_refreshPreview);
+    _titleController.removeListener(_refreshPreview);
+    _contentController.removeListener(_refreshPreview);
     _titleController.dispose();
     _contentController.dispose();
     super.dispose();
@@ -59,36 +54,23 @@ class _ManagerWebNotificationsPageState
   }
 
   Future<void> _loadData() async {
-    final productProvider =
-        context.read<ProductProvider>();
+    final productProvider = context.read<ProductProvider>();
 
     await Future.wait([
       productProvider.loadProducts(),
-      context
-          .read<ProfileProvider>()
-          .loadProfile(forceReload: true),
+      context.read<ProfileProvider>().loadProfile(forceReload: true),
     ]);
   }
 
-  ProductModel? _selectedProduct(
-    List<ProductModel> products,
-  ) {
-    if (_selectedProductId == null ||
-        _selectedProductId!.isEmpty) {
+  ProductModel? _selectedProduct(List<ProductModel> products) {
+    if (_selectedProductId == null || _selectedProductId!.isEmpty) {
       return null;
     }
 
-    final matches = products
-        .where(
-          (product) =>
-              product.id ==
-              _selectedProductId,
-        )
-        .toList();
+    final matches =
+        products.where((product) => product.id == _selectedProductId).toList();
 
-    return matches.isEmpty
-        ? null
-        : matches.first;
+    return matches.isEmpty ? null : matches.first;
   }
 
   void _changeType(String? value) {
@@ -106,27 +88,21 @@ class _ManagerWebNotificationsPageState
     });
   }
 
-  void _selectProduct(
-    String? productId,
-    List<ProductModel> products,
-  ) {
+  void _selectProduct(String? productId, List<ProductModel> products) {
     setState(() {
       _selectedProductId = productId;
       _localError = null;
     });
 
-    final product =
-        _selectedProduct(products);
+    final product = _selectedProduct(products);
 
     if (product == null) {
       return;
     }
 
     if (_titleController.text.trim().isEmpty ||
-        _titleController.text.trim() ==
-            'Sản phẩm mới') {
-      _titleController.text =
-          'Sản phẩm mới: ${product.title}';
+        _titleController.text.trim() == 'Sản phẩm mới') {
+      _titleController.text = 'Sản phẩm mới: ${product.title}';
     }
 
     if (_contentController.text.trim().isEmpty) {
@@ -137,9 +113,7 @@ class _ManagerWebNotificationsPageState
     }
   }
 
-  void _applyTemplate(
-    _NotificationTemplate template,
-  ) {
+  void _applyTemplate(_NotificationTemplate template) {
     setState(() {
       _selectedType = template.type;
       _selectedProductId = null;
@@ -162,33 +136,27 @@ class _ManagerWebNotificationsPageState
   }
 
   Future<void> _submit() async {
-    final title =
-        _titleController.text.trim();
-    final body =
-        _contentController.text.trim();
+    final title = _titleController.text.trim();
+    final body = _contentController.text.trim();
 
     if (title.isEmpty || body.isEmpty) {
       setState(() {
-        _localError =
-            'Vui lòng nhập đầy đủ tiêu đề và nội dung.';
+        _localError = 'Vui lòng nhập đầy đủ tiêu đề và nội dung.';
       });
       return;
     }
 
     if (_selectedType == 'new_product' &&
-        (_selectedProductId == null ||
-            _selectedProductId!.isEmpty)) {
+        (_selectedProductId == null || _selectedProductId!.isEmpty)) {
       setState(() {
-        _localError =
-            'Vui lòng chọn sản phẩm mới cần giới thiệu.';
+        _localError = 'Vui lòng chọn sản phẩm mới cần giới thiệu.';
       });
       return;
     }
 
     if (title.length > 120) {
       setState(() {
-        _localError =
-            'Tiêu đề không nên vượt quá 120 ký tự.';
+        _localError = 'Tiêu đề không nên vượt quá 120 ký tự.';
       });
       return;
     }
@@ -199,21 +167,16 @@ class _ManagerWebNotificationsPageState
     });
 
     try {
-      final provider =
-          context.read<NotificationProvider>();
+      final provider = context.read<NotificationProvider>();
 
-      final success =
-          await provider.createCustomerNotification(
+      final success = await provider.createCustomerNotification(
         title: title,
         body: body,
         type: _selectedType,
       );
 
       if (!success) {
-        throw Exception(
-          provider.errorMessage ??
-              'Gửi thông báo thất bại',
-        );
+        throw Exception(provider.errorMessage ?? 'Gửi thông báo thất bại');
       }
 
       if (!mounted) {
@@ -224,17 +187,13 @@ class _ManagerWebNotificationsPageState
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Đã gửi thông báo đến tất cả khách hàng.',
-          ),
+          content: Text('Đã gửi thông báo đến tất cả khách hàng.'),
         ),
       );
     } catch (error) {
       if (mounted) {
         setState(() {
-          _localError = error
-              .toString()
-              .replaceFirst('Exception: ', '');
+          _localError = error.toString().replaceFirst('Exception: ', '');
         });
       }
     } finally {
@@ -258,10 +217,8 @@ class _ManagerWebNotificationsPageState
 
   @override
   Widget build(BuildContext context) {
-    final productProvider =
-        context.watch<ProductProvider>();
-    final profile =
-        context.watch<ProfileProvider>().profile;
+    final productProvider = context.watch<ProductProvider>();
+    final profile = context.watch<ProfileProvider>().profile;
 
     final managerName =
         profile?.fullName.trim().isNotEmpty == true
@@ -270,21 +227,18 @@ class _ManagerWebNotificationsPageState
 
     final avatarUrl = profile?.avatarUrl ?? '';
 
-    final products = productProvider.products
-        .where((product) => product.isAvailable)
-        .toList();
+    final products =
+        productProvider.products
+            .where((product) => product.isAvailable)
+            .toList();
 
-    products.sort(
-      (a, b) => a.title.compareTo(b.title),
-    );
+    products.sort((a, b) => a.title.compareTo(b.title));
 
-    final selectedProduct =
-        _selectedProduct(products);
+    final selectedProduct = _selectedProduct(products);
 
     return ManagerWebLayout(
       title: 'Gửi thông báo',
-      currentRoute:
-          AppRoutes.managerNotifications,
+      currentRoute: AppRoutes.managerNotifications,
       managerName: managerName,
       avatarUrl: avatarUrl,
       onLogout: _logout,
@@ -292,9 +246,7 @@ class _ManagerWebNotificationsPageState
         IconButton(
           tooltip: 'Làm mới sản phẩm',
           onPressed: _loadData,
-          icon: const Icon(
-            Icons.refresh_rounded,
-          ),
+          icon: const Icon(Icons.refresh_rounded),
         ),
       ],
       child: RefreshIndicator(
@@ -305,12 +257,11 @@ class _ManagerWebNotificationsPageState
                 constraints.maxWidth >= 1100
                     ? 24.0
                     : constraints.maxWidth >= 700
-                        ? 18.0
-                        : 12.0;
+                    ? 18.0
+                    : 12.0;
 
             return SingleChildScrollView(
-              physics:
-                  const AlwaysScrollableScrollPhysics(),
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.fromLTRB(
                 horizontalPadding,
                 20,
@@ -319,79 +270,44 @@ class _ManagerWebNotificationsPageState
               ),
               child: Center(
                 child: ConstrainedBox(
-                  constraints:
-                      const BoxConstraints(maxWidth: 1320),
+                  constraints: const BoxConstraints(maxWidth: 1320),
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _NotificationOverview(
-                        selectedType:
-                            _selectedType,
-                      ),
+                      _NotificationOverview(selectedType: _selectedType),
                       const SizedBox(height: 16),
                       LayoutBuilder(
-                        builder:
-                            (context, inner) {
-                          final wide =
-                              inner.maxWidth >= 930;
+                        builder: (context, inner) {
+                          final wide = inner.maxWidth >= 930;
 
-                          final form =
-                              _NotificationFormCard(
-                            selectedType:
-                                _selectedType,
-                            selectedProductId:
-                                _selectedProductId,
+                          final form = _NotificationFormCard(
+                            selectedType: _selectedType,
+                            selectedProductId: _selectedProductId,
                             products: products,
-                            productLoading:
-                                productProvider
-                                    .isLoading,
-                            titleController:
-                                _titleController,
-                            contentController:
-                                _contentController,
-                            isSubmitting:
-                                _isSubmitting,
-                            localError:
-                                _localError,
-                            onTypeChanged:
-                                _changeType,
-                            onProductChanged:
-                                (value) {
-                              _selectProduct(
-                                value,
-                                products,
-                              );
+                            productLoading: productProvider.isLoading,
+                            titleController: _titleController,
+                            contentController: _contentController,
+                            isSubmitting: _isSubmitting,
+                            localError: _localError,
+                            onTypeChanged: _changeType,
+                            onProductChanged: (value) {
+                              _selectProduct(value, products);
                             },
                             onSubmit: _submit,
                             onClear: _clearForm,
                           );
 
-                          final preview =
-                              Column(
+                          final preview = Column(
                             children: [
                               _NotificationPreviewCard(
-                                type:
-                                    _selectedType,
-                                title:
-                                    _titleController
-                                        .text,
-                                body:
-                                    _contentController
-                                        .text,
-                                product:
-                                    selectedProduct,
+                                type: _selectedType,
+                                title: _titleController.text,
+                                body: _contentController.text,
+                                product: selectedProduct,
                               ),
-                              const SizedBox(
-                                height: 16,
-                              ),
-                              _TemplateCard(
-                                onSelected:
-                                    _applyTemplate,
-                              ),
-                              const SizedBox(
-                                height: 16,
-                              ),
+                              const SizedBox(height: 16),
+                              _TemplateCard(onSelected: _applyTemplate),
+                              const SizedBox(height: 16),
                               const _UsageTipsCard(),
                             ],
                           );
@@ -400,30 +316,18 @@ class _ManagerWebNotificationsPageState
                             return Column(
                               children: [
                                 form,
-                                const SizedBox(
-                                  height: 16,
-                                ),
+                                const SizedBox(height: 16),
                                 preview,
                               ],
                             );
                           }
 
                           return Row(
-                            crossAxisAlignment:
-                                CrossAxisAlignment
-                                    .start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                flex: 6,
-                                child: form,
-                              ),
-                              const SizedBox(
-                                width: 18,
-                              ),
-                              Expanded(
-                                flex: 5,
-                                child: preview,
-                              ),
+                              Expanded(flex: 6, child: form),
+                              const SizedBox(width: 18),
+                              Expanded(flex: 5, child: preview),
                             ],
                           );
                         },
@@ -440,33 +344,24 @@ class _ManagerWebNotificationsPageState
   }
 }
 
-class _NotificationOverview
-    extends StatelessWidget {
+class _NotificationOverview extends StatelessWidget {
   final String selectedType;
 
-  const _NotificationOverview({
-    required this.selectedType,
-  });
+  const _NotificationOverview({required this.selectedType});
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        _typeColor(selectedType);
+    final color = _typeColor(selectedType);
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            color.withOpacity(0.12),
-            AppColors.surface,
-          ],
+          colors: [color.withOpacity(0.12), AppColors.surface],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: color.withOpacity(0.18),
-        ),
+        border: Border.all(color: color.withOpacity(0.18)),
       ),
       child: Row(
         children: [
@@ -475,37 +370,28 @@ class _NotificationOverview
             height: 54,
             decoration: BoxDecoration(
               color: color.withOpacity(0.12),
-              borderRadius:
-                  BorderRadius.circular(17),
+              borderRadius: BorderRadius.circular(17),
             ),
-            child: Icon(
-              _typeIcon(selectedType),
-              color: color,
-              size: 27,
-            ),
+            child: Icon(_typeIcon(selectedType), color: color, size: 27),
           ),
           const SizedBox(width: 14),
           const Expanded(
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Trung tâm thông báo khách hàng',
                   style: TextStyle(
-                    color:
-                        AppColors.textPrimary,
+                    color: AppColors.textPrimary,
                     fontSize: 18,
-                    fontWeight:
-                        FontWeight.w900,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
                 SizedBox(height: 4),
                 Text(
                   'Soạn nội dung, xem trước và gửi thông báo chung đến toàn bộ Customer.',
                   style: TextStyle(
-                    color:
-                        AppColors.textSecondary,
+                    color: AppColors.textSecondary,
                     fontSize: 12,
                     height: 1.4,
                   ),
@@ -519,8 +405,7 @@ class _NotificationOverview
   }
 }
 
-class _NotificationFormCard
-    extends StatelessWidget {
+class _NotificationFormCard extends StatelessWidget {
   final String selectedType;
   final String? selectedProductId;
   final List<ProductModel> products;
@@ -557,13 +442,10 @@ class _NotificationFormCard
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppColors.border,
-        ),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
             'Nội dung thông báo',
@@ -593,10 +475,7 @@ class _NotificationFormCard
               icon: Icons.category_rounded,
             ),
             items: const [
-              DropdownMenuItem(
-                value: 'promotion',
-                child: Text('Khuyến mãi'),
-              ),
+              DropdownMenuItem(value: 'promotion', child: Text('Khuyến mãi')),
               DropdownMenuItem(
                 value: 'new_product',
                 child: Text('Sản phẩm mới'),
@@ -606,48 +485,31 @@ class _NotificationFormCard
                 child: Text('Thông báo chung'),
               ),
             ],
-            onChanged:
-                isSubmitting ? null : onTypeChanged,
+            onChanged: isSubmitting ? null : onTypeChanged,
           ),
-          if (selectedType ==
-              'new_product') ...[
+          if (selectedType == 'new_product') ...[
             const SizedBox(height: 13),
-            if (productLoading &&
-                products.isEmpty)
+            if (productLoading && products.isEmpty)
               const SizedBox(
                 height: 56,
                 child: Center(
-                  child:
-                      LinearProgressIndicator(
-                    color:
-                        AppColors.primary,
-                  ),
+                  child: LinearProgressIndicator(color: AppColors.primary),
                 ),
               )
             else if (products.isEmpty)
               Container(
                 width: double.infinity,
-                padding:
-                    const EdgeInsets.all(13),
+                padding: const EdgeInsets.all(13),
                 decoration: BoxDecoration(
-                  color: const Color(
-                    0xFFFFF7ED,
-                  ),
-                  borderRadius:
-                      BorderRadius.circular(13),
-                  border: Border.all(
-                    color: const Color(
-                      0xFFFED7AA,
-                    ),
-                  ),
+                  color: const Color(0xFFFFF7ED),
+                  borderRadius: BorderRadius.circular(13),
+                  border: Border.all(color: const Color(0xFFFED7AA)),
                 ),
                 child: const Text(
                   'Chưa có sản phẩm đang bán để lựa chọn.',
                   style: TextStyle(
-                    color:
-                        Color(0xFF9A3412),
-                    fontWeight:
-                        FontWeight.w700,
+                    color: Color(0xFF9A3412),
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               )
@@ -656,23 +518,20 @@ class _NotificationFormCard
                 value: selectedProductId,
                 isExpanded: true,
                 decoration: _decoration(
-                  label:
-                      'Sản phẩm cần giới thiệu',
+                  label: 'Sản phẩm cần giới thiệu',
                   icon: Icons.fastfood_rounded,
                 ),
-                items: products.map((product) {
-                  return DropdownMenuItem(
-                    value: product.id,
-                    child: Text(
-                      '${product.title} • ${_formatMoney(product.price)}',
-                      overflow:
-                          TextOverflow.ellipsis,
-                    ),
-                  );
-                }).toList(),
-                onChanged: isSubmitting
-                    ? null
-                    : onProductChanged,
+                items:
+                    products.map((product) {
+                      return DropdownMenuItem(
+                        value: product.id,
+                        child: Text(
+                          '${product.title} • ${_formatMoney(product.price)}',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList(),
+                onChanged: isSubmitting ? null : onProductChanged,
               ),
           ],
           const SizedBox(height: 13),
@@ -683,8 +542,7 @@ class _NotificationFormCard
             decoration: _decoration(
               label: 'Tiêu đề',
               icon: Icons.title_rounded,
-              hint:
-                  'Ví dụ: Ưu đãi cuối tuần',
+              hint: 'Ví dụ: Ưu đãi cuối tuần',
             ),
           ),
           const SizedBox(height: 5),
@@ -707,14 +565,11 @@ class _NotificationFormCard
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color:
-                    Colors.red.withOpacity(0.06),
-                borderRadius:
-                    BorderRadius.circular(12),
+                color: Colors.red.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Icon(
                     Icons.error_outline_rounded,
@@ -728,8 +583,7 @@ class _NotificationFormCard
                       style: const TextStyle(
                         color: Colors.red,
                         fontSize: 12,
-                        fontWeight:
-                            FontWeight.w700,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
@@ -740,91 +594,61 @@ class _NotificationFormCard
           const SizedBox(height: 16),
           LayoutBuilder(
             builder: (context, constraints) {
-              final compact =
-                  constraints.maxWidth < 460;
+              final compact = constraints.maxWidth < 460;
 
-              final clearButton =
-                  OutlinedButton.icon(
-                onPressed:
-                    isSubmitting ? null : onClear,
-                icon: const Icon(
-                  Icons.delete_sweep_outlined,
-                ),
-                label:
-                    const Text('Xóa nội dung'),
+              final clearButton = OutlinedButton.icon(
+                onPressed: isSubmitting ? null : onClear,
+                icon: const Icon(Icons.delete_sweep_outlined),
+                label: const Text('Xóa nội dung'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor:
-                      AppColors.textPrimary,
-                  side: const BorderSide(
-                    color: AppColors.border,
-                  ),
-                  padding:
-                      const EdgeInsets.symmetric(
+                  foregroundColor: AppColors.textPrimary,
+                  side: const BorderSide(color: AppColors.border),
+                  padding: const EdgeInsets.symmetric(
                     horizontal: 17,
                     vertical: 15,
                   ),
                 ),
               );
 
-              final sendButton =
-                  FilledButton.icon(
-                onPressed:
-                    isSubmitting ? null : onSubmit,
+              final sendButton = FilledButton.icon(
+                onPressed: isSubmitting ? null : onSubmit,
                 style: FilledButton.styleFrom(
-                  backgroundColor:
-                      AppColors.primary,
-                  foregroundColor:
-                      Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
                     horizontal: 20,
                     vertical: 15,
                   ),
                 ),
-                icon: isSubmitting
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child:
-                            CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(
-                        Icons.send_rounded,
-                      ),
+                icon:
+                    isSubmitting
+                        ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                        : const Icon(Icons.send_rounded),
                 label: Text(
-                  isSubmitting
-                      ? 'Đang gửi...'
-                      : 'Gửi đến khách hàng',
+                  isSubmitting ? 'Đang gửi...' : 'Gửi đến khách hàng',
                 ),
               );
 
               if (compact) {
                 return Column(
                   children: [
-                    SizedBox(
-                      width: double.infinity,
-                      child: sendButton,
-                    ),
+                    SizedBox(width: double.infinity, child: sendButton),
                     const SizedBox(height: 10),
-                    SizedBox(
-                      width: double.infinity,
-                      child: clearButton,
-                    ),
+                    SizedBox(width: double.infinity, child: clearButton),
                   ],
                 );
               }
 
               return Row(
-                mainAxisAlignment:
-                    MainAxisAlignment.end,
-                children: [
-                  clearButton,
-                  const SizedBox(width: 10),
-                  sendButton,
-                ],
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [clearButton, const SizedBox(width: 10), sendButton],
               );
             },
           ),
@@ -849,52 +673,40 @@ class _AudienceBox extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 20,
-            backgroundColor:
-                Color(0xFFDBEAFE),
-            child: Icon(
-              Icons.groups_rounded,
-              color: Color(0xFF2563EB),
-            ),
+            backgroundColor: Color(0xFFDBEAFE),
+            child: Icon(Icons.groups_rounded, color: Color(0xFF2563EB)),
           ),
           SizedBox(width: 11),
           Expanded(
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Tất cả khách hàng',
                   style: TextStyle(
-                    color:
-                        AppColors.textPrimary,
-                    fontWeight:
-                        FontWeight.w900,
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
                 SizedBox(height: 3),
                 Text(
                   'Đối tượng nhận được cố định là Customer.',
                   style: TextStyle(
-                    color:
-                        AppColors.textSecondary,
+                    color: AppColors.textSecondary,
                     fontSize: 11,
                   ),
                 ),
               ],
             ),
           ),
-          Icon(
-            Icons.check_circle_rounded,
-            color: AppColors.success,
-          ),
+          Icon(Icons.check_circle_rounded, color: AppColors.success),
         ],
       ),
     );
   }
 }
 
-class _NotificationPreviewCard
-    extends StatelessWidget {
+class _NotificationPreviewCard extends StatelessWidget {
   final String type;
   final String title;
   final String body;
@@ -910,12 +722,11 @@ class _NotificationPreviewCard
   @override
   Widget build(BuildContext context) {
     final color = _typeColor(type);
-    final safeTitle = title.trim().isEmpty
-        ? 'Tiêu đề thông báo'
-        : title.trim();
-    final safeBody = body.trim().isEmpty
-        ? 'Nội dung thông báo sẽ hiển thị tại đây.'
-        : body.trim();
+    final safeTitle = title.trim().isEmpty ? 'Tiêu đề thông báo' : title.trim();
+    final safeBody =
+        body.trim().isEmpty
+            ? 'Nội dung thông báo sẽ hiển thị tại đây.'
+            : body.trim();
 
     return Container(
       width: double.infinity,
@@ -923,13 +734,10 @@ class _NotificationPreviewCard
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppColors.border,
-        ),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
             'Xem trước trên ứng dụng',
@@ -942,10 +750,7 @@ class _NotificationPreviewCard
           const SizedBox(height: 4),
           const Text(
             'Bản xem trước mô phỏng thẻ thông báo Customer nhận được.',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 11,
-            ),
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
           ),
           const SizedBox(height: 16),
           Container(
@@ -955,70 +760,50 @@ class _NotificationPreviewCard
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  color.withOpacity(0.12),
-                  AppColors.surface,
-                ],
+                colors: [color.withOpacity(0.12), AppColors.surface],
               ),
-              borderRadius:
-                  BorderRadius.circular(19),
-              border: Border.all(
-                color:
-                    color.withOpacity(0.22),
-              ),
+              borderRadius: BorderRadius.circular(19),
+              border: Border.all(color: color.withOpacity(0.22)),
             ),
             child: Row(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color:
-                        color.withOpacity(0.14),
-                    borderRadius:
-                        BorderRadius.circular(
-                      16,
-                    ),
+                    color: color.withOpacity(0.14),
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Icon(
-                    _typeIcon(type),
-                    color: color,
-                  ),
+                  child: Icon(_typeIcon(type), color: color),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         _typeLabel(type),
                         style: TextStyle(
                           color: color,
                           fontSize: 11,
-                          fontWeight:
-                              FontWeight.w900,
+                          fontWeight: FontWeight.w900,
                         ),
                       ),
                       const SizedBox(height: 5),
                       Text(
                         safeTitle,
                         style: const TextStyle(
-                          color: AppColors
-                              .textPrimary,
+                          color: AppColors.textPrimary,
                           fontSize: 15,
-                          fontWeight:
-                              FontWeight.w900,
+                          fontWeight: FontWeight.w900,
                         ),
                       ),
                       const SizedBox(height: 6),
                       Text(
                         safeBody,
                         style: const TextStyle(
-                          color: AppColors
-                              .textSecondary,
+                          color: AppColors.textSecondary,
                           fontSize: 12,
                           height: 1.45,
                         ),
@@ -1026,67 +811,40 @@ class _NotificationPreviewCard
                       if (product != null) ...[
                         const SizedBox(height: 11),
                         Container(
-                          padding:
-                              const EdgeInsets
-                                  .symmetric(
+                          padding: const EdgeInsets.symmetric(
                             horizontal: 10,
                             vertical: 8,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white
-                                .withOpacity(0.78),
-                            borderRadius:
-                                BorderRadius.circular(
-                              12,
-                            ),
-                            border: Border.all(
-                              color:
-                                  AppColors.border,
-                            ),
+                            color: Colors.white.withOpacity(0.78),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.border),
                           ),
                           child: Row(
                             children: [
                               const Icon(
-                                Icons
-                                    .restaurant_menu_rounded,
-                                color: AppColors
-                                    .success,
+                                Icons.restaurant_menu_rounded,
+                                color: AppColors.success,
                                 size: 18,
                               ),
-                              const SizedBox(
-                                width: 7,
-                              ),
+                              const SizedBox(width: 7),
                               Expanded(
                                 child: Text(
                                   product!.title,
                                   maxLines: 1,
-                                  overflow:
-                                      TextOverflow
-                                          .ellipsis,
-                                  style:
-                                      const TextStyle(
-                                    color: AppColors
-                                        .textPrimary,
-                                    fontWeight:
-                                        FontWeight
-                                            .w800,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: AppColors.textPrimary,
+                                    fontWeight: FontWeight.w800,
                                   ),
                                 ),
                               ),
-                              const SizedBox(
-                                width: 7,
-                              ),
+                              const SizedBox(width: 7),
                               Text(
-                                _formatMoney(
-                                  product!.price,
-                                ),
-                                style:
-                                    const TextStyle(
-                                  color: AppColors
-                                      .primary,
-                                  fontWeight:
-                                      FontWeight
-                                          .w900,
+                                _formatMoney(product!.price),
+                                style: const TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w900,
                                 ),
                               ),
                             ],
@@ -1097,8 +855,7 @@ class _NotificationPreviewCard
                       const Text(
                         'Vừa xong',
                         style: TextStyle(
-                          color: AppColors
-                              .textSecondary,
+                          color: AppColors.textSecondary,
                           fontSize: 10,
                         ),
                       ),
@@ -1115,12 +872,9 @@ class _NotificationPreviewCard
 }
 
 class _TemplateCard extends StatelessWidget {
-  final ValueChanged<_NotificationTemplate>
-      onSelected;
+  final ValueChanged<_NotificationTemplate> onSelected;
 
-  const _TemplateCard({
-    required this.onSelected,
-  });
+  const _TemplateCard({required this.onSelected});
 
   @override
   Widget build(BuildContext context) {
@@ -1151,13 +905,10 @@ class _TemplateCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppColors.border,
-        ),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
             'Mẫu nội dung nhanh',
@@ -1170,73 +921,45 @@ class _TemplateCard extends StatelessWidget {
           const SizedBox(height: 4),
           const Text(
             'Chọn mẫu rồi điều chỉnh lại trước khi gửi.',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 11,
-            ),
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
           ),
           const SizedBox(height: 13),
           ...templates.map((template) {
-            final color =
-                _typeColor(template.type);
+            final color = _typeColor(template.type);
 
             return Padding(
-              padding:
-                  const EdgeInsets.only(
-                bottom: 9,
-              ),
+              padding: const EdgeInsets.only(bottom: 9),
               child: Material(
                 color: AppColors.bg,
-                borderRadius:
-                    BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(14),
                 child: InkWell(
                   onTap: () {
                     onSelected(template);
                   },
-                  borderRadius:
-                      BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(14),
                   child: Container(
-                    padding:
-                        const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      borderRadius:
-                          BorderRadius.circular(
-                        14,
-                      ),
-                      border: Border.all(
-                        color:
-                            AppColors.border,
-                      ),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.border),
                     ),
                     child: Row(
                       children: [
-                        Icon(
-                          _typeIcon(
-                            template.type,
-                          ),
-                          color: color,
-                          size: 21,
-                        ),
+                        Icon(_typeIcon(template.type), color: color, size: 21),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             template.title,
-                            style:
-                                const TextStyle(
-                              color: AppColors
-                                  .textPrimary,
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
                               fontSize: 12,
-                              fontWeight:
-                                  FontWeight
-                                      .w800,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ),
                         const Icon(
-                          Icons
-                              .arrow_forward_rounded,
-                          color: AppColors
-                              .textSecondary,
+                          Icons.arrow_forward_rounded,
+                          color: AppColors.textSecondary,
                           size: 18,
                         ),
                       ],
@@ -1263,49 +986,34 @@ class _UsageTipsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppColors.border,
-        ),
+        border: Border.all(color: AppColors.border),
       ),
       child: const Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.lightbulb_outline_rounded,
-                color: Color(0xFFF59E0B),
-              ),
+              Icon(Icons.lightbulb_outline_rounded, color: Color(0xFFF59E0B)),
               SizedBox(width: 8),
               Text(
                 'Gợi ý sử dụng',
                 style: TextStyle(
-                  color:
-                      AppColors.textPrimary,
-                  fontWeight:
-                      FontWeight.w900,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
             ],
           ),
           SizedBox(height: 12),
           _TipLine(
-            text:
-                'Tiêu đề nên ngắn, thể hiện rõ lợi ích hoặc nội dung chính.',
+            text: 'Tiêu đề nên ngắn, thể hiện rõ lợi ích hoặc nội dung chính.',
           ),
-          _TipLine(
-            text:
-                'Không gửi quá nhiều thông báo trong thời gian ngắn.',
-          ),
+          _TipLine(text: 'Không gửi quá nhiều thông báo trong thời gian ngắn.'),
           _TipLine(
             text:
                 'Thông báo trạng thái đơn hàng được hệ thống tự tạo khi Manager xử lý đơn.',
           ),
-          _TipLine(
-            text:
-                'Kiểm tra bản xem trước trước khi bấm gửi.',
-          ),
+          _TipLine(text: 'Kiểm tra bản xem trước trước khi bấm gửi.'),
         ],
       ),
     );
@@ -1315,34 +1023,25 @@ class _UsageTipsCard extends StatelessWidget {
 class _TipLine extends StatelessWidget {
   final String text;
 
-  const _TipLine({
-    required this.text,
-  });
+  const _TipLine({required this.text});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:
-          const EdgeInsets.only(bottom: 9),
+      padding: const EdgeInsets.only(bottom: 9),
       child: Row(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Padding(
             padding: EdgeInsets.only(top: 5),
-            child: Icon(
-              Icons.circle,
-              size: 6,
-              color: AppColors.primary,
-            ),
+            child: Icon(Icons.circle, size: 6, color: AppColors.primary),
           ),
           const SizedBox(width: 9),
           Expanded(
             child: Text(
               text,
               style: const TextStyle(
-                color:
-                    AppColors.textSecondary,
+                color: AppColors.textSecondary,
                 fontSize: 12,
                 height: 1.4,
               ),
@@ -1387,10 +1086,7 @@ InputDecoration _decoration({
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(
-        color: AppColors.primary,
-        width: 1.4,
-      ),
+      borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
     ),
   );
 }
@@ -1441,11 +1137,9 @@ String _formatMoney(double value) {
   for (var i = 0; i < digits.length; i++) {
     buffer.write(digits[i]);
 
-    final remaining =
-        digits.length - i - 1;
+    final remaining = digits.length - i - 1;
 
-    if (remaining > 0 &&
-        remaining % 3 == 0) {
+    if (remaining > 0 && remaining % 3 == 0) {
       buffer.write('.');
     }
   }

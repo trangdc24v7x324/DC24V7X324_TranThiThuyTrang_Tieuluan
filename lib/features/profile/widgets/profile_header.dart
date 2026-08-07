@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:CT466_project_trangdc24v7x324/providers/profile_provider.dart';
+import 'package:project_trangdc24v7x324/providers/profile_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';

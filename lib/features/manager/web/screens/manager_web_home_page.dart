@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:CT466_project_trangdc24v7x324/core/pocketbase_client.dart';
-import 'package:CT466_project_trangdc24v7x324/features/manager/web/widgets/manager_stat_card.dart';
-import 'package:CT466_project_trangdc24v7x324/features/manager/web/widgets/manager_web_layout.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/chat_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/order_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/profile_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/routes/app_routes.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/theme/app_colors.dart';
+import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
+import 'package:project_trangdc24v7x324/features/manager/web/widgets/manager_stat_card.dart';
+import 'package:project_trangdc24v7x324/features/manager/web/widgets/manager_web_layout.dart';
+import 'package:project_trangdc24v7x324/providers/chat_provider.dart';
+import 'package:project_trangdc24v7x324/providers/order_provider.dart';
+import 'package:project_trangdc24v7x324/providers/profile_provider.dart';
+import 'package:project_trangdc24v7x324/routes/app_routes.dart';
+import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 
 class ManagerWebHomePage extends StatefulWidget {
   const ManagerWebHomePage({super.key});
@@ -244,11 +244,7 @@ class _WelcomeBanner extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFFFF7380),
-            AppColors.primary,
-            Color(0xFFD91F2D),
-          ],
+          colors: [Color(0xFFFF7380), AppColors.primary, Color(0xFFD91F2D)],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
@@ -298,9 +294,7 @@ class _WelcomeBanner extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.15),
               shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white.withOpacity(0.28),
-              ),
+              border: Border.all(color: Colors.white.withOpacity(0.28)),
             ),
             child: const Icon(
               Icons.storefront_rounded,
@@ -369,9 +363,7 @@ class _SectionHeader extends StatelessWidget {
 class _ResponsiveStatsGrid extends StatelessWidget {
   final List<Widget> children;
 
-  const _ResponsiveStatsGrid({
-    required this.children,
-  });
+  const _ResponsiveStatsGrid({required this.children});
 
   @override
   Widget build(BuildContext context) {
@@ -392,14 +384,10 @@ class _ResponsiveStatsGrid extends StatelessWidget {
         return Wrap(
           spacing: spacing,
           runSpacing: spacing,
-          children: children
-              .map(
-                (child) => SizedBox(
-                  width: itemWidth,
-                  child: child,
-                ),
-              )
-              .toList(),
+          children:
+              children
+                  .map((child) => SizedBox(width: itemWidth, child: child))
+                  .toList(),
         );
       },
     );
@@ -410,10 +398,7 @@ class _QuickActionGrid extends StatelessWidget {
   final List<_QuickAction> actions;
   final ValueChanged<String> onOpen;
 
-  const _QuickActionGrid({
-    required this.actions,
-    required this.onOpen,
-  });
+  const _QuickActionGrid({required this.actions, required this.onOpen});
 
   @override
   Widget build(BuildContext context) {
@@ -434,17 +419,18 @@ class _QuickActionGrid extends StatelessWidget {
         return Wrap(
           spacing: spacing,
           runSpacing: spacing,
-          children: actions.map((action) {
-            return SizedBox(
-              width: itemWidth,
-              child: _QuickActionCard(
-                action: action,
-                onTap: () {
-                  onOpen(action.routeName);
-                },
-              ),
-            );
-          }).toList(),
+          children:
+              actions.map((action) {
+                return SizedBox(
+                  width: itemWidth,
+                  child: _QuickActionCard(
+                    action: action,
+                    onTap: () {
+                      onOpen(action.routeName);
+                    },
+                  ),
+                );
+              }).toList(),
         );
       },
     );
@@ -455,10 +441,7 @@ class _QuickActionCard extends StatelessWidget {
   final _QuickAction action;
   final VoidCallback onTap;
 
-  const _QuickActionCard({
-    required this.action,
-    required this.onTap,
-  });
+  const _QuickActionCard({required this.action, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -486,11 +469,7 @@ class _QuickActionCard extends StatelessWidget {
                       color: action.color.withOpacity(0.11),
                       borderRadius: BorderRadius.circular(17),
                     ),
-                    child: Icon(
-                      action.icon,
-                      color: action.color,
-                      size: 28,
-                    ),
+                    child: Icon(action.icon, color: action.color, size: 28),
                   ),
                   if (action.badge > 0)
                     Positioned(

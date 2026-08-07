@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:CT466_project_trangdc24v7x324/shared/theme/app_colors.dart';
+import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 
 class ManagerStatCard extends StatelessWidget {
   final String title;
@@ -45,11 +45,7 @@ class ManagerStatCard extends StatelessWidget {
               color: accentColor.withOpacity(0.12),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(
-              icon,
-              color: accentColor,
-              size: 27,
-            ),
+            child: Icon(icon, color: accentColor, size: 27),
           ),
           const SizedBox(width: 15),
           Expanded(
@@ -94,10 +90,7 @@ class ManagerStatCard extends StatelessWidget {
             ),
           ),
           if (onTap != null)
-            const Icon(
-              Icons.chevron_right_rounded,
-              color: AppColors.textGrey,
-            ),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.textGrey),
         ],
       ),
     );
@@ -110,10 +103,7 @@ class ManagerStatCard extends StatelessWidget {
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(20),
       clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: content,
-      ),
+      child: InkWell(onTap: onTap, child: content),
     );
   }
 }

@@ -1,9 +1,9 @@
-import 'package:CT466_project_trangdc24v7x324/core/pocketbase_client.dart';
-import 'package:CT466_project_trangdc24v7x324/models/cart_item_model.dart';
-import 'package:CT466_project_trangdc24v7x324/models/order_item_model.dart';
-import 'package:CT466_project_trangdc24v7x324/models/order_model.dart';
-import 'package:CT466_project_trangdc24v7x324/services/notification_service.dart';
-import 'package:CT466_project_trangdc24v7x324/services/delivery_service.dart';
+import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
+import 'package:project_trangdc24v7x324/models/cart_item_model.dart';
+import 'package:project_trangdc24v7x324/models/order_item_model.dart';
+import 'package:project_trangdc24v7x324/models/order_model.dart';
+import 'package:project_trangdc24v7x324/services/notification_service.dart';
+import 'package:project_trangdc24v7x324/services/delivery_service.dart';
 
 class OrderService {
   final NotificationService _notificationService = NotificationService();

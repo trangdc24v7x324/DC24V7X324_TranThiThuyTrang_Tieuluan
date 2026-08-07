@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import 'package:CT466_project_trangdc24v7x324/models/cart_item_model.dart';
-import 'package:CT466_project_trangdc24v7x324/models/product_model.dart';
-import 'package:CT466_project_trangdc24v7x324/services/cart_service.dart';
+import 'package:project_trangdc24v7x324/models/cart_item_model.dart';
+import 'package:project_trangdc24v7x324/models/product_model.dart';
+import 'package:project_trangdc24v7x324/services/cart_service.dart';
 
 class CartProvider extends ChangeNotifier {
   final CartService _cartService;

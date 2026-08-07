@@ -1,19 +1,19 @@
 import 'dart:io';
 
-import 'package:CT466_project_trangdc24v7x324/models/address_model.dart';
-import 'package:CT466_project_trangdc24v7x324/models/payment_method_model.dart';
-import 'package:CT466_project_trangdc24v7x324/models/user_profile_model.dart';
-import 'package:CT466_project_trangdc24v7x324/routes/app_routes.dart';
-import 'package:CT466_project_trangdc24v7x324/services/auth_service.dart';
-import 'package:CT466_project_trangdc24v7x324/services/profile_service.dart';
+import 'package:project_trangdc24v7x324/models/address_model.dart';
+import 'package:project_trangdc24v7x324/models/payment_method_model.dart';
+import 'package:project_trangdc24v7x324/models/user_profile_model.dart';
+import 'package:project_trangdc24v7x324/routes/app_routes.dart';
+import 'package:project_trangdc24v7x324/services/auth_service.dart';
+import 'package:project_trangdc24v7x324/services/profile_service.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
-import 'package:CT466_project_trangdc24v7x324/providers/cart_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/order_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/notification_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/chat_provider.dart';
+import 'package:project_trangdc24v7x324/providers/cart_provider.dart';
+import 'package:project_trangdc24v7x324/providers/order_provider.dart';
+import 'package:project_trangdc24v7x324/providers/notification_provider.dart';
+import 'package:project_trangdc24v7x324/providers/chat_provider.dart';
 
 class ProfileProvider extends ChangeNotifier {
   final ProfileService _profileService = ProfileService();

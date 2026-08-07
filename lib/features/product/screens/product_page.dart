@@ -1,10 +1,10 @@
-import 'package:CT466_project_trangdc24v7x324/core/pocketbase_client.dart';
-import 'package:CT466_project_trangdc24v7x324/models/cart_item_model.dart';
-import 'package:CT466_project_trangdc24v7x324/models/product_model.dart';
-import 'package:CT466_project_trangdc24v7x324/models/product_review_model.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/cart_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/product_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/review_provider.dart';
+import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
+import 'package:project_trangdc24v7x324/models/cart_item_model.dart';
+import 'package:project_trangdc24v7x324/models/product_model.dart';
+import 'package:project_trangdc24v7x324/models/product_review_model.dart';
+import 'package:project_trangdc24v7x324/providers/cart_provider.dart';
+import 'package:project_trangdc24v7x324/providers/product_provider.dart';
+import 'package:project_trangdc24v7x324/providers/review_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';

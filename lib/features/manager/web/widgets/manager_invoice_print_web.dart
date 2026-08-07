@@ -1,11 +1,9 @@
 import 'dart:convert';
 import 'dart:html' as html;
 
-import 'package:CT466_project_trangdc24v7x324/models/order_model.dart';
+import 'package:project_trangdc24v7x324/models/order_model.dart';
 
-void printManagerInvoice({
-  required OrderModel order,
-}) {
+void printManagerInvoice({required OrderModel order}) {
   final htmlContent = _buildInvoiceHtml(order);
 
   final uri = Uri.dataFromString(
@@ -19,8 +17,9 @@ void printManagerInvoice({
 }
 
 String _buildInvoiceHtml(OrderModel order) {
-  final rows = order.items.map((item) {
-    return '''
+  final rows =
+      order.items.map((item) {
+        return '''
       <tr>
         <td>
           <strong>${_escape(item.productName)}</strong>
@@ -31,7 +30,7 @@ String _buildInvoiceHtml(OrderModel order) {
         <td class="right">${_money(item.subtotal)}</td>
       </tr>
     ''';
-  }).join();
+      }).join();
 
   return '''
 <!doctype html>

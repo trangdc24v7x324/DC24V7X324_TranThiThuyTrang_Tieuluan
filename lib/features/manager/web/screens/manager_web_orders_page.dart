@@ -4,28 +4,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import 'package:CT466_project_trangdc24v7x324/core/pocketbase_client.dart';
-import 'package:CT466_project_trangdc24v7x324/features/manager/web/widgets/manager_invoice_print.dart';
-import 'package:CT466_project_trangdc24v7x324/features/manager/web/widgets/manager_web_layout.dart';
-import 'package:CT466_project_trangdc24v7x324/models/order_item_model.dart';
-import 'package:CT466_project_trangdc24v7x324/models/order_model.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/order_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/profile_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/routes/app_routes.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/theme/app_colors.dart';
+import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
+import 'package:project_trangdc24v7x324/features/manager/web/widgets/manager_invoice_print.dart';
+import 'package:project_trangdc24v7x324/features/manager/web/widgets/manager_web_layout.dart';
+import 'package:project_trangdc24v7x324/models/order_item_model.dart';
+import 'package:project_trangdc24v7x324/models/order_model.dart';
+import 'package:project_trangdc24v7x324/providers/order_provider.dart';
+import 'package:project_trangdc24v7x324/providers/profile_provider.dart';
+import 'package:project_trangdc24v7x324/routes/app_routes.dart';
+import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 
 class ManagerWebOrdersPage extends StatefulWidget {
   const ManagerWebOrdersPage({super.key});
 
   @override
-  State<ManagerWebOrdersPage> createState() =>
-      _ManagerWebOrdersPageState();
+  State<ManagerWebOrdersPage> createState() => _ManagerWebOrdersPageState();
 }
 
-class _ManagerWebOrdersPageState
-    extends State<ManagerWebOrdersPage> {
-  final TextEditingController _searchController =
-      TextEditingController();
+class _ManagerWebOrdersPageState extends State<ManagerWebOrdersPage> {
+  final TextEditingController _searchController = TextEditingController();
 
   String _statusFilter = 'processing';
   String _paymentFilter = 'all';
@@ -47,46 +44,39 @@ class _ManagerWebOrdersPageState
   Future<void> _loadData() async {
     await Future.wait([
       context.read<OrderProvider>().loadAllOrders(),
-      context
-          .read<ProfileProvider>()
-          .loadProfile(forceReload: true),
+      context.read<ProfileProvider>().loadProfile(forceReload: true),
     ]);
   }
 
-  List<OrderModel> _filterOrders(
-    List<OrderModel> orders,
-  ) {
-    final query =
-        _searchController.text.trim().toLowerCase();
+  List<OrderModel> _filterOrders(List<OrderModel> orders) {
+    final query = _searchController.text.trim().toLowerCase();
 
-    final result = orders.where((order) {
-      final matchesQuery = query.isEmpty ||
-          order.id.toLowerCase().contains(query) ||
-          order.receiverName.toLowerCase().contains(query) ||
-          order.receiverPhone.toLowerCase().contains(query) ||
-          order.deliveryAddress.toLowerCase().contains(query);
+    final result =
+        orders.where((order) {
+          final matchesQuery =
+              query.isEmpty ||
+              order.id.toLowerCase().contains(query) ||
+              order.receiverName.toLowerCase().contains(query) ||
+              order.receiverPhone.toLowerCase().contains(query) ||
+              order.deliveryAddress.toLowerCase().contains(query);
 
-      final matchesStatus = switch (_statusFilter) {
-        'all' => true,
-        'processing' => order.isActive,
-        'completed' => order.isCompleted,
-        'cancelled' => order.isCancelled,
-        _ => order.orderStatus == _statusFilter,
-      };
+          final matchesStatus = switch (_statusFilter) {
+            'all' => true,
+            'processing' => order.isActive,
+            'completed' => order.isCompleted,
+            'cancelled' => order.isCancelled,
+            _ => order.orderStatus == _statusFilter,
+          };
 
-      final matchesPayment = _paymentFilter == 'all' ||
-          order.paymentStatus == _paymentFilter;
+          final matchesPayment =
+              _paymentFilter == 'all' || order.paymentStatus == _paymentFilter;
 
-      return matchesQuery &&
-          matchesStatus &&
-          matchesPayment;
-    }).toList();
+          return matchesQuery && matchesStatus && matchesPayment;
+        }).toList();
 
     result.sort((a, b) {
-      final aDate =
-          a.created ?? DateTime.fromMillisecondsSinceEpoch(0);
-      final bDate =
-          b.created ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final aDate = a.created ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final bDate = b.created ?? DateTime.fromMillisecondsSinceEpoch(0);
       return bDate.compareTo(aDate);
     });
 
@@ -103,16 +93,12 @@ class _ManagerWebOrdersPageState
     });
   }
 
-  Future<void> _openOrderDetail(
-    OrderModel order,
-  ) async {
+  Future<void> _openOrderDetail(OrderModel order) async {
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (_) {
-        return ManagerWebOrderDetailDialog(
-          orderId: order.id,
-        );
+        return ManagerWebOrderDetailDialog(orderId: order.id);
       },
     );
 
@@ -135,10 +121,8 @@ class _ManagerWebOrdersPageState
 
   @override
   Widget build(BuildContext context) {
-    final orderProvider =
-        context.watch<OrderProvider>();
-    final profile =
-        context.watch<ProfileProvider>().profile;
+    final orderProvider = context.watch<OrderProvider>();
+    final profile = context.watch<ProfileProvider>().profile;
 
     final managerName =
         profile?.fullName.trim().isNotEmpty == true
@@ -147,44 +131,28 @@ class _ManagerWebOrdersPageState
 
     final avatarUrl = profile?.avatarUrl ?? '';
 
-    final filteredOrders =
-        _filterOrders(orderProvider.orders);
+    final filteredOrders = _filterOrders(orderProvider.orders);
 
-    final totalPages = math.max(
-      1,
-      (filteredOrders.length / _rowsPerPage).ceil(),
-    ).toInt();
+    final totalPages =
+        math.max(1, (filteredOrders.length / _rowsPerPage).ceil()).toInt();
 
     if (_currentPage > totalPages) {
       _currentPage = totalPages;
     }
 
-    final startIndex =
-        (_currentPage - 1) * _rowsPerPage;
+    final startIndex = (_currentPage - 1) * _rowsPerPage;
 
-    final endIndex = math.min(
-      startIndex + _rowsPerPage,
-      filteredOrders.length,
-    ).toInt();
+    final endIndex =
+        math.min(startIndex + _rowsPerPage, filteredOrders.length).toInt();
 
-    final visibleOrders = filteredOrders.isEmpty
-        ? <OrderModel>[]
-        : filteredOrders.sublist(
-            startIndex,
-            endIndex,
-          );
+    final visibleOrders =
+        filteredOrders.isEmpty
+            ? <OrderModel>[]
+            : filteredOrders.sublist(startIndex, endIndex);
 
     final paidRevenue = orderProvider.orders
-        .where(
-          (order) =>
-              order.isCompleted &&
-              order.paymentStatus == 'paid',
-        )
-        .fold<double>(
-          0,
-          (sum, order) =>
-              sum + order.totalAmount,
-        );
+        .where((order) => order.isCompleted && order.paymentStatus == 'paid')
+        .fold<double>(0, (sum, order) => sum + order.totalAmount);
 
     return ManagerWebLayout(
       title: 'Quản lý đơn hàng',
@@ -207,12 +175,11 @@ class _ManagerWebOrdersPageState
                 constraints.maxWidth >= 1100
                     ? 24.0
                     : constraints.maxWidth >= 700
-                        ? 18.0
-                        : 12.0;
+                    ? 18.0
+                    : 12.0;
 
             return SingleChildScrollView(
-              physics:
-                  const AlwaysScrollableScrollPhysics(),
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.fromLTRB(
                 horizontalPadding,
                 20,
@@ -221,11 +188,9 @@ class _ManagerWebOrdersPageState
               ),
               child: Center(
                 child: ConstrainedBox(
-                  constraints:
-                      const BoxConstraints(maxWidth: 1440),
+                  constraints: const BoxConstraints(maxWidth: 1440),
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (orderProvider.isLoading &&
                           orderProvider.orders.isNotEmpty)
@@ -237,18 +202,14 @@ class _ManagerWebOrdersPageState
                           ),
                         ),
                       _OrderSummaryGrid(
-                        processing: orderProvider
-                            .pendingOrderCount,
-                        completed: orderProvider
-                            .completedOrderCount,
-                        cancelled: orderProvider
-                            .cancelledOrderCount,
+                        processing: orderProvider.pendingOrderCount,
+                        completed: orderProvider.completedOrderCount,
+                        cancelled: orderProvider.cancelledOrderCount,
                         paidRevenue: paidRevenue,
                       ),
                       const SizedBox(height: 18),
                       _OrderFilters(
-                        searchController:
-                            _searchController,
+                        searchController: _searchController,
                         statusFilter: _statusFilter,
                         paymentFilter: _paymentFilter,
                         onSearchChanged: (_) {
@@ -282,13 +243,10 @@ class _ManagerWebOrdersPageState
                       _OrdersPanel(
                         isLoading:
                             orderProvider.isLoading &&
-                                orderProvider
-                                    .orders.isEmpty,
-                        errorMessage:
-                            orderProvider.errorMessage,
+                            orderProvider.orders.isEmpty,
+                        errorMessage: orderProvider.errorMessage,
                         orders: visibleOrders,
-                        totalFiltered:
-                            filteredOrders.length,
+                        totalFiltered: filteredOrders.length,
                         startIndex: startIndex,
                         onOpen: _openOrderDetail,
                         onRetry: _loadData,
@@ -300,12 +258,10 @@ class _ManagerWebOrdersPageState
                           currentPage: _currentPage,
                           totalPages: totalPages,
                           rowsPerPage: _rowsPerPage,
-                          totalItems:
-                              filteredOrders.length,
+                          totalItems: filteredOrders.length,
                           startIndex: startIndex,
                           endIndex: endIndex,
-                          onRowsPerPageChanged:
-                              (value) {
+                          onRowsPerPageChanged: (value) {
                             if (value == null) {
                               return;
                             }
@@ -315,20 +271,21 @@ class _ManagerWebOrdersPageState
                               _currentPage = 1;
                             });
                           },
-                          onPrevious: _currentPage > 1
-                              ? () {
-                                  setState(() {
-                                    _currentPage--;
-                                  });
-                                }
-                              : null,
+                          onPrevious:
+                              _currentPage > 1
+                                  ? () {
+                                    setState(() {
+                                      _currentPage--;
+                                    });
+                                  }
+                                  : null,
                           onNext:
                               _currentPage < totalPages
                                   ? () {
-                                      setState(() {
-                                        _currentPage++;
-                                      });
-                                    }
+                                    setState(() {
+                                      _currentPage++;
+                                    });
+                                  }
                                   : null,
                         ),
                       ],
@@ -402,21 +359,13 @@ class _OrderSummaryGrid extends StatelessWidget {
 
         const spacing = 12.0;
         final width =
-            (constraints.maxWidth -
-                    spacing * (columns - 1)) /
-                columns;
+            (constraints.maxWidth - spacing * (columns - 1)) / columns;
 
         return Wrap(
           spacing: spacing,
           runSpacing: spacing,
-          children: cards
-              .map(
-                (card) => SizedBox(
-                  width: width,
-                  child: card,
-                ),
-              )
-              .toList(),
+          children:
+              cards.map((card) => SizedBox(width: width, child: card)).toList(),
         );
       },
     );
@@ -441,15 +390,12 @@ class _OrderSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints:
-          const BoxConstraints(minHeight: 118),
+      constraints: const BoxConstraints(minHeight: 118),
       padding: const EdgeInsets.all(17),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(19),
-        border: Border.all(
-          color: AppColors.border,
-        ),
+        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         children: [
@@ -460,19 +406,13 @@ class _OrderSummaryCard extends StatelessWidget {
               color: color.withOpacity(0.11),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 27,
-            ),
+            child: Icon(icon, color: color, size: 27),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
-              mainAxisAlignment:
-                  MainAxisAlignment.center,
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   value,
@@ -538,33 +478,29 @@ class _OrderFilters extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(19),
-        border: Border.all(
-          color: AppColors.border,
-        ),
+        border: Border.all(color: AppColors.border),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final wide = constraints.maxWidth >= 1080;
           final medium = constraints.maxWidth >= 660;
 
-          final searchWidth = wide
-              ? math.max(
-                  320.0,
-                  constraints.maxWidth - 660,
-                ).toDouble()
-              : constraints.maxWidth;
+          final searchWidth =
+              wide
+                  ? math.max(320.0, constraints.maxWidth - 660).toDouble()
+                  : constraints.maxWidth;
 
-          final secondaryWidth = wide
-              ? 190.0
-              : medium
+          final secondaryWidth =
+              wide
+                  ? 190.0
+                  : medium
                   ? (constraints.maxWidth - 12) / 2
                   : constraints.maxWidth;
 
           return Wrap(
             spacing: 12,
             runSpacing: 12,
-            crossAxisAlignment:
-                WrapCrossAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               SizedBox(
                 width: searchWidth,
@@ -572,28 +508,23 @@ class _OrderFilters extends StatelessWidget {
                   controller: searchController,
                   onChanged: onSearchChanged,
                   decoration: InputDecoration(
-                    hintText:
-                        'Tìm mã đơn, tên, số điện thoại hoặc địa chỉ',
-                    prefixIcon:
-                        const Icon(Icons.search_rounded),
+                    hintText: 'Tìm mã đơn, tên, số điện thoại hoặc địa chỉ',
+                    prefixIcon: const Icon(Icons.search_rounded),
                     suffixIcon:
                         searchController.text.isNotEmpty
                             ? IconButton(
-                                tooltip: 'Xóa từ khóa',
-                                onPressed: () {
-                                  searchController.clear();
-                                  onSearchChanged('');
-                                },
-                                icon: const Icon(
-                                  Icons.close_rounded,
-                                ),
-                              )
+                              tooltip: 'Xóa từ khóa',
+                              onPressed: () {
+                                searchController.clear();
+                                onSearchChanged('');
+                              },
+                              icon: const Icon(Icons.close_rounded),
+                            )
                             : null,
                     filled: true,
                     fillColor: AppColors.inputBg,
                     border: OutlineInputBorder(
-                      borderRadius:
-                          BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(14),
                       borderSide: BorderSide.none,
                     ),
                   ),
@@ -601,8 +532,7 @@ class _OrderFilters extends StatelessWidget {
               ),
               SizedBox(
                 width: secondaryWidth,
-                child:
-                    DropdownButtonFormField<String>(
+                child: DropdownButtonFormField<String>(
                   value: statusFilter,
                   isExpanded: true,
                   decoration: _filterDecoration(
@@ -614,10 +544,7 @@ class _OrderFilters extends StatelessWidget {
                       value: 'processing',
                       child: Text('Đang xử lý'),
                     ),
-                    DropdownMenuItem(
-                      value: 'all',
-                      child: Text('Tất cả đơn'),
-                    ),
+                    DropdownMenuItem(value: 'all', child: Text('Tất cả đơn')),
                     DropdownMenuItem(
                       value: 'placed',
                       child: Text('Chờ xác nhận'),
@@ -638,18 +565,14 @@ class _OrderFilters extends StatelessWidget {
                       value: 'completed',
                       child: Text('Hoàn thành'),
                     ),
-                    DropdownMenuItem(
-                      value: 'cancelled',
-                      child: Text('Đã hủy'),
-                    ),
+                    DropdownMenuItem(value: 'cancelled', child: Text('Đã hủy')),
                   ],
                   onChanged: onStatusChanged,
                 ),
               ),
               SizedBox(
                 width: secondaryWidth,
-                child:
-                    DropdownButtonFormField<String>(
+                child: DropdownButtonFormField<String>(
                   value: paymentFilter,
                   isExpanded: true,
                   decoration: _filterDecoration(
@@ -686,19 +609,13 @@ class _OrderFilters extends StatelessWidget {
                 height: 55,
                 child: OutlinedButton.icon(
                   onPressed: onReset,
-                  icon: const Icon(
-                    Icons.filter_alt_off_rounded,
-                  ),
+                  icon: const Icon(Icons.filter_alt_off_rounded),
                   label: const Text('Đặt lại'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor:
-                        AppColors.textPrimary,
-                    side: const BorderSide(
-                      color: AppColors.border,
-                    ),
+                    foregroundColor: AppColors.textPrimary,
+                    side: const BorderSide(color: AppColors.border),
                     shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                   ),
                 ),
@@ -710,10 +627,7 @@ class _OrderFilters extends StatelessWidget {
     );
   }
 
-  InputDecoration _filterDecoration(
-    String label,
-    IconData icon,
-  ) {
+  InputDecoration _filterDecoration(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
       prefixIcon: Icon(icon),
@@ -753,23 +667,18 @@ class _OrdersPanel extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppColors.border,
-        ),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding:
-                const EdgeInsets.fromLTRB(20, 18, 20, 16),
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
             child: Row(
               children: [
                 const Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Danh sách đơn hàng',
@@ -801,41 +710,26 @@ class _OrdersPanel extends StatelessWidget {
               ],
             ),
           ),
-          const Divider(
-            height: 1,
-            color: AppColors.border,
-          ),
+          const Divider(height: 1, color: AppColors.border),
           if (isLoading)
             const SizedBox(
               height: 380,
               child: Center(
-                child: CircularProgressIndicator(
-                  color: AppColors.primary,
-                ),
+                child: CircularProgressIndicator(color: AppColors.primary),
               ),
             )
-          else if (errorMessage != null &&
-              orders.isEmpty)
+          else if (errorMessage != null && orders.isEmpty)
             SizedBox(
               height: 360,
-              child: _OrderErrorState(
-                message: errorMessage!,
-                onRetry: onRetry,
-              ),
+              child: _OrderErrorState(message: errorMessage!, onRetry: onRetry),
             )
           else if (orders.isEmpty)
-            const SizedBox(
-              height: 360,
-              child: _EmptyOrders(),
-            )
+            const SizedBox(height: 360, child: _EmptyOrders())
           else
             LayoutBuilder(
               builder: (context, constraints) {
                 if (constraints.maxWidth < 980) {
-                  return _OrderCards(
-                    orders: orders,
-                    onOpen: onOpen,
-                  );
+                  return _OrderCards(orders: orders, onOpen: onOpen);
                 }
 
                 return _OrderTable(
@@ -865,19 +759,14 @@ class _OrderTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: const BorderRadius.vertical(
-        bottom: Radius.circular(20),
-      ),
+      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: ConstrainedBox(
-          constraints:
-              const BoxConstraints(minWidth: 1120),
+          constraints: const BoxConstraints(minWidth: 1120),
           child: DataTable(
-            headingRowColor:
-                MaterialStateProperty.all(
-              AppColors.backgroundSecondary
-                  .withOpacity(0.78),
+            headingRowColor: MaterialStateProperty.all(
+              AppColors.backgroundSecondary.withOpacity(0.78),
             ),
             headingTextStyle: const TextStyle(
               color: AppColors.textSecondary,
@@ -900,139 +789,101 @@ class _OrderTable extends StatelessWidget {
               DataColumn(label: Text('THANH TOÁN')),
               DataColumn(label: Text('THAO TÁC')),
             ],
-            rows: List.generate(
-              orders.length,
-              (index) {
-                final order = orders[index];
+            rows: List.generate(orders.length, (index) {
+              final order = orders[index];
 
-                return DataRow(
-                  onSelectChanged: (_) {
-                    onOpen(order);
-                  },
-                  cells: [
-                    DataCell(
-                      Text('${startIndex + index + 1}'),
-                    ),
-                    DataCell(
-                      SizedBox(
-                        width: 175,
-                        child: Column(
-                          mainAxisAlignment:
-                              MainAxisAlignment.center,
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '#${_shortId(order.id)}',
-                              style: const TextStyle(
-                                fontWeight:
-                                    FontWeight.w900,
-                              ),
+              return DataRow(
+                onSelectChanged: (_) {
+                  onOpen(order);
+                },
+                cells: [
+                  DataCell(Text('${startIndex + index + 1}')),
+                  DataCell(
+                    SizedBox(
+                      width: 175,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '#${_shortId(order.id)}',
+                            style: const TextStyle(fontWeight: FontWeight.w900),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            _formatDate(order.orderDate),
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 11,
                             ),
-                            const SizedBox(height: 3),
-                            Text(
-                              _formatDate(order.orderDate),
-                              style: const TextStyle(
-                                color:
-                                    AppColors.textSecondary,
-                                fontSize: 11,
-                              ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  DataCell(
+                    SizedBox(
+                      width: 230,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            order.receiverName.isEmpty
+                                ? 'Khách hàng'
+                                : order.receiverName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            order.receiverPhone,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 11,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
-                    DataCell(
-                      SizedBox(
-                        width: 230,
-                        child: Column(
-                          mainAxisAlignment:
-                              MainAxisAlignment.center,
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              order.receiverName.isEmpty
-                                  ? 'Khách hàng'
-                                  : order.receiverName,
-                              maxLines: 1,
-                              overflow:
-                                  TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontWeight:
-                                    FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(height: 3),
-                            Text(
-                              order.receiverPhone,
-                              maxLines: 1,
-                              overflow:
-                                  TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color:
-                                    AppColors.textSecondary,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
-                        ),
+                  ),
+                  DataCell(
+                    Text(
+                      _formatMoney(order.totalAmount),
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                  ),
+                  DataCell(
+                    _StatusChip(
+                      label: _statusLabel(order.orderStatus),
+                      color: _statusColor(order.orderStatus),
+                    ),
+                  ),
+                  DataCell(
+                    _StatusChip(
+                      label: _paymentLabel(order.paymentStatus),
+                      color: _paymentColor(order.paymentStatus),
+                    ),
+                  ),
+                  DataCell(
+                    FilledButton.tonalIcon(
+                      onPressed: () {
+                        onOpen(order);
+                      },
+                      icon: const Icon(Icons.visibility_rounded, size: 18),
+                      label: const Text('Xem đơn'),
+                      style: FilledButton.styleFrom(
+                        foregroundColor: AppColors.primary,
+                        backgroundColor: AppColors.primary.withOpacity(0.09),
                       ),
                     ),
-                    DataCell(
-                      Text(
-                        _formatMoney(
-                          order.totalAmount,
-                        ),
-                        style: const TextStyle(
-                          fontWeight:
-                              FontWeight.w900,
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      _StatusChip(
-                        label: _statusLabel(
-                          order.orderStatus,
-                        ),
-                        color: _statusColor(
-                          order.orderStatus,
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      _StatusChip(
-                        label: _paymentLabel(
-                          order.paymentStatus,
-                        ),
-                        color: _paymentColor(
-                          order.paymentStatus,
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      FilledButton.tonalIcon(
-                        onPressed: () {
-                          onOpen(order);
-                        },
-                        icon: const Icon(
-                          Icons.visibility_rounded,
-                          size: 18,
-                        ),
-                        label: const Text('Xem đơn'),
-                        style: FilledButton.styleFrom(
-                          foregroundColor:
-                              AppColors.primary,
-                          backgroundColor:
-                              AppColors.primary
-                                  .withOpacity(0.09),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
+                  ),
+                ],
+              );
+            }),
           ),
         ),
       ),
@@ -1044,10 +895,7 @@ class _OrderCards extends StatelessWidget {
   final List<OrderModel> orders;
   final ValueChanged<OrderModel> onOpen;
 
-  const _OrderCards({
-    required this.orders,
-    required this.onOpen,
-  });
+  const _OrderCards({required this.orders, required this.onOpen});
 
   @override
   Widget build(BuildContext context) {
@@ -1055,148 +903,117 @@ class _OrderCards extends StatelessWidget {
       padding: const EdgeInsets.all(13),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final columns =
-              constraints.maxWidth >= 680 ? 2 : 1;
+          final columns = constraints.maxWidth >= 680 ? 2 : 1;
           const spacing = 11.0;
           final width =
-              (constraints.maxWidth -
-                      spacing * (columns - 1)) /
-                  columns;
+              (constraints.maxWidth - spacing * (columns - 1)) / columns;
 
           return Wrap(
             spacing: spacing,
             runSpacing: spacing,
-            children: orders.map((order) {
-              return SizedBox(
-                width: width,
-                child: Material(
-                  color: AppColors.bg,
-                  borderRadius:
-                      BorderRadius.circular(17),
-                  child: InkWell(
-                    onTap: () => onOpen(order),
-                    borderRadius:
-                        BorderRadius.circular(17),
-                    child: Container(
-                      padding:
-                          const EdgeInsets.all(15),
-                      decoration: BoxDecoration(
-                        borderRadius:
-                            BorderRadius.circular(17),
-                        border: Border.all(
-                          color: AppColors.border,
+            children:
+                orders.map((order) {
+                  return SizedBox(
+                    width: width,
+                    child: Material(
+                      color: AppColors.bg,
+                      borderRadius: BorderRadius.circular(17),
+                      child: InkWell(
+                        onTap: () => onOpen(order),
+                        borderRadius: BorderRadius.circular(17),
+                        child: Container(
+                          padding: const EdgeInsets.all(15),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(17),
+                            border: Border.all(color: AppColors.border),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      '#${_shortId(order.id)}',
+                                      style: const TextStyle(
+                                        color: AppColors.textPrimary,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  ),
+                                  _StatusChip(
+                                    label: _statusLabel(order.orderStatus),
+                                    color: _statusColor(order.orderStatus),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                order.receiverName.isEmpty
+                                    ? 'Khách hàng'
+                                    : order.receiverName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${order.receiverPhone} • ${_formatDate(order.orderDate)}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 11,
+                                ),
+                              ),
+                              const SizedBox(height: 11),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      '${order.items.length} sản phẩm',
+                                      style: const TextStyle(
+                                        color: AppColors.textSecondary,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    _formatMoney(order.totalAmount),
+                                    style: const TextStyle(
+                                      color: AppColors.textPrimary,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  _StatusChip(
+                                    label: _paymentLabel(order.paymentStatus),
+                                    color: _paymentColor(order.paymentStatus),
+                                  ),
+                                  const Spacer(),
+                                  const Icon(
+                                    Icons.arrow_forward_rounded,
+                                    size: 18,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      child: Column(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  '#${_shortId(order.id)}',
-                                  style: const TextStyle(
-                                    color:
-                                        AppColors.textPrimary,
-                                    fontWeight:
-                                        FontWeight.w900,
-                                  ),
-                                ),
-                              ),
-                              _StatusChip(
-                                label: _statusLabel(
-                                  order.orderStatus,
-                                ),
-                                color: _statusColor(
-                                  order.orderStatus,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            order.receiverName.isEmpty
-                                ? 'Khách hàng'
-                                : order.receiverName,
-                            maxLines: 1,
-                            overflow:
-                                TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color:
-                                  AppColors.textPrimary,
-                              fontSize: 15,
-                              fontWeight:
-                                  FontWeight.w900,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${order.receiverPhone} • ${_formatDate(order.orderDate)}',
-                            maxLines: 1,
-                            overflow:
-                                TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color:
-                                  AppColors.textSecondary,
-                              fontSize: 11,
-                            ),
-                          ),
-                          const SizedBox(height: 11),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  '${order.items.length} sản phẩm',
-                                  style: const TextStyle(
-                                    color: AppColors
-                                        .textSecondary,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ),
-                              Text(
-                                _formatMoney(
-                                  order.totalAmount,
-                                ),
-                                style: const TextStyle(
-                                  color:
-                                      AppColors.textPrimary,
-                                  fontSize: 15,
-                                  fontWeight:
-                                      FontWeight.w900,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            children: [
-                              _StatusChip(
-                                label: _paymentLabel(
-                                  order.paymentStatus,
-                                ),
-                                color: _paymentColor(
-                                  order.paymentStatus,
-                                ),
-                              ),
-                              const Spacer(),
-                              const Icon(
-                                Icons
-                                    .arrow_forward_rounded,
-                                size: 18,
-                                color:
-                                    AppColors.textSecondary,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
                     ),
-                  ),
-                ),
-              );
-            }).toList(),
+                  );
+                }).toList(),
           );
         },
       ),
@@ -1204,19 +1021,14 @@ class _OrderCards extends StatelessWidget {
   }
 }
 
-class ManagerWebOrderDetailDialog
-    extends StatefulWidget {
+class ManagerWebOrderDetailDialog extends StatefulWidget {
   final String orderId;
 
-  const ManagerWebOrderDetailDialog({
-    super.key,
-    required this.orderId,
-  });
+  const ManagerWebOrderDetailDialog({super.key, required this.orderId});
 
   @override
-  State<ManagerWebOrderDetailDialog>
-      createState() =>
-          _ManagerWebOrderDetailDialogState();
+  State<ManagerWebOrderDetailDialog> createState() =>
+      _ManagerWebOrderDetailDialogState();
 }
 
 class _ManagerWebOrderDetailDialogState
@@ -1232,50 +1044,38 @@ class _ManagerWebOrderDetailDialogState
   }
 
   Future<void> _loadDetail() async {
-    await context
-        .read<OrderProvider>()
-        .loadOrderDetail(widget.orderId);
+    await context.read<OrderProvider>().loadOrderDetail(widget.orderId);
 
     if (!mounted) {
       return;
     }
 
-    final order =
-        context.read<OrderProvider>().selectedOrder;
+    final order = context.read<OrderProvider>().selectedOrder;
 
-    if (order != null &&
-        order.id == widget.orderId) {
+    if (order != null && order.id == widget.orderId) {
       setState(() {
-        _selectedPaymentStatus =
-            order.paymentStatus;
+        _selectedPaymentStatus = order.paymentStatus;
       });
     }
   }
 
-  Future<void> _updateNextStatus(
-    OrderModel order,
-  ) async {
-    final nextStatus =
-        _nextStatus(order.orderStatus);
+  Future<void> _updateNextStatus(OrderModel order) async {
+    final nextStatus = _nextStatus(order.orderStatus);
 
     if (nextStatus.isEmpty) {
       return;
     }
 
-    final confirmed =
-        await showDialog<bool>(
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(20),
           ),
           title: Text(
             'Chuyển sang "${_statusLabel(nextStatus)}"?',
-            style: const TextStyle(
-              fontWeight: FontWeight.w900,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.w900),
           ),
           content: Text(
             'Hệ thống sẽ cập nhật trạng thái đơn '
@@ -1284,19 +1084,13 @@ class _ManagerWebOrderDetailDialogState
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(
-                  dialogContext,
-                  false,
-                );
+                Navigator.pop(dialogContext, false);
               },
               child: const Text('Chưa cập nhật'),
             ),
             FilledButton(
               onPressed: () {
-                Navigator.pop(
-                  dialogContext,
-                  true,
-                );
+                Navigator.pop(dialogContext, true);
               },
               child: const Text('Xác nhận'),
             ),
@@ -1310,11 +1104,9 @@ class _ManagerWebOrderDetailDialogState
     }
 
     await _runBusy(() async {
-      final provider =
-          context.read<OrderProvider>();
+      final provider = context.read<OrderProvider>();
 
-      final success =
-          await provider.updateOrderStatus(
+      final success = await provider.updateOrderStatus(
         orderId: order.id,
         status: nextStatus,
         reloadAll: true,
@@ -1322,8 +1114,7 @@ class _ManagerWebOrderDetailDialogState
 
       if (!success) {
         throw Exception(
-          provider.errorMessage ??
-              'Không thể cập nhật trạng thái',
+          provider.errorMessage ?? 'Không thể cập nhật trạng thái',
         );
       }
 
@@ -1331,29 +1122,22 @@ class _ManagerWebOrderDetailDialogState
     });
   }
 
-  Future<void> _cancelOrder(
-    OrderModel order,
-  ) async {
-    final controller =
-        TextEditingController();
+  Future<void> _cancelOrder(OrderModel order) async {
+    final controller = TextEditingController();
     String? validationMessage;
 
-    final reason =
-        await showDialog<String>(
+    final reason = await showDialog<String>(
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
               shape: RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(20),
               ),
               title: const Text(
                 'Hủy đơn hàng',
-                style: TextStyle(
-                  fontWeight: FontWeight.w900,
-                ),
+                style: TextStyle(fontWeight: FontWeight.w900),
               ),
               content: SizedBox(
                 width: 500,
@@ -1364,11 +1148,9 @@ class _ManagerWebOrderDetailDialogState
                   autofocus: true,
                   decoration: InputDecoration(
                     labelText: 'Lý do hủy',
-                    hintText:
-                        'Ví dụ: Hết món, không liên hệ được khách...',
+                    hintText: 'Ví dụ: Hết món, không liên hệ được khách...',
                     errorText: validationMessage,
-                    border:
-                        const OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
               ),
@@ -1385,25 +1167,18 @@ class _ManagerWebOrderDetailDialogState
                     foregroundColor: Colors.white,
                   ),
                   onPressed: () {
-                    final value =
-                        controller.text.trim();
+                    final value = controller.text.trim();
 
                     if (value.isEmpty) {
                       setDialogState(() {
-                        validationMessage =
-                            'Bắt buộc nhập lý do hủy';
+                        validationMessage = 'Bắt buộc nhập lý do hủy';
                       });
                       return;
                     }
 
-                    Navigator.pop(
-                      dialogContext,
-                      value,
-                    );
+                    Navigator.pop(dialogContext, value);
                   },
-                  icon: const Icon(
-                    Icons.cancel_outlined,
-                  ),
+                  icon: const Icon(Icons.cancel_outlined),
                   label: const Text('Xác nhận hủy'),
                 ),
               ],
@@ -1415,17 +1190,14 @@ class _ManagerWebOrderDetailDialogState
 
     controller.dispose();
 
-    if (reason == null ||
-        reason.trim().isEmpty) {
+    if (reason == null || reason.trim().isEmpty) {
       return;
     }
 
     await _runBusy(() async {
-      final provider =
-          context.read<OrderProvider>();
+      final provider = context.read<OrderProvider>();
 
-      final success =
-          await provider.updateOrderStatus(
+      final success = await provider.updateOrderStatus(
         orderId: order.id,
         status: 'cancelled',
         cancelReason: reason,
@@ -1433,38 +1205,28 @@ class _ManagerWebOrderDetailDialogState
       );
 
       if (!success) {
-        throw Exception(
-          provider.errorMessage ??
-              'Không thể hủy đơn',
-        );
+        throw Exception(provider.errorMessage ?? 'Không thể hủy đơn');
       }
 
       await provider.loadOrderDetail(order.id);
     });
   }
 
-  Future<void> _updatePaymentStatus(
-    OrderModel order,
-  ) async {
-    if (_selectedPaymentStatus ==
-        order.paymentStatus) {
+  Future<void> _updatePaymentStatus(OrderModel order) async {
+    if (_selectedPaymentStatus == order.paymentStatus) {
       return;
     }
 
-    final confirmed =
-        await showDialog<bool>(
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(20),
           ),
           title: const Text(
             'Cập nhật thanh toán',
-            style: TextStyle(
-              fontWeight: FontWeight.w900,
-            ),
+            style: TextStyle(fontWeight: FontWeight.w900),
           ),
           content: Text(
             'Chuyển trạng thái thanh toán từ '
@@ -1474,19 +1236,13 @@ class _ManagerWebOrderDetailDialogState
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(
-                  dialogContext,
-                  false,
-                );
+                Navigator.pop(dialogContext, false);
               },
               child: const Text('Hủy'),
             ),
             FilledButton(
               onPressed: () {
-                Navigator.pop(
-                  dialogContext,
-                  true,
-                );
+                Navigator.pop(dialogContext, true);
               },
               child: const Text('Cập nhật'),
             ),
@@ -1497,28 +1253,23 @@ class _ManagerWebOrderDetailDialogState
 
     if (confirmed != true) {
       setState(() {
-        _selectedPaymentStatus =
-            order.paymentStatus;
+        _selectedPaymentStatus = order.paymentStatus;
       });
       return;
     }
 
     await _runBusy(() async {
-      final provider =
-          context.read<OrderProvider>();
+      final provider = context.read<OrderProvider>();
 
-      final success =
-          await provider.updatePaymentStatus(
+      final success = await provider.updatePaymentStatus(
         orderId: order.id,
-        paymentStatus:
-            _selectedPaymentStatus,
+        paymentStatus: _selectedPaymentStatus,
         reloadAll: true,
       );
 
       if (!success) {
         throw Exception(
-          provider.errorMessage ??
-              'Không thể cập nhật thanh toán',
+          provider.errorMessage ?? 'Không thể cập nhật thanh toán',
         );
       }
 
@@ -1526,9 +1277,7 @@ class _ManagerWebOrderDetailDialogState
     });
   }
 
-  Future<void> _runBusy(
-    Future<void> Function() action,
-  ) async {
+  Future<void> _runBusy(Future<void> Function() action) async {
     if (_isBusy) {
       return;
     }
@@ -1546,9 +1295,7 @@ class _ManagerWebOrderDetailDialogState
       }
 
       setState(() {
-        _localError = error
-            .toString()
-            .replaceFirst('Exception: ', '');
+        _localError = error.toString().replaceFirst('Exception: ', '');
       });
     } finally {
       if (mounted) {
@@ -1562,34 +1309,20 @@ class _ManagerWebOrderDetailDialogState
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      insetPadding: const EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 18,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-      ),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 18),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          maxWidth: 1240,
-          maxHeight: 900,
-        ),
+        constraints: const BoxConstraints(maxWidth: 1240, maxHeight: 900),
         child: Consumer<OrderProvider>(
           builder: (context, provider, _) {
-            final selected =
-                provider.selectedOrder;
+            final selected = provider.selectedOrder;
 
-            final order = selected != null &&
-                    selected.id ==
-                        widget.orderId
-                ? selected
-                : provider.findOrderById(
-                    widget.orderId,
-                  );
+            final order =
+                selected != null && selected.id == widget.orderId
+                    ? selected
+                    : provider.findOrderById(widget.orderId);
 
-            final isInitialLoading =
-                provider.isLoading &&
-                    order == null;
+            final isInitialLoading = provider.isLoading && order == null;
 
             return Column(
               children: [
@@ -1599,61 +1332,47 @@ class _ManagerWebOrderDetailDialogState
                   onClose: () {
                     Navigator.pop(context);
                   },
-                  onCopyId: order == null
-                      ? null
-                      : () {
-                          Clipboard.setData(
-                            ClipboardData(
-                              text: order.id,
-                            ),
-                          );
+                  onCopyId:
+                      order == null
+                          ? null
+                          : () {
+                            Clipboard.setData(ClipboardData(text: order.id));
 
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Đã sao chép mã đơn',
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Đã sao chép mã đơn'),
                               ),
-                            ),
-                          );
-                        },
-                  onPrint: order == null
-                      ? null
-                      : () {
-                          printManagerInvoice(
-                            order: order,
-                          );
-                        },
+                            );
+                          },
+                  onPrint:
+                      order == null
+                          ? null
+                          : () {
+                            printManagerInvoice(order: order);
+                          },
                 ),
-                const Divider(
-                  height: 1,
-                  color: AppColors.border,
-                ),
+                const Divider(height: 1, color: AppColors.border),
                 if (_isBusy)
                   const LinearProgressIndicator(
                     minHeight: 3,
                     color: AppColors.primary,
                   ),
                 Expanded(
-                  child: isInitialLoading
-                      ? const Center(
-                          child:
-                              CircularProgressIndicator(
-                            color:
-                                AppColors.primary,
-                          ),
-                        )
-                      : order == null
-                          ? _DetailError(
-                              message: provider
-                                      .errorMessage ??
-                                  'Không tìm thấy đơn hàng',
-                              onRetry: _loadDetail,
-                            )
-                          : _buildOrderBody(
-                              order,
+                  child:
+                      isInitialLoading
+                          ? const Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.primary,
                             ),
+                          )
+                          : order == null
+                          ? _DetailError(
+                            message:
+                                provider.errorMessage ??
+                                'Không tìm thấy đơn hàng',
+                            onRetry: _loadDetail,
+                          )
+                          : _buildOrderBody(order),
                 ),
               ],
             );
@@ -1663,60 +1382,39 @@ class _ManagerWebOrderDetailDialogState
     );
   }
 
-  Widget _buildOrderBody(
-    OrderModel order,
-  ) {
-    final next =
-        _nextStatus(order.orderStatus);
+  Widget _buildOrderBody(OrderModel order) {
+    final next = _nextStatus(order.orderStatus);
 
     final canCancel =
-        order.orderStatus == 'placed' ||
-            order.orderStatus ==
-                'confirmed';
+        order.orderStatus == 'placed' || order.orderStatus == 'confirmed';
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final wide =
-              constraints.maxWidth >= 920;
+          final wide = constraints.maxWidth >= 920;
 
           final leftColumn = Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _StatusTimeline(order: order),
               const SizedBox(height: 16),
               _SectionCard(
                 title: 'Thông tin giao hàng',
-                icon:
-                    Icons.local_shipping_outlined,
+                icon: Icons.local_shipping_outlined,
                 child: Column(
                   children: [
-                    _InfoLine(
-                      label: 'Người nhận',
-                      value:
-                          order.receiverName,
-                    ),
+                    _InfoLine(label: 'Người nhận', value: order.receiverName),
                     _InfoLine(
                       label: 'Số điện thoại',
-                      value:
-                          order.receiverPhone,
+                      value: order.receiverPhone,
                     ),
-                    _InfoLine(
-                      label: 'Địa chỉ',
-                      value: order
-                          .deliveryAddress,
-                    ),
+                    _InfoLine(label: 'Địa chỉ', value: order.deliveryAddress),
                     _InfoLine(
                       label: 'Ngày đặt',
-                      value: _formatDate(
-                        order.orderDate,
-                      ),
+                      value: _formatDate(order.orderDate),
                     ),
-                    if (order.note
-                        .trim()
-                        .isNotEmpty)
+                    if (order.note.trim().isNotEmpty)
                       _InfoLine(
                         label: 'Ghi chú đơn',
                         value: order.note,
@@ -1727,64 +1425,45 @@ class _ManagerWebOrderDetailDialogState
               ),
               const SizedBox(height: 16),
               _SectionCard(
-                title:
-                    'Sản phẩm đã đặt (${order.items.length})',
+                title: 'Sản phẩm đã đặt (${order.items.length})',
                 icon: Icons.fastfood_rounded,
-                child: order.items.isEmpty
-                    ? const Padding(
-                        padding:
-                            EdgeInsets.all(18),
-                        child: Center(
-                          child: Text(
-                            'Đơn chưa có dữ liệu sản phẩm.',
-                            style: TextStyle(
-                              color: AppColors
-                                  .textSecondary,
+                child:
+                    order.items.isEmpty
+                        ? const Padding(
+                          padding: EdgeInsets.all(18),
+                          child: Center(
+                            child: Text(
+                              'Đơn chưa có dữ liệu sản phẩm.',
+                              style: TextStyle(color: AppColors.textSecondary),
                             ),
                           ),
+                        )
+                        : Column(
+                          children:
+                              order.items
+                                  .map((item) => _OrderItemTile(item: item))
+                                  .toList(),
                         ),
-                      )
-                    : Column(
-                        children: order.items
-                            .map(
-                              (item) =>
-                                  _OrderItemTile(
-                                item: item,
-                              ),
-                            )
-                            .toList(),
-                      ),
               ),
-              if (order.cancelReason
-                  .trim()
-                  .isNotEmpty) ...[
+              if (order.cancelReason.trim().isNotEmpty) ...[
                 const SizedBox(height: 16),
                 _SectionCard(
                   title: 'Lý do hủy đơn',
-                  icon: Icons
-                      .report_gmailerrorred_rounded,
+                  icon: Icons.report_gmailerrorred_rounded,
                   accentColor: Colors.red,
                   child: Container(
                     width: double.infinity,
-                    padding:
-                        const EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: Colors.red
-                          .withOpacity(0.06),
-                      borderRadius:
-                          BorderRadius.circular(
-                        14,
-                      ),
+                      color: Colors.red.withOpacity(0.06),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     child: Text(
                       order.cancelReason,
                       style: const TextStyle(
-                        color: Color(
-                          0xFF991B1B,
-                        ),
+                        color: Color(0xFF991B1B),
                         height: 1.45,
-                        fontWeight:
-                            FontWeight.w700,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
@@ -1794,145 +1473,97 @@ class _ManagerWebOrderDetailDialogState
           );
 
           final rightColumn = Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _SectionCard(
                 title: 'Thanh toán',
-                icon:
-                    Icons.receipt_long_rounded,
+                icon: Icons.receipt_long_rounded,
                 child: Column(
                   children: [
-                    _MoneyLine(
-                      label: 'Tạm tính',
-                      value: order.subtotal,
-                    ),
-                    _MoneyLine(
-                      label: 'Giảm giá',
-                      value:
-                          -order.discountAmount,
-                    ),
+                    _MoneyLine(label: 'Tạm tính', value: order.subtotal),
+                    _MoneyLine(label: 'Giảm giá', value: -order.discountAmount),
                     _MoneyLine(
                       label: 'Phí giao hàng',
-                      value:
-                          order.deliveryFee,
+                      value: order.deliveryFee,
                     ),
-                    const Divider(
-                      height: 22,
-                      color:
-                          AppColors.border,
-                    ),
+                    const Divider(height: 22, color: AppColors.border),
                     _MoneyLine(
                       label: 'Tổng cộng',
-                      value:
-                          order.totalAmount,
+                      value: order.totalAmount,
                       isTotal: true,
                     ),
                     const SizedBox(height: 14),
-                    DropdownButtonFormField<
-                        String>(
-                      value:
-                          _selectedPaymentStatus,
+                    DropdownButtonFormField<String>(
+                      value: _selectedPaymentStatus,
                       isExpanded: true,
                       decoration: InputDecoration(
-                        labelText:
-                            'Trạng thái thanh toán',
+                        labelText: 'Trạng thái thanh toán',
                         prefixIcon: const Icon(
-                          Icons
-                              .account_balance_wallet_outlined,
+                          Icons.account_balance_wallet_outlined,
                         ),
                         filled: true,
-                        fillColor:
-                            AppColors.inputBg,
-                        border:
-                            OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.circular(
-                            14,
-                          ),
-                          borderSide:
-                              BorderSide.none,
+                        fillColor: AppColors.inputBg,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
                         ),
                       ),
                       items: const [
                         DropdownMenuItem(
                           value: 'unpaid',
-                          child: Text(
-                            'Chưa thanh toán',
-                          ),
+                          child: Text('Chưa thanh toán'),
                         ),
                         DropdownMenuItem(
                           value: 'pending',
-                          child: Text(
-                            'Chờ xác nhận',
-                          ),
+                          child: Text('Chờ xác nhận'),
                         ),
                         DropdownMenuItem(
                           value: 'paid',
-                          child: Text(
-                            'Đã thanh toán',
-                          ),
+                          child: Text('Đã thanh toán'),
                         ),
                         DropdownMenuItem(
                           value: 'failed',
-                          child: Text(
-                            'Thanh toán lỗi',
-                          ),
+                          child: Text('Thanh toán lỗi'),
                         ),
                       ],
-                      onChanged: _isBusy
-                          ? null
-                          : (value) {
-                              if (value ==
-                                  null) {
-                                return;
-                              }
+                      onChanged:
+                          _isBusy
+                              ? null
+                              : (value) {
+                                if (value == null) {
+                                  return;
+                                }
 
-                              setState(() {
-                                _selectedPaymentStatus =
-                                    value;
-                              });
-                            },
+                                setState(() {
+                                  _selectedPaymentStatus = value;
+                                });
+                              },
                     ),
                     const SizedBox(height: 10),
                     SizedBox(
                       width: double.infinity,
-                      child:
-                          OutlinedButton.icon(
-                        onPressed: _isBusy ||
-                                _selectedPaymentStatus ==
-                                    order
-                                        .paymentStatus
-                            ? null
-                            : () {
-                                _updatePaymentStatus(
-                                  order,
-                                );
-                              },
-                        icon: const Icon(
-                          Icons.save_rounded,
-                        ),
-                        label: const Text(
-                          'Lưu trạng thái thanh toán',
-                        ),
+                      child: OutlinedButton.icon(
+                        onPressed:
+                            _isBusy ||
+                                    _selectedPaymentStatus ==
+                                        order.paymentStatus
+                                ? null
+                                : () {
+                                  _updatePaymentStatus(order);
+                                },
+                        icon: const Icon(Icons.save_rounded),
+                        label: const Text('Lưu trạng thái thanh toán'),
                       ),
                     ),
                     const SizedBox(height: 10),
                     SizedBox(
                       width: double.infinity,
-                      child:
-                          FilledButton.tonalIcon(
+                      child: FilledButton.tonalIcon(
                         onPressed: () {
-                          printManagerInvoice(
-                            order: order,
-                          );
+                          printManagerInvoice(order: order);
                         },
-                        icon: const Icon(
-                          Icons.print_rounded,
-                        ),
-                        label: const Text(
-                          'In hóa đơn giả lập',
-                        ),
+                        icon: const Icon(Icons.print_rounded),
+                        label: const Text('In hóa đơn giả lập'),
                       ),
                     ),
                   ],
@@ -1941,46 +1572,32 @@ class _ManagerWebOrderDetailDialogState
               const SizedBox(height: 16),
               _SectionCard(
                 title: 'Xử lý đơn hàng',
-                icon:
-                    Icons.admin_panel_settings_outlined,
+                icon: Icons.admin_panel_settings_outlined,
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _InfoLine(
                       label: 'Trạng thái hiện tại',
-                      value: _statusLabel(
-                        order.orderStatus,
-                      ),
+                      value: _statusLabel(order.orderStatus),
                     ),
                     _InfoLine(
-                      label:
-                          'Phương thức thanh toán',
-                      value:
-                          order.paymentMethod,
+                      label: 'Phương thức thanh toán',
+                      value: order.paymentMethod,
                     ),
                     const SizedBox(height: 8),
                     if (_localError != null) ...[
                       Container(
                         width: double.infinity,
-                        padding:
-                            const EdgeInsets.all(
-                          12,
-                        ),
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.red
-                              .withOpacity(0.07),
-                          borderRadius:
-                              BorderRadius.circular(
-                            12,
-                          ),
+                          color: Colors.red.withOpacity(0.07),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           _localError!,
                           style: const TextStyle(
                             color: Colors.red,
-                            fontWeight:
-                                FontWeight.w700,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
@@ -1989,103 +1606,62 @@ class _ManagerWebOrderDetailDialogState
                     if (next.isNotEmpty)
                       SizedBox(
                         width: double.infinity,
-                        child:
-                            FilledButton.icon(
-                          onPressed: _isBusy
-                              ? null
-                              : () {
-                                  _updateNextStatus(
-                                    order,
-                                  );
-                                },
-                          style:
-                              FilledButton.styleFrom(
-                            backgroundColor:
-                                _statusColor(next),
-                            foregroundColor:
-                                Colors.white,
-                            padding:
-                                const EdgeInsets
-                                    .symmetric(
-                              vertical: 16,
-                            ),
+                        child: FilledButton.icon(
+                          onPressed:
+                              _isBusy
+                                  ? null
+                                  : () {
+                                    _updateNextStatus(order);
+                                  },
+                          style: FilledButton.styleFrom(
+                            backgroundColor: _statusColor(next),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                          icon: Icon(
-                            _nextStatusIcon(
-                              next,
-                            ),
-                          ),
-                          label: Text(
-                            'Chuyển sang ${_statusLabel(next)}',
-                          ),
+                          icon: Icon(_nextStatusIcon(next)),
+                          label: Text('Chuyển sang ${_statusLabel(next)}'),
                         ),
                       ),
                     if (canCancel) ...[
                       const SizedBox(height: 10),
                       SizedBox(
                         width: double.infinity,
-                        child:
-                            OutlinedButton.icon(
-                          onPressed: _isBusy
-                              ? null
-                              : () {
-                                  _cancelOrder(
-                                    order,
-                                  );
-                                },
-                          style:
-                              OutlinedButton.styleFrom(
-                            foregroundColor:
-                                Colors.red,
+                        child: OutlinedButton.icon(
+                          onPressed:
+                              _isBusy
+                                  ? null
+                                  : () {
+                                    _cancelOrder(order);
+                                  },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.red,
                             side: BorderSide(
-                              color: Colors.red
-                                  .withOpacity(
-                                0.45,
-                              ),
+                              color: Colors.red.withOpacity(0.45),
                             ),
-                            padding:
-                                const EdgeInsets
-                                    .symmetric(
-                              vertical: 15,
-                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 15),
                           ),
-                          icon: const Icon(
-                            Icons
-                                .cancel_outlined,
-                          ),
-                          label: const Text(
-                            'Hủy đơn hàng',
-                          ),
+                          icon: const Icon(Icons.cancel_outlined),
+                          label: const Text('Hủy đơn hàng'),
                         ),
                       ),
                     ],
-                    if (next.isEmpty &&
-                        !canCancel)
+                    if (next.isEmpty && !canCancel)
                       Container(
                         width: double.infinity,
-                        padding:
-                            const EdgeInsets.all(
-                          13,
-                        ),
+                        padding: const EdgeInsets.all(13),
                         decoration: BoxDecoration(
                           color: _statusColor(
                             order.orderStatus,
                           ).withOpacity(0.08),
-                          borderRadius:
-                              BorderRadius.circular(
-                            13,
-                          ),
+                          borderRadius: BorderRadius.circular(13),
                         ),
                         child: Text(
                           order.isCompleted
                               ? 'Đơn hàng đã hoàn thành. Không còn bước xử lý tiếp theo.'
                               : 'Đơn hàng đã bị hủy. Không thể tiếp tục xử lý.',
                           style: TextStyle(
-                            color: _statusColor(
-                              order.orderStatus,
-                            ),
-                            fontWeight:
-                                FontWeight.w700,
+                            color: _statusColor(order.orderStatus),
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
@@ -2097,27 +1673,16 @@ class _ManagerWebOrderDetailDialogState
 
           if (!wide) {
             return Column(
-              children: [
-                leftColumn,
-                const SizedBox(height: 16),
-                rightColumn,
-              ],
+              children: [leftColumn, const SizedBox(height: 16), rightColumn],
             );
           }
 
           return Row(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                flex: 7,
-                child: leftColumn,
-              ),
+              Expanded(flex: 7, child: leftColumn),
               const SizedBox(width: 16),
-              Expanded(
-                flex: 4,
-                child: rightColumn,
-              ),
+              Expanded(flex: 4, child: rightColumn),
             ],
           );
         },
@@ -2144,18 +1709,15 @@ class _DetailHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:
-          const EdgeInsets.fromLTRB(20, 17, 12, 17),
+      padding: const EdgeInsets.fromLTRB(20, 17, 12, 17),
       child: Row(
         children: [
           Container(
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.primary
-                  .withOpacity(0.1),
-              borderRadius:
-                  BorderRadius.circular(15),
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(15),
             ),
             child: const Icon(
               Icons.receipt_long_rounded,
@@ -2165,8 +1727,7 @@ class _DetailHeader extends StatelessWidget {
           const SizedBox(width: 13),
           Expanded(
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   order == null
@@ -2184,11 +1745,9 @@ class _DetailHeader extends StatelessWidget {
                       ? 'Đang tải dữ liệu đơn hàng'
                       : '${order!.receiverName} • ${_formatDate(order!.orderDate)}',
                   maxLines: 1,
-                  overflow:
-                      TextOverflow.ellipsis,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color:
-                        AppColors.textSecondary,
+                    color: AppColors.textSecondary,
                     fontSize: 12,
                   ),
                 ),
@@ -2198,28 +1757,19 @@ class _DetailHeader extends StatelessWidget {
           if (onCopyId != null)
             IconButton(
               tooltip: 'Sao chép mã đơn',
-              onPressed:
-                  isBusy ? null : onCopyId,
-              icon: const Icon(
-                Icons.copy_rounded,
-              ),
+              onPressed: isBusy ? null : onCopyId,
+              icon: const Icon(Icons.copy_rounded),
             ),
           if (onPrint != null)
             IconButton(
               tooltip: 'In hóa đơn giả lập',
-              onPressed:
-                  isBusy ? null : onPrint,
-              icon: const Icon(
-                Icons.print_rounded,
-              ),
+              onPressed: isBusy ? null : onPrint,
+              icon: const Icon(Icons.print_rounded),
             ),
           IconButton(
             tooltip: 'Đóng',
-            onPressed:
-                isBusy ? null : onClose,
-            icon: const Icon(
-              Icons.close_rounded,
-            ),
+            onPressed: isBusy ? null : onClose,
+            icon: const Icon(Icons.close_rounded),
           ),
         ],
       ),
@@ -2230,9 +1780,7 @@ class _DetailHeader extends StatelessWidget {
 class _StatusTimeline extends StatelessWidget {
   final OrderModel order;
 
-  const _StatusTimeline({
-    required this.order,
-  });
+  const _StatusTimeline({required this.order});
 
   static const statuses = [
     'placed',
@@ -2251,17 +1799,11 @@ class _StatusTimeline extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.red.withOpacity(0.06),
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: Colors.red.withOpacity(0.2),
-          ),
+          border: Border.all(color: Colors.red.withOpacity(0.2)),
         ),
         child: const Row(
           children: [
-            Icon(
-              Icons.cancel_rounded,
-              color: Colors.red,
-              size: 28,
-            ),
+            Icon(Icons.cancel_rounded, color: Colors.red, size: 28),
             SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -2277,8 +1819,7 @@ class _StatusTimeline extends StatelessWidget {
       );
     }
 
-    final currentIndex =
-        statuses.indexOf(order.orderStatus);
+    final currentIndex = statuses.indexOf(order.orderStatus);
 
     return _SectionCard(
       title: 'Tiến trình đơn hàng',
@@ -2287,161 +1828,117 @@ class _StatusTimeline extends StatelessWidget {
         builder: (context, constraints) {
           if (constraints.maxWidth < 650) {
             return Column(
-              children: List.generate(
-                statuses.length,
-                (index) {
-                  final status = statuses[index];
-                  final reached =
-                      index <= currentIndex;
+              children: List.generate(statuses.length, (index) {
+                final status = statuses[index];
+                final reached = index <= currentIndex;
 
-                  return Row(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
-                    children: [
-                      Column(
-                        children: [
-                          _TimelineDot(
-                            reached: reached,
-                            current:
-                                index == currentIndex,
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Column(
+                      children: [
+                        _TimelineDot(
+                          reached: reached,
+                          current: index == currentIndex,
+                          color: _statusColor(status),
+                        ),
+                        if (index != statuses.length - 1)
+                          Container(
+                            width: 2,
+                            height: 38,
                             color:
-                                _statusColor(status),
+                                reached
+                                    ? _statusColor(status).withOpacity(0.45)
+                                    : AppColors.border,
                           ),
-                          if (index !=
-                              statuses.length - 1)
-                            Container(
-                              width: 2,
-                              height: 38,
-                              color: reached
-                                  ? _statusColor(
-                                      status,
-                                    ).withOpacity(
-                                      0.45,
-                                    )
-                                  : AppColors.border,
+                      ],
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 5),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _statusLabel(status),
+                              style: TextStyle(
+                                color:
+                                    reached
+                                        ? AppColors.textPrimary
+                                        : AppColors.textSecondary,
+                                fontWeight:
+                                    reached ? FontWeight.w900 : FontWeight.w600,
+                              ),
                             ),
-                        ],
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Padding(
-                          padding:
-                              const EdgeInsets.only(
-                            top: 5,
-                          ),
-                          child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment
-                                    .start,
-                            children: [
-                              Text(
-                                _statusLabel(status),
-                                style: TextStyle(
-                                  color: reached
-                                      ? AppColors
-                                          .textPrimary
-                                      : AppColors
-                                          .textSecondary,
-                                  fontWeight: reached
-                                      ? FontWeight.w900
-                                      : FontWeight.w600,
-                                ),
+                            const SizedBox(height: 2),
+                            Text(
+                              _statusDescription(status),
+                              style: const TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 11,
                               ),
-                              const SizedBox(
-                                height: 2,
-                              ),
-                              Text(
-                                _statusDescription(
-                                  status,
-                                ),
-                                style:
-                                    const TextStyle(
-                                  color: AppColors
-                                      .textSecondary,
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  );
-                },
-              ),
+                    ),
+                  ],
+                );
+              }),
             );
           }
 
           return Row(
-            children: List.generate(
-              statuses.length * 2 - 1,
-              (slot) {
-                if (slot.isOdd) {
-                  final leftIndex =
-                      (slot - 1) ~/ 2;
+            children: List.generate(statuses.length * 2 - 1, (slot) {
+              if (slot.isOdd) {
+                final leftIndex = (slot - 1) ~/ 2;
 
-                  return Expanded(
-                    child: Container(
-                      height: 3,
-                      margin: const EdgeInsets.only(
-                        bottom: 33,
-                      ),
-                      decoration: BoxDecoration(
-                        color:
-                            leftIndex < currentIndex
-                                ? _statusColor(
-                                    statuses[
-                                        leftIndex +
-                                            1],
-                                  )
-                                : AppColors.border,
-                        borderRadius:
-                            BorderRadius.circular(
-                          99,
-                        ),
-                      ),
+                return Expanded(
+                  child: Container(
+                    height: 3,
+                    margin: const EdgeInsets.only(bottom: 33),
+                    decoration: BoxDecoration(
+                      color:
+                          leftIndex < currentIndex
+                              ? _statusColor(statuses[leftIndex + 1])
+                              : AppColors.border,
+                      borderRadius: BorderRadius.circular(99),
                     ),
-                  );
-                }
-
-                final index = slot ~/ 2;
-                final status = statuses[index];
-                final reached =
-                    index <= currentIndex;
-
-                return SizedBox(
-                  width: 118,
-                  child: Column(
-                    children: [
-                      _TimelineDot(
-                        reached: reached,
-                        current:
-                            index == currentIndex,
-                        color:
-                            _statusColor(status),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _statusLabel(status),
-                        textAlign:
-                            TextAlign.center,
-                        style: TextStyle(
-                          color: reached
-                              ? AppColors
-                                  .textPrimary
-                              : AppColors
-                                  .textSecondary,
-                          fontSize: 12,
-                          fontWeight: reached
-                              ? FontWeight.w900
-                              : FontWeight.w600,
-                        ),
-                      ),
-                    ],
                   ),
                 );
-              },
-            ),
+              }
+
+              final index = slot ~/ 2;
+              final status = statuses[index];
+              final reached = index <= currentIndex;
+
+              return SizedBox(
+                width: 118,
+                child: Column(
+                  children: [
+                    _TimelineDot(
+                      reached: reached,
+                      current: index == currentIndex,
+                      color: _statusColor(status),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _statusLabel(status),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color:
+                            reached
+                                ? AppColors.textPrimary
+                                : AppColors.textSecondary,
+                        fontSize: 12,
+                        fontWeight: reached ? FontWeight.w900 : FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
           );
         },
       ),
@@ -2463,38 +1960,30 @@ class _TimelineDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-      duration:
-          const Duration(milliseconds: 220),
+      duration: const Duration(milliseconds: 220),
       width: current ? 36 : 30,
       height: current ? 36 : 30,
       decoration: BoxDecoration(
-        color: reached
-            ? color
-            : AppColors.backgroundSecondary,
+        color: reached ? color : AppColors.backgroundSecondary,
         shape: BoxShape.circle,
         border: Border.all(
-          color: reached
-              ? color
-              : AppColors.border,
+          color: reached ? color : AppColors.border,
           width: current ? 4 : 2,
         ),
-        boxShadow: current
-            ? [
-                BoxShadow(
-                  color: color.withOpacity(0.22),
-                  blurRadius: 12,
-                  spreadRadius: 2,
-                ),
-              ]
-            : null,
+        boxShadow:
+            current
+                ? [
+                  BoxShadow(
+                    color: color.withOpacity(0.22),
+                    blurRadius: 12,
+                    spreadRadius: 2,
+                  ),
+                ]
+                : null,
       ),
       child: Icon(
-        reached
-            ? Icons.check_rounded
-            : Icons.circle_outlined,
-        color: reached
-            ? Colors.white
-            : AppColors.textSecondary,
+        reached ? Icons.check_rounded : Icons.circle_outlined,
+        color: reached ? Colors.white : AppColors.textSecondary,
         size: current ? 20 : 16,
       ),
     );
@@ -2516,8 +2005,7 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        accentColor ?? AppColors.primary;
+    final color = accentColor ?? AppColors.primary;
 
     return Container(
       width: double.infinity,
@@ -2525,13 +2013,10 @@ class _SectionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(19),
-        border: Border.all(
-          color: AppColors.border,
-        ),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
@@ -2539,27 +2024,19 @@ class _SectionCard extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color:
-                      color.withOpacity(0.09),
-                  borderRadius:
-                      BorderRadius.circular(12),
+                  color: color.withOpacity(0.09),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 20,
-                ),
+                child: Icon(icon, color: color, size: 20),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   title,
                   style: const TextStyle(
-                    color:
-                        AppColors.textPrimary,
+                    color: AppColors.textPrimary,
                     fontSize: 15,
-                    fontWeight:
-                        FontWeight.w900,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ),
@@ -2587,38 +2064,29 @@ class _InfoLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:
-          const EdgeInsets.only(bottom: 11),
+      padding: const EdgeInsets.only(bottom: 11),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final compact =
-              constraints.maxWidth < 430;
+          final compact = constraints.maxWidth < 430;
 
           if (compact) {
             return Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   label,
                   style: const TextStyle(
-                    color:
-                        AppColors.textSecondary,
+                    color: AppColors.textSecondary,
                     fontSize: 12,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  value.trim().isEmpty
-                      ? 'Không có'
-                      : value,
+                  value.trim().isEmpty ? 'Không có' : value,
                   style: TextStyle(
-                    color:
-                        AppColors.textPrimary,
+                    color: AppColors.textPrimary,
                     fontSize: 13,
-                    fontWeight: emphasize
-                        ? FontWeight.w800
-                        : FontWeight.w600,
+                    fontWeight: emphasize ? FontWeight.w800 : FontWeight.w600,
                     height: 1.4,
                   ),
                 ),
@@ -2627,33 +2095,26 @@ class _InfoLine extends StatelessWidget {
           }
 
           return Row(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(
                 width: 150,
                 child: Text(
                   label,
                   style: const TextStyle(
-                    color:
-                        AppColors.textSecondary,
+                    color: AppColors.textSecondary,
                     fontSize: 12,
                   ),
                 ),
               ),
               Expanded(
                 child: Text(
-                  value.trim().isEmpty
-                      ? 'Không có'
-                      : value,
+                  value.trim().isEmpty ? 'Không có' : value,
                   textAlign: TextAlign.right,
                   style: TextStyle(
-                    color:
-                        AppColors.textPrimary,
+                    color: AppColors.textPrimary,
                     fontSize: 13,
-                    fontWeight: emphasize
-                        ? FontWeight.w800
-                        : FontWeight.w600,
+                    fontWeight: emphasize ? FontWeight.w800 : FontWeight.w600,
                     height: 1.4,
                   ),
                 ),
@@ -2682,41 +2143,31 @@ class _MoneyLine extends StatelessWidget {
     final negative = value < 0;
 
     return Padding(
-      padding:
-          const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         children: [
           Expanded(
             child: Text(
               label,
               style: TextStyle(
-                color: isTotal
-                    ? AppColors.textPrimary
-                    : AppColors
-                        .textSecondary,
-                fontSize:
-                    isTotal ? 15 : 13,
-                fontWeight: isTotal
-                    ? FontWeight.w900
-                    : FontWeight.w600,
+                color:
+                    isTotal ? AppColors.textPrimary : AppColors.textSecondary,
+                fontSize: isTotal ? 15 : 13,
+                fontWeight: isTotal ? FontWeight.w900 : FontWeight.w600,
               ),
             ),
           ),
           Text(
-            negative
-                ? '-${_formatMoney(value.abs())}'
-                : _formatMoney(value),
+            negative ? '-${_formatMoney(value.abs())}' : _formatMoney(value),
             style: TextStyle(
-              color: isTotal
-                  ? AppColors.primary
-                  : negative
+              color:
+                  isTotal
+                      ? AppColors.primary
+                      : negative
                       ? AppColors.success
                       : AppColors.textPrimary,
-              fontSize:
-                  isTotal ? 20 : 13,
-              fontWeight: isTotal
-                  ? FontWeight.w900
-                  : FontWeight.w800,
+              fontSize: isTotal ? 20 : 13,
+              fontWeight: isTotal ? FontWeight.w900 : FontWeight.w800,
             ),
           ),
         ],
@@ -2728,93 +2179,69 @@ class _MoneyLine extends StatelessWidget {
 class _OrderItemTile extends StatelessWidget {
   final OrderItemModel item;
 
-  const _OrderItemTile({
-    required this.item,
-  });
+  const _OrderItemTile({required this.item});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin:
-          const EdgeInsets.only(bottom: 11),
+      margin: const EdgeInsets.only(bottom: 11),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.bg,
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: AppColors.border,
-        ),
+        border: Border.all(color: AppColors.border),
       ),
       child: Row(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _ProductImage(
-            url: item.productImage,
-          ),
+          _ProductImage(url: item.productImage),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   item.productName,
                   style: const TextStyle(
-                    color:
-                        AppColors.textPrimary,
-                    fontWeight:
-                        FontWeight.w900,
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   '${_formatMoney(item.unitPrice)} × ${item.quantity}',
                   style: const TextStyle(
-                    color:
-                        AppColors.textSecondary,
+                    color: AppColors.textSecondary,
                     fontSize: 12,
                   ),
                 ),
-                if (item.categoryTitle
-                    .trim()
-                    .isNotEmpty) ...[
+                if (item.categoryTitle.trim().isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(
                     item.categoryTitle,
                     style: const TextStyle(
-                      color:
-                          AppColors.textSecondary,
+                      color: AppColors.textSecondary,
                       fontSize: 11,
                     ),
                   ),
                 ],
-                if (item.note
-                    .trim()
-                    .isNotEmpty) ...[
+                if (item.note.trim().isNotEmpty) ...[
                   const SizedBox(height: 7),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: 9,
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(
-                        0xFFFFF7ED,
-                      ),
-                      borderRadius:
-                          BorderRadius.circular(9),
+                      color: const Color(0xFFFFF7ED),
+                      borderRadius: BorderRadius.circular(9),
                     ),
                     child: Text(
                       'Ghi chú: ${item.note}',
                       style: const TextStyle(
-                        color: Color(
-                          0xFF9A3412,
-                        ),
+                        color: Color(0xFF9A3412),
                         fontSize: 11,
-                        fontWeight:
-                            FontWeight.w700,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
@@ -2840,9 +2267,7 @@ class _OrderItemTile extends StatelessWidget {
 class _ProductImage extends StatelessWidget {
   final String url;
 
-  const _ProductImage({
-    required this.url,
-  });
+  const _ProductImage({required this.url});
 
   @override
   Widget build(BuildContext context) {
@@ -2872,10 +2297,7 @@ class _ProductImage extends StatelessWidget {
         color: AppColors.backgroundSecondary,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Icon(
-        Icons.fastfood_rounded,
-        color: AppColors.textSecondary,
-      ),
+      child: const Icon(Icons.fastfood_rounded, color: AppColors.textSecondary),
     );
   }
 }
@@ -2884,18 +2306,12 @@ class _StatusChip extends StatelessWidget {
   final String label;
   final Color color;
 
-  const _StatusChip({
-    required this.label,
-    required this.color,
-  });
+  const _StatusChip({required this.label, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 6,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: color.withOpacity(0.11),
         borderRadius: BorderRadius.circular(99),
@@ -2916,10 +2332,7 @@ class _OrderErrorState extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
 
-  const _OrderErrorState({
-    required this.message,
-    required this.onRetry,
-  });
+  const _OrderErrorState({required this.message, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -2929,11 +2342,7 @@ class _OrderErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.cloud_off_rounded,
-              color: Colors.red,
-              size: 54,
-            ),
+            const Icon(Icons.cloud_off_rounded, color: Colors.red, size: 54),
             const SizedBox(height: 12),
             Text(
               message,
@@ -2946,9 +2355,7 @@ class _OrderErrorState extends StatelessWidget {
             const SizedBox(height: 14),
             FilledButton.icon(
               onPressed: onRetry,
-              icon: const Icon(
-                Icons.refresh_rounded,
-              ),
+              icon: const Icon(Icons.refresh_rounded),
               label: const Text('Thử lại'),
             ),
           ],
@@ -2985,10 +2392,7 @@ class _EmptyOrders extends StatelessWidget {
           Text(
             'Hãy thay đổi từ khóa hoặc bộ lọc đang sử dụng.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 13,
-            ),
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
           ),
         ],
       ),
@@ -3000,10 +2404,7 @@ class _DetailError extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
 
-  const _DetailError({
-    required this.message,
-    required this.onRetry,
-  });
+  const _DetailError({required this.message, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -3011,22 +2412,13 @@ class _DetailError extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            Icons.error_outline_rounded,
-            color: Colors.red,
-            size: 52,
-          ),
+          const Icon(Icons.error_outline_rounded, color: Colors.red, size: 52),
           const SizedBox(height: 12),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-          ),
+          Text(message, textAlign: TextAlign.center),
           const SizedBox(height: 12),
           FilledButton.icon(
             onPressed: onRetry,
-            icon: const Icon(
-              Icons.refresh_rounded,
-            ),
+            icon: const Icon(Icons.refresh_rounded),
             label: const Text('Tải lại'),
           ),
         ],
@@ -3061,21 +2453,15 @@ class _PaginationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 18,
-        vertical: 12,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: AppColors.border,
-        ),
+        border: Border.all(color: AppColors.border),
       ),
       child: Wrap(
         alignment: WrapAlignment.spaceBetween,
-        crossAxisAlignment:
-            WrapCrossAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
         spacing: 16,
         runSpacing: 10,
         children: [
@@ -3092,65 +2478,40 @@ class _PaginationBar extends StatelessWidget {
             children: [
               const Text(
                 'Số dòng:',
-                style: TextStyle(
-                  color:
-                      AppColors.textSecondary,
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
               ),
               const SizedBox(width: 8),
               DropdownButton<int>(
                 value: rowsPerPage,
-                underline:
-                    const SizedBox.shrink(),
-                borderRadius:
-                    BorderRadius.circular(12),
+                underline: const SizedBox.shrink(),
+                borderRadius: BorderRadius.circular(12),
                 items: const [
-                  DropdownMenuItem(
-                    value: 5,
-                    child: Text('5'),
-                  ),
-                  DropdownMenuItem(
-                    value: 10,
-                    child: Text('10'),
-                  ),
-                  DropdownMenuItem(
-                    value: 20,
-                    child: Text('20'),
-                  ),
-                  DropdownMenuItem(
-                    value: 50,
-                    child: Text('50'),
-                  ),
+                  DropdownMenuItem(value: 5, child: Text('5')),
+                  DropdownMenuItem(value: 10, child: Text('10')),
+                  DropdownMenuItem(value: 20, child: Text('20')),
+                  DropdownMenuItem(value: 50, child: Text('50')),
                 ],
-                onChanged:
-                    onRowsPerPageChanged,
+                onChanged: onRowsPerPageChanged,
               ),
               const SizedBox(width: 14),
               Text(
                 'Trang $currentPage/$totalPages',
                 style: const TextStyle(
-                  color:
-                      AppColors.textPrimary,
+                  color: AppColors.textPrimary,
                   fontSize: 12,
-                  fontWeight:
-                      FontWeight.w800,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
               const SizedBox(width: 8),
               IconButton(
                 tooltip: 'Trang trước',
                 onPressed: onPrevious,
-                icon: const Icon(
-                  Icons.chevron_left_rounded,
-                ),
+                icon: const Icon(Icons.chevron_left_rounded),
               ),
               IconButton(
                 tooltip: 'Trang sau',
                 onPressed: onNext,
-                icon: const Icon(
-                  Icons.chevron_right_rounded,
-                ),
+                icon: const Icon(Icons.chevron_right_rounded),
               ),
             ],
           ),
@@ -3284,8 +2645,7 @@ String _shortId(String id) {
 }
 
 String _formatDate(DateTime date) {
-  String two(int value) =>
-      value.toString().padLeft(2, '0');
+  String two(int value) => value.toString().padLeft(2, '0');
 
   return '${two(date.day)}/${two(date.month)}/${date.year} '
       '${two(date.hour)}:${two(date.minute)}';
@@ -3298,11 +2658,9 @@ String _formatMoney(double value) {
   for (var i = 0; i < digits.length; i++) {
     buffer.write(digits[i]);
 
-    final remaining =
-        digits.length - i - 1;
+    final remaining = digits.length - i - 1;
 
-    if (remaining > 0 &&
-        remaining % 3 == 0) {
+    if (remaining > 0 && remaining % 3 == 0) {
       buffer.write('.');
     }
   }

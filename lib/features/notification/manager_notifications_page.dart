@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:CT466_project_trangdc24v7x324/models/product_model.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/notification_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/providers/product_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/widgets/app_layout.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/widgets/app_body.dart';
+import 'package:project_trangdc24v7x324/models/product_model.dart';
+import 'package:project_trangdc24v7x324/providers/notification_provider.dart';
+import 'package:project_trangdc24v7x324/providers/product_provider.dart';
+import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
+import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
 
 class ManagerNotificationsPage extends StatefulWidget {
   const ManagerNotificationsPage({super.key});

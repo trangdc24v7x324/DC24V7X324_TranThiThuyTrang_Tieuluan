@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:CT466_project_trangdc24v7x324/routes/app_routes.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/theme/app_colors.dart';
+import 'package:project_trangdc24v7x324/routes/app_routes.dart';
+import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 
 class ManagerWebLayout extends StatelessWidget {
   final String title;
@@ -153,9 +153,7 @@ class ManagerTopBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 28),
       decoration: const BoxDecoration(
         color: AppColors.surface,
-        border: Border(
-          bottom: BorderSide(color: AppColors.border),
-        ),
+        border: Border(bottom: BorderSide(color: AppColors.border)),
       ),
       child: Row(
         children: [
@@ -173,11 +171,7 @@ class ManagerTopBar extends StatelessWidget {
           ),
           ...actions,
           if (actions.isNotEmpty) const SizedBox(width: 14),
-          Container(
-            width: 1,
-            height: 34,
-            color: AppColors.border,
-          ),
+          Container(width: 1, height: 34, color: AppColors.border),
           const SizedBox(width: 16),
           Text(
             managerName.trim().isEmpty ? 'Manager' : managerName,
@@ -263,11 +257,7 @@ class ManagerSidebar extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFFFF6675),
-            AppColors.primary,
-            Color(0xFFD91F2D),
-          ],
+          colors: [Color(0xFFFF6675), AppColors.primary, Color(0xFFD91F2D)],
         ),
       ),
       child: SafeArea(
@@ -350,9 +340,7 @@ class ManagerSidebar extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.16),
-                      ),
+                      border: Border.all(color: Colors.white.withOpacity(0.16)),
                     ),
                     child: Row(
                       children: [
@@ -510,21 +498,22 @@ class _AvatarButton extends StatelessWidget {
         child: SizedBox(
           width: size,
           height: size,
-          child: avatarUrl.trim().isEmpty
-              ? const Icon(
-                  Icons.person_rounded,
-                  color: AppColors.textSecondary,
-                )
-              : Image.network(
-                  avatarUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) {
-                    return const Icon(
-                      Icons.person_rounded,
-                      color: AppColors.textSecondary,
-                    );
-                  },
-                ),
+          child:
+              avatarUrl.trim().isEmpty
+                  ? const Icon(
+                    Icons.person_rounded,
+                    color: AppColors.textSecondary,
+                  )
+                  : Image.network(
+                    avatarUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) {
+                      return const Icon(
+                        Icons.person_rounded,
+                        color: AppColors.textSecondary,
+                      );
+                    },
+                  ),
         ),
       ),
     );

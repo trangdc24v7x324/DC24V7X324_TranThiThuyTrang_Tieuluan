@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:CT466_project_trangdc24v7x324/features/profile/widgets/account_info_section.dart';
-import 'package:CT466_project_trangdc24v7x324/features/profile/widgets/address_section.dart';
-import 'package:CT466_project_trangdc24v7x324/features/profile/widgets/general_info_section.dart';
-import 'package:CT466_project_trangdc24v7x324/features/profile/widgets/payment_methods_section.dart';
-import 'package:CT466_project_trangdc24v7x324/features/profile/widgets/profile_header.dart';
+import 'package:project_trangdc24v7x324/features/profile/widgets/account_info_section.dart';
+import 'package:project_trangdc24v7x324/features/profile/widgets/address_section.dart';
+import 'package:project_trangdc24v7x324/features/profile/widgets/general_info_section.dart';
+import 'package:project_trangdc24v7x324/features/profile/widgets/payment_methods_section.dart';
+import 'package:project_trangdc24v7x324/features/profile/widgets/profile_header.dart';
 
-import 'package:CT466_project_trangdc24v7x324/providers/profile_provider.dart';
-import 'package:CT466_project_trangdc24v7x324/routes/app_routes.dart';
+import 'package:project_trangdc24v7x324/providers/profile_provider.dart';
+import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 
 // DESIGN SYSTEM
-import 'package:CT466_project_trangdc24v7x324/shared/widgets/app_layout.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/widgets/app_body.dart';
-import 'package:CT466_project_trangdc24v7x324/shared/theme/app_colors.dart';
+import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
+import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
+import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});

@@ -3,17 +3,16 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-import 'package:CT466_project_trangdc24v7x324/core/pocketbase_client.dart';
-import 'package:CT466_project_trangdc24v7x324/models/category_model.dart';
-import 'package:CT466_project_trangdc24v7x324/models/product_model.dart';
+import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
+import 'package:project_trangdc24v7x324/models/category_model.dart';
+import 'package:project_trangdc24v7x324/models/product_model.dart';
 
 class ProductService {
   Future<List<CategoryModel>> getCategories() async {
     try {
-      final records = await pb.collection('categories').getFullList(
-            sort: 'sortOrder',
-            filter: 'isActive = true',
-          );
+      final records = await pb
+          .collection('categories')
+          .getFullList(sort: 'sortOrder', filter: 'isActive = true');
 
       return records.map((record) {
         return CategoryModel.fromJson({
@@ -31,10 +30,9 @@ class ProductService {
 
   Future<List<ProductModel>> getProducts() async {
     try {
-      final records = await pb.collection('products').getFullList(
-            sort: '-created',
-            expand: 'category',
-          );
+      final records = await pb
+          .collection('products')
+          .getFullList(sort: '-created', expand: 'category');
 
       return records.map(_mapProductRecord).toList();
     } catch (error) {
@@ -45,10 +43,9 @@ class ProductService {
 
   Future<ProductModel> getProductById(String id) async {
     try {
-      final record = await pb.collection('products').getOne(
-            id,
-            expand: 'category',
-          );
+      final record = await pb
+          .collection('products')
+          .getOne(id, expand: 'category');
 
       return _mapProductRecord(record);
     } catch (error) {
@@ -66,7 +63,9 @@ class ProductService {
       final categoryId = await _resolveCategoryId(product);
       final body = _buildBody(product, categoryId);
 
-      await pb.collection('products').create(
+      await pb
+          .collection('products')
+          .create(
             body: body,
             files: _buildImageFiles(
               imageBytes: imageBytes,
@@ -89,7 +88,9 @@ class ProductService {
       final categoryId = await _resolveCategoryId(product);
       final body = _buildBody(product, categoryId);
 
-      await pb.collection('products').update(
+      await pb
+          .collection('products')
+          .update(
             id,
             body: body,
             files: _buildImageFiles(
@@ -104,16 +105,12 @@ class ProductService {
   }
 
   Future<void> deleteProduct(String productId) async {
-    await pb.collection('products').update(
-      productId,
-      body: {'isAvailable': false},
-    );
+    await pb
+        .collection('products')
+        .update(productId, body: {'isAvailable': false});
   }
 
-  Map<String, dynamic> _buildBody(
-    ProductModel product,
-    String? categoryId,
-  ) {
+  Map<String, dynamic> _buildBody(ProductModel product, String? categoryId) {
     return {
       'title': product.title.trim(),
       'subtitle': product.subtitle.trim(),
@@ -141,11 +138,7 @@ class ProductService {
     final safeName = _safeImageName(imageName);
 
     return [
-      http.MultipartFile.fromBytes(
-        'image',
-        imageBytes,
-        filename: safeName,
-      ),
+      http.MultipartFile.fromBytes('image', imageBytes, filename: safeName),
     ];
   }
 
@@ -202,11 +195,7 @@ class ProductService {
 
     final rawCategory = record.data['category']?.toString() ?? '';
 
-    return {
-      'id': rawCategory,
-      'title': 'Khác',
-      'slug': 'khac',
-    };
+    return {'id': rawCategory, 'title': 'Khác', 'slug': 'khac'};
   }
 
   String _buildProductImageUrl(dynamic record) {
@@ -226,9 +215,9 @@ class ProductService {
         product.categorySlug.trim() != 'khac') {
       final safeSlug = product.categorySlug.trim().replaceAll('"', r'\"');
 
-      final records = await pb.collection('categories').getFullList(
-            filter: 'slug = "$safeSlug"',
-          );
+      final records = await pb
+          .collection('categories')
+          .getFullList(filter: 'slug = "$safeSlug"');
 
       if (records.isNotEmpty) {
         return records.first.id;

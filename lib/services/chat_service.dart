@@ -1,5 +1,5 @@
-import 'package:CT466_project_trangdc24v7x324/core/pocketbase_client.dart';
-import 'package:CT466_project_trangdc24v7x324/models/chat_message_model.dart';
+import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
+import 'package:project_trangdc24v7x324/models/chat_message_model.dart';
 import 'package:pocketbase/pocketbase.dart';
 
 class ChatService {

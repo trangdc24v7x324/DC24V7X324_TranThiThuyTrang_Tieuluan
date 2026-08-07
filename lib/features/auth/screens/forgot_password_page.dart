@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'package:CT466_project_trangdc24v7x324/services/auth_service.dart';
+import 'package:project_trangdc24v7x324/services/auth_service.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -160,11 +160,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   // BACK BUTTON
                   // ===========================================
                   IconButton(
-                    onPressed: _isLoading
-                        ? null
-                        : () {
-                            Navigator.pop(context);
-                          },
+                    onPressed:
+                        _isLoading
+                            ? null
+                            : () {
+                              Navigator.pop(context);
+                            },
                     icon: const Icon(
                       Icons.arrow_back_ios_new,
                       color: Colors.white,
@@ -358,22 +359,23 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                 borderRadius: BorderRadius.circular(14),
                               ),
                             ),
-                            child: _isLoading
-                                ? const SizedBox(
-                                    width: 22,
-                                    height: 22,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.2,
-                                      color: Colors.white,
+                            child:
+                                _isLoading
+                                    ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                    : const Text(
+                                      'Gửi yêu cầu',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
-                                  )
-                                : const Text(
-                                    'Gửi yêu cầu',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
                           ),
                         ),
 
@@ -385,11 +387,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         SizedBox(
                           width: double.infinity,
                           child: TextButton(
-                            onPressed: _isLoading
-                                ? null
-                                : () {
-                                    Navigator.pop(context);
-                                  },
+                            onPressed:
+                                _isLoading
+                                    ? null
+                                    : () {
+                                      Navigator.pop(context);
+                                    },
                             child: const Text(
                               'Quay lại đăng nhập',
                               style: TextStyle(

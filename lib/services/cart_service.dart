@@ -1,5 +1,5 @@
-import 'package:CT466_project_trangdc24v7x324/core/pocketbase_client.dart';
-import 'package:CT466_project_trangdc24v7x324/models/cart_item_model.dart';
+import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
+import 'package:project_trangdc24v7x324/models/cart_item_model.dart';
 
 class CartService {
   String? _cachedActiveCartId;
