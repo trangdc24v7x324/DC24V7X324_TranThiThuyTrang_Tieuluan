@@ -68,22 +68,34 @@ class FoodAvailable extends StatelessWidget {
               subtitle.contains(query) ||
               description.contains(query);
 
-          final matchesCategory =
-              selectedCategory == 'all' ||
-              item.categorySlug == selectedCategory;
+          final bool matchesCategory;
+
+          if (selectedCategory == 'promotion_today') {
+            matchesCategory = item.hasActiveSale;
+          } else if (selectedCategory == 'all') {
+            matchesCategory = true;
+          } else {
+            matchesCategory = item.categorySlug == selectedCategory;
+          }
 
           return item.isAvailable && matchesSearch && matchesCategory;
         }).toList();
 
     if (filteredItems.isEmpty) {
-      return const Center(
+      final emptyMessage =
+          selectedCategory == 'promotion_today' && query.isEmpty
+              ? 'Hôm nay chưa có sản phẩm khuyến mãi'
+              : 'Không tìm thấy món ăn';
+
+      return Center(
         child: Text(
-          'Không tìm thấy món ăn',
-          style: TextStyle(
+          emptyMessage,
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w500,
             color: Colors.grey,
           ),
+          textAlign: TextAlign.center,
         ),
       );
     }

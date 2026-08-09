@@ -25,43 +25,54 @@ class FoodCard extends StatefulWidget {
 class _FoodCardState extends State<FoodCard> {
   bool _isCartAnimating = false;
 
-  // =========================================================
-  // ADD TO CART
-  // =========================================================
+  bool get _hasActiveSale {
+    final product = widget.product;
 
-  Future<void> _handleAddToCart() async {
-    if (!widget.product.isAvailable) {
-      return;
+    if (!product.isOnSale) return false;
+
+    if (product.price <= 0 ||
+        product.salePrice <= 0 ||
+        product.salePrice >= product.price) {
+      return false;
     }
 
-    setState(() {
-      _isCartAnimating = true;
-    });
+    final now = DateTime.now();
+    final start = product.saleStartAt?.toLocal();
+    final end = product.saleEndAt?.toLocal();
+
+    if (start != null && now.isBefore(start)) return false;
+    if (end != null && now.isAfter(end)) return false;
+
+    return true;
+  }
+
+  int get _discountPercent {
+    if (!_hasActiveSale || widget.product.price <= 0) return 0;
+
+    return (((widget.product.price - widget.product.salePrice) /
+                widget.product.price) *
+            100)
+        .round();
+  }
+
+  Future<void> _handleAddToCart() async {
+    setState(() => _isCartAnimating = true);
 
     widget.onAddToCart();
 
     await Future.delayed(const Duration(milliseconds: 180));
 
     if (!mounted) return;
-
-    setState(() {
-      _isCartAnimating = false;
-    });
+    setState(() => _isCartAnimating = false);
   }
 
-  // =========================================================
-  // FORMAT PRICE
-  // =========================================================
-
   String formatPrice(double price) {
-    final String value = price.round().toString();
-
-    final StringBuffer buffer = StringBuffer();
+    final value = price.round().toString();
+    final buffer = StringBuffer();
 
     for (int i = 0; i < value.length; i++) {
       buffer.write(value[i]);
-
-      final int remaining = value.length - i - 1;
+      final remaining = value.length - i - 1;
 
       if (remaining > 0 && remaining % 3 == 0) {
         buffer.write('.');
@@ -71,16 +82,12 @@ class _FoodCardState extends State<FoodCard> {
     return '${buffer}đ';
   }
 
-  // =========================================================
-  // IMAGE
-  // =========================================================
-
   Widget _buildImage() {
     if (widget.product.image.isEmpty) {
       return const Icon(Icons.fastfood_rounded, size: 44, color: Colors.grey);
     }
 
-    final bool isNetwork =
+    final isNetwork =
         widget.product.image.startsWith('http://') ||
         widget.product.image.startsWith('https://');
 
@@ -88,7 +95,7 @@ class _FoodCardState extends State<FoodCard> {
       return Image.network(
         widget.product.image,
         fit: BoxFit.contain,
-        errorBuilder: (context, error, stackTrace) {
+        errorBuilder: (_, __, ___) {
           return const Icon(
             Icons.fastfood_rounded,
             size: 44,
@@ -101,99 +108,14 @@ class _FoodCardState extends State<FoodCard> {
     return Image.asset(
       widget.product.image,
       fit: BoxFit.contain,
-      errorBuilder: (context, error, stackTrace) {
+      errorBuilder: (_, __, ___) {
         return const Icon(Icons.fastfood_rounded, size: 44, color: Colors.grey);
       },
     );
   }
 
-  // =========================================================
-  // IMAGE AREA + SALE BADGE
-  // =========================================================
-
-  Widget _buildProductImage() {
-    return SizedBox(
-      height: 95,
-      width: double.infinity,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: _buildImage(),
-              ),
-            ),
-          ),
-
-          // ===============================================
-          // SALE BADGE
-          // ===============================================
-          if (widget.product.hasActiveSale)
-            Positioned(
-              top: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEF2A39),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '-${widget.product.discountPercent}%',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ),
-
-          // ===============================================
-          // OUT OF STOCK
-          // ===============================================
-          if (!widget.product.isAvailable)
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.60),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                alignment: Alignment.center,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black87,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'Hết hàng',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  // =========================================================
-  // PRICE
-  // =========================================================
-
   Widget _buildPrice() {
-    // Không có khuyến mãi.
-    if (!widget.product.hasActiveSale) {
+    if (!_hasActiveSale) {
       return Text(
         formatPrice(widget.product.price),
         maxLines: 1,
@@ -206,45 +128,55 @@ class _FoodCardState extends State<FoodCard> {
       );
     }
 
-    // Có khuyến mãi.
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
+    return Row(
       children: [
-        // Giá gốc.
-        Text(
-          formatPrice(widget.product.price),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
-            color: Colors.grey.shade500,
-            decoration: TextDecoration.lineThrough,
-            decorationColor: Colors.grey.shade500,
+        Flexible(
+          child: Text(
+            formatPrice(widget.product.salePrice),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFFEF2A39),
+            ),
           ),
         ),
-
-        const SizedBox(height: 1),
-
-        // Giá thực tế.
-        Text(
-          formatPrice(widget.product.effectivePrice),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-            color: Color(0xFFEF2A39),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            formatPrice(widget.product.price),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey.shade500,
+              decoration: TextDecoration.lineThrough,
+            ),
           ),
         ),
+        if (_discountPercent > 0) ...[
+          const SizedBox(width: 5),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEF2A39).withOpacity(0.10),
+              borderRadius: BorderRadius.circular(99),
+            ),
+            child: Text(
+              '-$_discountPercent%',
+              style: const TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFFEF2A39),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
-
-  // =========================================================
-  // BUILD
-  // =========================================================
 
   @override
   Widget build(BuildContext context) {
@@ -255,7 +187,6 @@ class _FoodCardState extends State<FoodCard> {
       shadowColor: Colors.black.withOpacity(0.10),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
-
         onTap: () {
           Navigator.pushNamed(
             context,
@@ -263,22 +194,23 @@ class _FoodCardState extends State<FoodCard> {
             arguments: widget.product,
           );
         },
-
         child: Padding(
           padding: const EdgeInsets.fromLTRB(10, 10, 10, 9),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // =============================================
-              // IMAGE
-              // =============================================
-              _buildProductImage(),
-
+              SizedBox(
+                height: 95,
+                width: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: _buildImage(),
+                  ),
+                ),
+              ),
               const SizedBox(height: 8),
-
-              // =============================================
-              // TITLE
-              // =============================================
               Text(
                 widget.product.title,
                 maxLines: 1,
@@ -289,12 +221,7 @@ class _FoodCardState extends State<FoodCard> {
                   color: Color(0xFF2E2E2E),
                 ),
               ),
-
               const SizedBox(height: 3),
-
-              // =============================================
-              // SUBTITLE
-              // =============================================
               Text(
                 widget.product.subtitle,
                 maxLines: 1,
@@ -306,19 +233,9 @@ class _FoodCardState extends State<FoodCard> {
                   fontWeight: FontWeight.w400,
                 ),
               ),
-
               const SizedBox(height: 8),
-
-              // =============================================
-              // PRICE
-              // =============================================
               _buildPrice(),
-
               const SizedBox(height: 7),
-
-              // =============================================
-              // RATING + ACTION
-              // =============================================
               Row(
                 children: [
                   const Icon(
@@ -326,14 +243,9 @@ class _FoodCardState extends State<FoodCard> {
                     color: Colors.orange,
                     size: 15,
                   ),
-
                   const SizedBox(width: 3),
-
                   Text(
-                    widget.product.reviewCount > 0
-                        ? '${widget.product.rating.toStringAsFixed(1)} '
-                            '(${widget.product.reviewCount})'
-                        : 'Chưa có',
+                    widget.product.rating.toStringAsFixed(1),
                     style: const TextStyle(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w500,
@@ -341,25 +253,13 @@ class _FoodCardState extends State<FoodCard> {
                     ),
                   ),
                   const Spacer(),
-
-                  // =========================================
-                  // CART
-                  // =========================================
                   _ActionIcon(
                     icon: CupertinoIcons.cart_badge_plus,
-                    color:
-                        widget.product.isAvailable
-                            ? const Color(0xFFEF2A39)
-                            : Colors.grey,
+                    color: const Color(0xFFEF2A39),
                     onTap: _handleAddToCart,
                     isAnimating: _isCartAnimating,
                   ),
-
                   const SizedBox(width: 8),
-
-                  // =========================================
-                  // FAVORITE
-                  // =========================================
                   _ActionIcon(
                     icon:
                         widget.isFavorited
@@ -381,17 +281,10 @@ class _FoodCardState extends State<FoodCard> {
   }
 }
 
-// ===========================================================
-// ACTION ICON
-// ===========================================================
-
 class _ActionIcon extends StatelessWidget {
   final IconData icon;
-
   final Color color;
-
   final VoidCallback onTap;
-
   final bool isAnimating;
 
   const _ActionIcon({

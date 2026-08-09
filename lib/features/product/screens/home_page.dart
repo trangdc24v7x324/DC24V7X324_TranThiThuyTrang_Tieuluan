@@ -244,6 +244,7 @@ class _HomePageState extends State<HomePage> {
                       CategorySelector(
                         categories: productProvider.categories,
                         selectedCategory: selectedCategory,
+                        showPromotion: true,
                         onCategorySelected: (value) {
                           setState(() => selectedCategory = value);
                         },

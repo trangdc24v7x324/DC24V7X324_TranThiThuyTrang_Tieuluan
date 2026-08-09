@@ -12,6 +12,31 @@ import 'package:project_trangdc24v7x324/providers/profile_provider.dart';
 import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 
+
+bool _hasActivePromotion(ProductModel product) {
+  if (!product.isOnSale) return false;
+
+  if (product.price <= 0 ||
+      product.salePrice <= 0 ||
+      product.salePrice >= product.price) {
+    return false;
+  }
+
+  final now = DateTime.now();
+  final start = product.saleStartAt?.toLocal();
+  final end = product.saleEndAt?.toLocal();
+
+  if (start != null && now.isBefore(start)) return false;
+  if (end != null && now.isAfter(end)) return false;
+
+  return true;
+}
+
+int _discountPercent(ProductModel product) {
+  if (!_hasActivePromotion(product) || product.price <= 0) return 0;
+  return (((product.price - product.salePrice) / product.price) * 100).round();
+}
+
 class ManagerWebProductsPage extends StatefulWidget {
   const ManagerWebProductsPage({super.key});
 
@@ -98,6 +123,9 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
       final matchesStatus =
           _selectedStatus == 'Tất cả' ||
           (_selectedStatus == 'Đang bán' && product.isAvailable) ||
+          (_selectedStatus == 'Đang khuyến mãi' &&
+              product.isAvailable &&
+              _hasActivePromotion(product)) ||
           (_selectedStatus == 'Ngừng bán' && !product.isAvailable);
 
       return matchesQuery && matchesCategory && matchesStatus;
@@ -273,6 +301,14 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
                         provider.products
                             .where((product) => product.isAvailable)
                             .length,
+                    promotionProducts:
+                        provider.products
+                            .where(
+                              (product) =>
+                                  product.isAvailable &&
+                                  _hasActivePromotion(product),
+                            )
+                            .length,
                     unavailableProducts:
                         provider.products
                             .where((product) => !product.isAvailable)
@@ -380,11 +416,13 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
 class _ProductsSummary extends StatelessWidget {
   final int totalProducts;
   final int availableProducts;
+  final int promotionProducts;
   final int unavailableProducts;
 
   const _ProductsSummary({
     required this.totalProducts,
     required this.availableProducts,
+    required this.promotionProducts,
     required this.unavailableProducts,
   });
 
@@ -406,6 +444,12 @@ class _ProductsSummary extends StatelessWidget {
             value: '$availableProducts',
             icon: Icons.check_circle_rounded,
             color: AppColors.success,
+          ),
+          _SummaryItem(
+            title: 'Đang khuyến mãi',
+            value: '$promotionProducts',
+            icon: Icons.local_offer_rounded,
+            color: const Color(0xFFEF4444),
           ),
           _SummaryItem(
             title: 'Ngừng bán',
@@ -603,6 +647,10 @@ class _Toolbar extends StatelessWidget {
             items: const [
               DropdownMenuItem(value: 'Tất cả', child: Text('Tất cả')),
               DropdownMenuItem(value: 'Đang bán', child: Text('Đang bán')),
+              DropdownMenuItem(
+                value: 'Đang khuyến mãi',
+                child: Text('Đang khuyến mãi'),
+              ),
               DropdownMenuItem(value: 'Ngừng bán', child: Text('Ngừng bán')),
             ],
             onChanged: onStatusChanged,
@@ -878,15 +926,16 @@ class _ProductTable extends StatelessWidget {
                     ),
                   ),
                   DataCell(
-                    Text(
-                      formatPrice(product.price),
-                      style: const TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w900,
-                      ),
+                    _ProductPrice(
+                      product: product,
+                      formatPrice: formatPrice,
                     ),
                   ),
-                  DataCell(_StatusChip(isAvailable: product.isAvailable)),
+                  DataCell(
+                    _ProductStatus(
+                      product: product,
+                    ),
+                  ),
                   DataCell(
                     Row(
                       mainAxisSize: MainAxisSize.min,
@@ -982,15 +1031,12 @@ class _ProductCards extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 5),
-                    Text(
-                      formatPrice(product.price),
-                      style: const TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w900,
-                      ),
+                    _ProductPrice(
+                      product: product,
+                      formatPrice: formatPrice,
                     ),
                     const SizedBox(height: 7),
-                    _StatusChip(isAvailable: product.isAvailable),
+                    _ProductStatus(product: product),
                   ],
                 ),
               ),
@@ -1051,6 +1097,124 @@ class _ProductImage extends StatelessWidget {
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => placeholder,
                 ),
+      ),
+    );
+  }
+}
+
+class _ProductPrice extends StatelessWidget {
+  final ProductModel product;
+  final String Function(double) formatPrice;
+
+  const _ProductPrice({
+    required this.product,
+    required this.formatPrice,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final activeSale = _hasActivePromotion(product);
+
+    if (!activeSale) {
+      return Text(
+        formatPrice(product.price),
+        style: const TextStyle(
+          color: AppColors.primary,
+          fontWeight: FontWeight.w900,
+        ),
+      );
+    }
+
+    final percent = _discountPercent(product);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              formatPrice(product.salePrice),
+              style: const TextStyle(
+                color: Color(0xFFEF4444),
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            if (percent > 0) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEF4444).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(99),
+                ),
+                child: Text(
+                  '-$percent%',
+                  style: const TextStyle(
+                    color: Color(0xFFEF4444),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 2),
+        Text(
+          formatPrice(product.price),
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            decoration: TextDecoration.lineThrough,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ProductStatus extends StatelessWidget {
+  final ProductModel product;
+
+  const _ProductStatus({required this.product});
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 6,
+      runSpacing: 5,
+      children: [
+        _StatusChip(isAvailable: product.isAvailable),
+        if (product.isAvailable && _hasActivePromotion(product))
+          const _SaleChip(),
+      ],
+    );
+  }
+}
+
+class _SaleChip extends StatelessWidget {
+  const _SaleChip();
+
+  @override
+  Widget build(BuildContext context) {
+    const color = Color(0xFFEF4444);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.11),
+        borderRadius: BorderRadius.circular(99),
+      ),
+      child: const Text(
+        'Khuyến mãi',
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }

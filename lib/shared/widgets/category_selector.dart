@@ -4,18 +4,24 @@ class CategorySelector extends StatelessWidget {
   final String selectedCategory;
   final ValueChanged<String> onCategorySelected;
 
-  //nhận categories từ provider
+  // Nhận categories từ provider.
   final List<dynamic> categories;
+
+  // Chỉ HomePage bật tùy chọn này để thêm tab khuyến mãi ảo.
+  final bool showPromotion;
 
   const CategorySelector({
     super.key,
     required this.selectedCategory,
     required this.onCategorySelected,
     required this.categories,
+    this.showPromotion = false,
   });
 
   IconData _getIcon(String icon) {
     switch (icon) {
+      case 'promotion':
+        return Icons.local_offer_rounded;
       case 'restaurant':
         return Icons.restaurant_rounded;
       case 'local_drink':
@@ -30,6 +36,12 @@ class CategorySelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = [
+      if (showPromotion)
+        {
+          'slug': 'promotion_today',
+          'title': 'Khuyến mãi hôm nay',
+          'icon': 'promotion',
+        },
       {'slug': 'all', 'title': 'Tất cả', 'icon': 'category'},
       ...categories.map(
         (cat) => {'slug': cat.slug, 'title': cat.title, 'icon': cat.icon},
@@ -46,6 +58,7 @@ class CategorySelector extends StatelessWidget {
           final item = items[index];
           final slug = item['slug'].toString();
           final isSelected = slug == selectedCategory;
+          final isPromotion = slug == 'promotion_today';
 
           return GestureDetector(
             onTap: () => onCategorySelected(slug),
@@ -55,9 +68,17 @@ class CategorySelector extends StatelessWidget {
               decoration: BoxDecoration(
                 color:
                     isSelected
-                        ? const Color.fromARGB(255, 129, 124, 124)
-                        : const Color(0xFFF3F4F6),
+                        ? (isPromotion
+                            ? const Color(0xFFEF2A39)
+                            : const Color.fromARGB(255, 129, 124, 124))
+                        : (isPromotion
+                            ? const Color(0xFFFFECEE)
+                            : const Color(0xFFF3F4F6)),
                 borderRadius: BorderRadius.circular(14),
+                border:
+                    isPromotion && !isSelected
+                        ? Border.all(color: const Color(0xFFFFC8CD))
+                        : null,
                 boxShadow:
                     isSelected
                         ? const [
@@ -74,14 +95,24 @@ class CategorySelector extends StatelessWidget {
                   Icon(
                     _getIcon(item['icon'].toString()),
                     size: 18,
-                    color: isSelected ? Colors.white : Colors.black54,
+                    color:
+                        isSelected
+                            ? Colors.white
+                            : (isPromotion
+                                ? const Color(0xFFEF2A39)
+                                : Colors.black54),
                   ),
                   const SizedBox(width: 6),
                   Text(
                     item['title'].toString(),
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: isSelected ? Colors.white : Colors.black,
+                      color:
+                          isSelected
+                              ? Colors.white
+                              : (isPromotion
+                                  ? const Color(0xFFEF2A39)
+                                  : Colors.black),
                     ),
                   ),
                 ],
