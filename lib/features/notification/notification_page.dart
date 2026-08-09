@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
 import 'package:project_trangdc24v7x324/models/app_notification_model.dart';
 import 'package:project_trangdc24v7x324/providers/notification_provider.dart';
+import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 import 'package:project_trangdc24v7x324/shared/theme/app_text.dart';
-import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_card.dart';
-import 'package:project_trangdc24v7x324/routes/app_routes.dart';
+import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
+import 'package:provider/provider.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
@@ -153,7 +152,21 @@ class _NotificationsPageState extends State<NotificationsPage> {
     AppNotificationModel item,
   ) async {
     if (!item.isRead) {
-      await provider.markAsRead(item.id);
+      final success = await provider.markAsRead(item.id);
+
+      if (!success) {
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              provider.errorMessage ?? 'Không thể đánh dấu thông báo đã đọc.',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
     }
 
     if (!mounted) return;
@@ -167,11 +180,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Thông báo này không liên kết với đơn hàng.'),
-      ),
-    );
+    // Khuyến mãi / sản phẩm mới / thông báo chung chỉ cần đánh dấu đã đọc.
+    // Không hiển thị cảnh báo "không liên kết với đơn hàng".
   }
 
   Widget _buildFilterChips(NotificationProvider provider) {
@@ -250,7 +260,21 @@ class _NotificationsPageState extends State<NotificationsPage> {
           ),
           if (provider.hasUnread)
             TextButton.icon(
-              onPressed: provider.markAllAsRead,
+              onPressed: () async {
+                final success = await provider.markAllAsRead();
+
+                if (!success && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        provider.errorMessage ??
+                            'Không thể đánh dấu tất cả thông báo đã đọc.',
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
               icon: const Icon(Icons.done_all_rounded, size: 18),
               label: const Text('Đọc tất cả'),
             ),

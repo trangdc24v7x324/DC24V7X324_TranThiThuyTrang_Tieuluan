@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
 import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
 import 'package:project_trangdc24v7x324/features/manager/web/widgets/manager_web_layout.dart';
+import 'package:project_trangdc24v7x324/models/app_notification_model.dart';
 import 'package:project_trangdc24v7x324/models/product_model.dart';
 import 'package:project_trangdc24v7x324/providers/notification_provider.dart';
 import 'package:project_trangdc24v7x324/providers/product_provider.dart';
 import 'package:project_trangdc24v7x324/providers/profile_provider.dart';
 import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
+import 'package:provider/provider.dart';
 
 class ManagerWebNotificationsPage extends StatefulWidget {
   const ManagerWebNotificationsPage({super.key});
@@ -59,6 +59,7 @@ class _ManagerWebNotificationsPageState
     await Future.wait([
       productProvider.loadProducts(),
       context.read<ProfileProvider>().loadProfile(forceReload: true),
+      context.read<NotificationProvider>().loadManagerNotifications(),
     ]);
   }
 
@@ -218,6 +219,7 @@ class _ManagerWebNotificationsPageState
   @override
   Widget build(BuildContext context) {
     final productProvider = context.watch<ProductProvider>();
+    final notificationProvider = context.watch<NotificationProvider>();
     final profile = context.watch<ProfileProvider>().profile;
 
     final managerName =
@@ -235,6 +237,18 @@ class _ManagerWebNotificationsPageState
     products.sort((a, b) => a.title.compareTo(b.title));
 
     final selectedProduct = _selectedProduct(products);
+
+    final sentNotifications =
+        notificationProvider.notifications
+            .where(
+              (item) =>
+                  item.targetRole == 'manager' &&
+                  item.orderId.trim().isEmpty &&
+                  (item.type == 'promotion' ||
+                      item.type == 'new_product' ||
+                      item.type == 'general'),
+            )
+            .toList();
 
     return ManagerWebLayout(
       title: 'Gửi thông báo',
@@ -332,6 +346,12 @@ class _ManagerWebNotificationsPageState
                           );
                         },
                       ),
+                      const SizedBox(height: 18),
+                      _SentNotificationsHistoryCard(
+                        notifications: sentNotifications,
+                        isLoading: notificationProvider.isLoading,
+                        onRefresh: _loadData,
+                      ),
                     ],
                   ),
                 ),
@@ -342,6 +362,229 @@ class _ManagerWebNotificationsPageState
       ),
     );
   }
+}
+
+class _SentNotificationsHistoryCard extends StatelessWidget {
+  final List<AppNotificationModel> notifications;
+  final bool isLoading;
+  final Future<void> Function() onRefresh;
+
+  const _SentNotificationsHistoryCard({
+    required this.notifications,
+    required this.isLoading,
+    required this.onRefresh,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 16, 12, 14),
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.09),
+                    borderRadius: BorderRadius.circular(13),
+                  ),
+                  child: const Icon(
+                    Icons.history_rounded,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Lịch sử thông báo đã gửi',
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      SizedBox(height: 3),
+                      Text(
+                        'Lưu lại các thông báo do Manager gửi đến Customer.',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Làm mới lịch sử',
+                  onPressed: isLoading ? null : () => onRefresh(),
+                  icon:
+                      isLoading
+                          ? const SizedBox(
+                            width: 19,
+                            height: 19,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.primary,
+                            ),
+                          )
+                          : const Icon(Icons.refresh_rounded),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: AppColors.border),
+          if (notifications.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 34, horizontal: 18),
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.notifications_none_rounded,
+                      size: 42,
+                      color: AppColors.textGrey,
+                    ),
+                    SizedBox(height: 9),
+                    Text(
+                      'Chưa có thông báo nào được lưu',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(14),
+              itemCount: notifications.length > 10 ? 10 : notifications.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 9),
+              itemBuilder: (context, index) {
+                final item = notifications[index];
+                final color = _typeColor(item.type);
+
+                return Container(
+                  padding: const EdgeInsets.all(13),
+                  decoration: BoxDecoration(
+                    color: AppColors.bg,
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.11),
+                          borderRadius: BorderRadius.circular(13),
+                        ),
+                        child: Icon(
+                          _typeIcon(item.type),
+                          color: color,
+                          size: 21,
+                        ),
+                      ),
+                      const SizedBox(width: 11),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    item.title,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: AppColors.textPrimary,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  _formatHistoryTime(item.created),
+                                  style: const TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              item.body,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 11,
+                                height: 1.35,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: color.withOpacity(0.09),
+                                borderRadius: BorderRadius.circular(99),
+                              ),
+                              child: Text(
+                                _typeLabel(item.type),
+                                style: TextStyle(
+                                  color: color,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+String _formatHistoryTime(DateTime time) {
+  final local = time.toLocal();
+  final day = local.day.toString().padLeft(2, '0');
+  final month = local.month.toString().padLeft(2, '0');
+  final hour = local.hour.toString().padLeft(2, '0');
+  final minute = local.minute.toString().padLeft(2, '0');
+  return '$day/$month ${hour}:$minute';
 }
 
 class _NotificationOverview extends StatelessWidget {

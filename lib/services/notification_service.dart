@@ -106,17 +106,29 @@ class NotificationService {
     }
   }
 
+  // =========================================================
+  // FETCH
+  // =========================================================
+
   Future<List<AppNotificationModel>> fetchCustomerNotifications({
     required String userId,
   }) async {
+    final safeUserId = userId.trim();
+
+    if (safeUserId.isEmpty) {
+      return <AppNotificationModel>[];
+    }
+
+    // Chỉ đọc notification personal của chính Customer.
+    // Không đọc broadcast targetRole=customer cũ vì isRead của loại đó
+    // dùng chung giữa tất cả Customer.
     final records = await pb
         .collection('notifications')
         .getFullList(
           sort: '-created',
           filter:
-              'targetRole = "customer" || '
-              'targetRole = "all" || '
-              '(targetRole = "personal" && targetUser = "$userId")',
+              'targetRole = "personal" && '
+              'targetUser = "$safeUserId"',
         );
 
     return records.map((record) {
@@ -147,13 +159,84 @@ class NotificationService {
     }).toList();
   }
 
+  // =========================================================
+  // MANAGER -> CUSTOMER BROADCAST
+  // =========================================================
+
+  Future<List<String>> _fetchActiveCustomerIds() async {
+    try {
+      final records = await pb
+          .collection('users')
+          .getFullList(
+            sort: 'created',
+            filter: 'role = "customer" && isActive = true',
+          );
+
+      return records.map((record) => record.id).toList();
+    } catch (_) {
+      // Fallback cho schema cũ hoặc rule chưa dùng được isActive.
+      final records = await pb
+          .collection('users')
+          .getFullList(sort: 'created', filter: 'role = "customer"');
+
+      return records.map((record) => record.id).toList();
+    }
+  }
+
+  /// Manager gửi 1 nội dung cho toàn bộ Customer.
+  ///
+  /// Mỗi Customer nhận 1 record personal riêng:
+  /// -> isRead riêng cho từng người.
+  ///
+  /// Đồng thời tạo 1 record targetRole=manager:
+  /// -> dùng làm lịch sử thông báo Manager đã gửi.
   Future<void> createCustomerNotification({
     required String title,
     required String body,
     required String type,
   }) async {
-    await create(title: title, body: body, type: type, targetRole: 'customer');
+    final safeTitle = title.trim();
+    final safeBody = body.trim();
+    final safeType = _normalizeType(type);
+
+    if (safeTitle.isEmpty) {
+      throw Exception('Tiêu đề thông báo đang trống');
+    }
+
+    if (safeBody.isEmpty) {
+      throw Exception('Nội dung thông báo đang trống');
+    }
+
+    final customerIds = await _fetchActiveCustomerIds();
+
+    if (customerIds.isEmpty) {
+      throw Exception('Không tìm thấy Customer đang hoạt động');
+    }
+
+    for (final customerId in customerIds) {
+      await create(
+        title: safeTitle,
+        body: safeBody,
+        type: safeType,
+        targetRole: 'personal',
+        targetUser: customerId,
+      );
+    }
+
+    // Log của Manager: đây là lịch sử đã gửi nên đánh dấu read=true
+    // để không làm tăng badge thông báo mới của Manager.
+    await create(
+      title: safeTitle,
+      body: safeBody,
+      type: safeType,
+      targetRole: 'manager',
+      isRead: true,
+    );
   }
+
+  // =========================================================
+  // CREATE CORE
+  // =========================================================
 
   Future<void> create({
     required String title,
@@ -162,6 +245,7 @@ class NotificationService {
     required String targetRole,
     String? targetUser,
     String? orderId,
+    bool isRead = false,
   }) async {
     final safeTitle = title.trim();
     final safeBody = body.trim();
@@ -185,7 +269,7 @@ class NotificationService {
       'body': safeBody,
       'type': safeType,
       'targetRole': safeRole,
-      'isRead': false,
+      'isRead': isRead,
     };
 
     final safeTargetUser = targetUser?.trim() ?? '';
@@ -201,6 +285,10 @@ class NotificationService {
 
     await pb.collection('notifications').create(body: data);
   }
+
+  // =========================================================
+  // CUSTOMER ORDER NOTIFICATIONS
+  // =========================================================
 
   Future<void> createOrderCreatedNotificationForCustomer({
     required String customerId,
@@ -240,6 +328,11 @@ class NotificationService {
     );
   }
 
+  // =========================================================
+  // MANAGER ORDER NOTIFICATION
+  // GIỮ NGUYÊN CONTRACT VÌ OrderService ĐANG GỌI HÀM NÀY.
+  // =========================================================
+
   Future<void> createNewOrderNotificationForManager({
     required String orderId,
     required String receiverName,
@@ -276,10 +369,18 @@ class NotificationService {
     return '${buffer}đ';
   }
 
+  // =========================================================
+  // READ / DELETE
+  // =========================================================
+
   Future<void> markAsRead(String notificationId) async {
-    await pb
-        .collection('notifications')
-        .update(notificationId, body: {'isRead': true});
+    final safeId = notificationId.trim();
+
+    if (safeId.isEmpty) {
+      return;
+    }
+
+    await pb.collection('notifications').update(safeId, body: {'isRead': true});
   }
 
   Future<void> markAllAsRead(List<AppNotificationModel> notifications) async {
@@ -291,6 +392,12 @@ class NotificationService {
   }
 
   Future<void> deleteNotification(String notificationId) async {
-    await pb.collection('notifications').delete(notificationId);
+    final safeId = notificationId.trim();
+
+    if (safeId.isEmpty) {
+      return;
+    }
+
+    await pb.collection('notifications').delete(safeId);
   }
 }

@@ -113,7 +113,7 @@ class NotificationProvider extends ChangeNotifier {
 
       return true;
     } catch (e) {
-      _setError('Không thể đánh dấu đã đọc');
+      _setError('Không thể đánh dấu đã đọc: $e');
       debugPrint('markAsRead error: $e');
       return false;
     }
@@ -133,7 +133,7 @@ class NotificationProvider extends ChangeNotifier {
 
       return true;
     } catch (e) {
-      _setError('Không thể đánh dấu tất cả đã đọc');
+      _setError('Không thể đánh dấu tất cả đã đọc: $e');
       debugPrint('markAllAsRead error: $e');
       return false;
     }
@@ -157,9 +157,12 @@ class NotificationProvider extends ChangeNotifier {
         type: type,
       );
 
+      // Manager vừa gửi xong -> tải lại danh sách để lịch sử hiển thị ngay.
+      await loadManagerNotifications();
+
       return true;
     } catch (e) {
-      _setError('Tạo thông báo thất bại');
+      _setError('Tạo thông báo thất bại: $e');
       debugPrint('createCustomerNotification error: $e');
       return false;
     } finally {
