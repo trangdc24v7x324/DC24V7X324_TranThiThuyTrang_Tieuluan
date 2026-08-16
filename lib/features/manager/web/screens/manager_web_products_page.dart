@@ -12,7 +12,6 @@ import 'package:project_trangdc24v7x324/providers/profile_provider.dart';
 import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 
-
 bool _hasActivePromotion(ProductModel product) {
   if (!product.isOnSale) return false;
 
@@ -91,10 +90,9 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
     final categories =
         products
             .map(
-              (product) =>
-                  product.categoryTitle.trim().isEmpty
-                      ? 'Khác'
-                      : product.categoryTitle.trim(),
+              (product) => product.categoryTitle.trim().isEmpty
+                  ? 'Khác'
+                  : product.categoryTitle.trim(),
             )
             .toSet()
             .toList()
@@ -107,10 +105,9 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
     final query = _searchController.text.trim().toLowerCase();
 
     return products.where((product) {
-      final category =
-          product.categoryTitle.trim().isEmpty
-              ? 'Khác'
-              : product.categoryTitle.trim();
+      final category = product.categoryTitle.trim().isEmpty
+          ? 'Khác'
+          : product.categoryTitle.trim();
 
       final matchesQuery =
           query.isEmpty ||
@@ -130,14 +127,6 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
 
       return matchesQuery && matchesCategory && matchesStatus;
     }).toList();
-  }
-
-  void _resetToFirstPage() {
-    if (_currentPage != 1) {
-      setState(() {
-        _currentPage = 1;
-      });
-    }
   }
 
   Future<void> _openCreatePage() async {
@@ -237,30 +226,30 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
     final provider = context.watch<ProductProvider>();
     final profile = context.watch<ProfileProvider>().profile;
 
-    final managerName =
-        profile?.fullName.trim().isNotEmpty == true
-            ? profile!.fullName
-            : 'Manager';
+    final managerName = profile?.fullName.trim().isNotEmpty == true
+        ? profile!.fullName
+        : 'Manager';
     final avatarUrl = profile?.avatarUrl ?? '';
 
     final categories = _getCategories(provider.products);
     final filteredProducts = _filterProducts(provider.products);
 
-    final totalPages =
-        math.max(1, (filteredProducts.length / _rowsPerPage).ceil()).toInt();
+    final totalPages = math
+        .max(1, (filteredProducts.length / _rowsPerPage).ceil())
+        .toInt();
 
     if (_currentPage > totalPages) {
       _currentPage = totalPages;
     }
 
     final startIndex = (_currentPage - 1) * _rowsPerPage;
-    final endIndex =
-        math.min(startIndex + _rowsPerPage, filteredProducts.length).toInt();
+    final endIndex = math
+        .min(startIndex + _rowsPerPage, filteredProducts.length)
+        .toInt();
 
-    final visibleProducts =
-        filteredProducts.isEmpty
-            ? <ProductModel>[]
-            : filteredProducts.sublist(startIndex, endIndex);
+    final visibleProducts = filteredProducts.isEmpty
+        ? <ProductModel>[]
+        : filteredProducts.sublist(startIndex, endIndex);
 
     return ManagerWebLayout(
       title: 'Quản lý sản phẩm',
@@ -275,15 +264,14 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
           icon: const Icon(Icons.refresh_rounded),
         ),
       ],
-      floatingActionButton:
-          MediaQuery.sizeOf(context).width < 720
-              ? FloatingActionButton(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                onPressed: _openCreatePage,
-                child: const Icon(Icons.add_rounded),
-              )
-              : null,
+      floatingActionButton: MediaQuery.sizeOf(context).width < 720
+          ? FloatingActionButton(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              onPressed: _openCreatePage,
+              child: const Icon(Icons.add_rounded),
+            )
+          : null,
       child: RefreshIndicator(
         onRefresh: _loadData,
         child: SingleChildScrollView(
@@ -297,22 +285,19 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
                 children: [
                   _ProductsSummary(
                     totalProducts: provider.products.length,
-                    availableProducts:
-                        provider.products
-                            .where((product) => product.isAvailable)
-                            .length,
-                    promotionProducts:
-                        provider.products
-                            .where(
-                              (product) =>
-                                  product.isAvailable &&
-                                  _hasActivePromotion(product),
-                            )
-                            .length,
-                    unavailableProducts:
-                        provider.products
-                            .where((product) => !product.isAvailable)
-                            .length,
+                    availableProducts: provider.products
+                        .where((product) => product.isAvailable)
+                        .length,
+                    promotionProducts: provider.products
+                        .where(
+                          (product) =>
+                              product.isAvailable &&
+                              _hasActivePromotion(product),
+                        )
+                        .length,
+                    unavailableProducts: provider.products
+                        .where((product) => !product.isAvailable)
+                        .length,
                   ),
                   const SizedBox(height: 20),
                   _Toolbar(
@@ -385,22 +370,20 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
                           _currentPage = 1;
                         });
                       },
-                      onPrevious:
-                          _currentPage > 1
-                              ? () {
-                                setState(() {
-                                  _currentPage--;
-                                });
-                              }
-                              : null,
-                      onNext:
-                          _currentPage < totalPages
-                              ? () {
-                                setState(() {
-                                  _currentPage++;
-                                });
-                              }
-                              : null,
+                      onPrevious: _currentPage > 1
+                          ? () {
+                              setState(() {
+                                _currentPage--;
+                              });
+                            }
+                          : null,
+                      onNext: _currentPage < totalPages
+                          ? () {
+                              setState(() {
+                                _currentPage++;
+                              });
+                            }
+                          : null,
                     ),
                   ],
                 ],
@@ -461,15 +444,14 @@ class _ProductsSummary extends StatelessWidget {
 
         if (compact) {
           return Column(
-            children:
-                items
-                    .map(
-                      (item) => Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: item,
-                      ),
-                    )
-                    .toList(),
+            children: items
+                .map(
+                  (item) => Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: item,
+                  ),
+                )
+                .toList(),
           );
         }
 
@@ -594,17 +576,16 @@ class _Toolbar extends StatelessWidget {
             decoration: InputDecoration(
               hintText: 'Tìm theo tên sản phẩm hoặc danh mục',
               prefixIcon: const Icon(Icons.search_rounded),
-              suffixIcon:
-                  searchController.text.isNotEmpty
-                      ? IconButton(
-                        tooltip: 'Xóa từ khóa',
-                        onPressed: () {
-                          searchController.clear();
-                          onSearchChanged('');
-                        },
-                        icon: const Icon(Icons.close_rounded),
-                      )
-                      : null,
+              suffixIcon: searchController.text.isNotEmpty
+                  ? IconButton(
+                      tooltip: 'Xóa từ khóa',
+                      onPressed: () {
+                        searchController.clear();
+                        onSearchChanged('');
+                      },
+                      icon: const Icon(Icons.close_rounded),
+                    )
+                  : null,
               filled: true,
               fillColor: AppColors.inputBg,
               contentPadding: const EdgeInsets.symmetric(
@@ -625,15 +606,14 @@ class _Toolbar extends StatelessWidget {
               label: 'Danh mục',
               icon: Icons.category_outlined,
             ),
-            items:
-                categories
-                    .map(
-                      (category) => DropdownMenuItem(
-                        value: category,
-                        child: Text(category, overflow: TextOverflow.ellipsis),
-                      ),
-                    )
-                    .toList(),
+            items: categories
+                .map(
+                  (category) => DropdownMenuItem(
+                    value: category,
+                    child: Text(category, overflow: TextOverflow.ellipsis),
+                  ),
+                )
+                .toList(),
             onChanged: onCategoryChanged,
           );
 
@@ -886,10 +866,9 @@ class _ProductTable extends StatelessWidget {
             ],
             rows: List.generate(products.length, (index) {
               final product = products[index];
-              final category =
-                  product.categoryTitle.trim().isEmpty
-                      ? 'Khác'
-                      : product.categoryTitle;
+              final category = product.categoryTitle.trim().isEmpty
+                  ? 'Khác'
+                  : product.categoryTitle;
 
               return DataRow(
                 cells: [
@@ -926,16 +905,9 @@ class _ProductTable extends StatelessWidget {
                     ),
                   ),
                   DataCell(
-                    _ProductPrice(
-                      product: product,
-                      formatPrice: formatPrice,
-                    ),
+                    _ProductPrice(product: product, formatPrice: formatPrice),
                   ),
-                  DataCell(
-                    _ProductStatus(
-                      product: product,
-                    ),
-                  ),
+                  DataCell(_ProductStatus(product: product)),
                   DataCell(
                     Row(
                       mainAxisSize: MainAxisSize.min,
@@ -993,10 +965,9 @@ class _ProductCards extends StatelessWidget {
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final product = products[index];
-        final category =
-            product.categoryTitle.trim().isEmpty
-                ? 'Khác'
-                : product.categoryTitle;
+        final category = product.categoryTitle.trim().isEmpty
+            ? 'Khác'
+            : product.categoryTitle;
 
         return Container(
           padding: const EdgeInsets.all(12),
@@ -1031,10 +1002,7 @@ class _ProductCards extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 5),
-                    _ProductPrice(
-                      product: product,
-                      formatPrice: formatPrice,
-                    ),
+                    _ProductPrice(product: product, formatPrice: formatPrice),
                     const SizedBox(height: 7),
                     _ProductStatus(product: product),
                   ],
@@ -1089,14 +1057,13 @@ class _ProductImage extends StatelessWidget {
       child: SizedBox(
         width: size,
         height: size,
-        child:
-            imageUrl.trim().isEmpty
-                ? placeholder
-                : Image.network(
-                  imageUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => placeholder,
-                ),
+        child: imageUrl.trim().isEmpty
+            ? placeholder
+            : Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => placeholder,
+              ),
       ),
     );
   }
@@ -1106,10 +1073,7 @@ class _ProductPrice extends StatelessWidget {
   final ProductModel product;
   final String Function(double) formatPrice;
 
-  const _ProductPrice({
-    required this.product,
-    required this.formatPrice,
-  });
+  const _ProductPrice({required this.product, required this.formatPrice});
 
   @override
   Widget build(BuildContext context) {

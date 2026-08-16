@@ -2,8 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
-
 import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
 import 'package:project_trangdc24v7x324/features/manager/web/widgets/manager_invoice_print.dart';
 import 'package:project_trangdc24v7x324/features/manager/web/widgets/manager_web_layout.dart';
@@ -13,6 +11,7 @@ import 'package:project_trangdc24v7x324/providers/order_provider.dart';
 import 'package:project_trangdc24v7x324/providers/profile_provider.dart';
 import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
+import 'package:provider/provider.dart';
 
 class ManagerWebOrdersPage extends StatefulWidget {
   const ManagerWebOrdersPage({super.key});
@@ -28,6 +27,8 @@ class _ManagerWebOrdersPageState extends State<ManagerWebOrdersPage> {
   String _paymentFilter = 'all';
   int _currentPage = 1;
   int _rowsPerPage = 10;
+
+  final Map<String, String> _paymentStatusByOrderId = {};
 
   @override
   void initState() {
@@ -45,7 +46,56 @@ class _ManagerWebOrdersPageState extends State<ManagerWebOrdersPage> {
     await Future.wait([
       context.read<OrderProvider>().loadAllOrders(),
       context.read<ProfileProvider>().loadProfile(forceReload: true),
+      _loadPaymentStatuses(),
     ]);
+  }
+
+  Future<void> _loadPaymentStatuses() async {
+    try {
+      final records = await pb
+          .collection('payments')
+          .getFullList(sort: '-updated');
+
+      final loaded = <String, String>{};
+
+      for (final record in records) {
+        final orderId = (record.data['order'] ?? '').toString().trim();
+        final status = (record.data['status'] ?? '').toString().trim();
+
+        if (orderId.isEmpty || status.isEmpty) {
+          continue;
+        }
+
+        // records đã sort -updated nên record đầu tiên của mỗi order là mới nhất.
+        loaded.putIfAbsent(orderId, () => status);
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _paymentStatusByOrderId
+          ..clear()
+          ..addAll(loaded);
+      });
+    } catch (e) {
+      debugPrint('MANAGER LOAD PAYMENT STATUSES ERROR: $e');
+
+      // Không làm hỏng trang Order nếu collection payments tạm thời lỗi.
+      // Khi đó UI fallback về orders.payment_status.
+    }
+  }
+
+  String _effectivePaymentStatus(OrderModel order) {
+    // Manager xác nhận đã thu tiền (đặc biệt COD/tiền mặt)
+    // thì trạng thái paid của order được ưu tiên.
+    if (order.paymentStatus == 'paid') {
+      return 'paid';
+    }
+
+    // Với QR/MoMo demo, trạng thái chi tiết lấy từ payments.
+    return _paymentStatusByOrderId[order.id] ?? order.paymentStatus;
   }
 
   List<OrderModel> _filterOrders(List<OrderModel> orders) {
@@ -68,8 +118,10 @@ class _ManagerWebOrdersPageState extends State<ManagerWebOrdersPage> {
             _ => order.orderStatus == _statusFilter,
           };
 
+          final paymentStatus = _effectivePaymentStatus(order);
+
           final matchesPayment =
-              _paymentFilter == 'all' || order.paymentStatus == _paymentFilter;
+              _paymentFilter == 'all' || paymentStatus == _paymentFilter;
 
           return matchesQuery && matchesStatus && matchesPayment;
         }).toList();
@@ -106,7 +158,7 @@ class _ManagerWebOrdersPageState extends State<ManagerWebOrdersPage> {
       return;
     }
 
-    await context.read<OrderProvider>().loadAllOrders();
+    await _loadData();
   }
 
   void _logout() {
@@ -151,7 +203,10 @@ class _ManagerWebOrdersPageState extends State<ManagerWebOrdersPage> {
             : filteredOrders.sublist(startIndex, endIndex);
 
     final paidRevenue = orderProvider.orders
-        .where((order) => order.isCompleted && order.paymentStatus == 'paid')
+        .where(
+          (order) =>
+              order.isCompleted && _effectivePaymentStatus(order) == 'paid',
+        )
         .fold<double>(0, (sum, order) => sum + order.totalAmount);
 
     return ManagerWebLayout(
@@ -248,6 +303,7 @@ class _ManagerWebOrdersPageState extends State<ManagerWebOrdersPage> {
                         orders: visibleOrders,
                         totalFiltered: filteredOrders.length,
                         startIndex: startIndex,
+                        paymentStatuses: _paymentStatusByOrderId,
                         onOpen: _openOrderDetail,
                         onRetry: _loadData,
                       ),
@@ -647,6 +703,7 @@ class _OrdersPanel extends StatelessWidget {
   final List<OrderModel> orders;
   final int totalFiltered;
   final int startIndex;
+  final Map<String, String> paymentStatuses;
   final ValueChanged<OrderModel> onOpen;
   final VoidCallback onRetry;
 
@@ -656,6 +713,7 @@ class _OrdersPanel extends StatelessWidget {
     required this.orders,
     required this.totalFiltered,
     required this.startIndex,
+    required this.paymentStatuses,
     required this.onOpen,
     required this.onRetry,
   });
@@ -729,12 +787,17 @@ class _OrdersPanel extends StatelessWidget {
             LayoutBuilder(
               builder: (context, constraints) {
                 if (constraints.maxWidth < 980) {
-                  return _OrderCards(orders: orders, onOpen: onOpen);
+                  return _OrderCards(
+                    orders: orders,
+                    paymentStatuses: paymentStatuses,
+                    onOpen: onOpen,
+                  );
                 }
 
                 return _OrderTable(
                   orders: orders,
                   startIndex: startIndex,
+                  paymentStatuses: paymentStatuses,
                   onOpen: onOpen,
                 );
               },
@@ -748,11 +811,13 @@ class _OrdersPanel extends StatelessWidget {
 class _OrderTable extends StatelessWidget {
   final List<OrderModel> orders;
   final int startIndex;
+  final Map<String, String> paymentStatuses;
   final ValueChanged<OrderModel> onOpen;
 
   const _OrderTable({
     required this.orders,
     required this.startIndex,
+    required this.paymentStatuses,
     required this.onOpen,
   });
 
@@ -791,6 +856,10 @@ class _OrderTable extends StatelessWidget {
             ],
             rows: List.generate(orders.length, (index) {
               final order = orders[index];
+              final paymentStatus =
+                  order.paymentStatus == 'paid'
+                      ? 'paid'
+                      : (paymentStatuses[order.id] ?? order.paymentStatus);
 
               return DataRow(
                 onSelectChanged: (_) {
@@ -864,8 +933,8 @@ class _OrderTable extends StatelessWidget {
                   ),
                   DataCell(
                     _StatusChip(
-                      label: _paymentLabel(order.paymentStatus),
-                      color: _paymentColor(order.paymentStatus),
+                      label: _paymentLabel(paymentStatus),
+                      color: _paymentColor(paymentStatus),
                     ),
                   ),
                   DataCell(
@@ -893,9 +962,14 @@ class _OrderTable extends StatelessWidget {
 
 class _OrderCards extends StatelessWidget {
   final List<OrderModel> orders;
+  final Map<String, String> paymentStatuses;
   final ValueChanged<OrderModel> onOpen;
 
-  const _OrderCards({required this.orders, required this.onOpen});
+  const _OrderCards({
+    required this.orders,
+    required this.paymentStatuses,
+    required this.onOpen,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -913,6 +987,11 @@ class _OrderCards extends StatelessWidget {
             runSpacing: spacing,
             children:
                 orders.map((order) {
+                  final paymentStatus =
+                      order.paymentStatus == 'paid'
+                          ? 'paid'
+                          : (paymentStatuses[order.id] ?? order.paymentStatus);
+
                   return SizedBox(
                     width: width,
                     child: Material(
@@ -996,8 +1075,8 @@ class _OrderCards extends StatelessWidget {
                               Row(
                                 children: [
                                   _StatusChip(
-                                    label: _paymentLabel(order.paymentStatus),
-                                    color: _paymentColor(order.paymentStatus),
+                                    label: _paymentLabel(paymentStatus),
+                                    color: _paymentColor(paymentStatus),
                                   ),
                                   const Spacer(),
                                   const Icon(
@@ -1036,6 +1115,7 @@ class _ManagerWebOrderDetailDialogState
   bool _isBusy = false;
   String? _localError;
   String _selectedPaymentStatus = 'unpaid';
+  String _currentPaymentStatus = 'unpaid';
 
   @override
   void initState() {
@@ -1053,56 +1133,59 @@ class _ManagerWebOrderDetailDialogState
     final order = context.read<OrderProvider>().selectedOrder;
 
     if (order != null && order.id == widget.orderId) {
+      final paymentStatus = await _fetchActualPaymentStatus(
+        order.id,
+        fallback: order.paymentStatus,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
       setState(() {
-        _selectedPaymentStatus = order.paymentStatus;
+        _currentPaymentStatus = paymentStatus;
+        _selectedPaymentStatus = paymentStatus;
       });
+    }
+  }
+
+  Future<String> _fetchActualPaymentStatus(
+    String orderId, {
+    required String fallback,
+  }) async {
+    // Nếu Manager đã xác nhận thu tiền ở orders thì ưu tiên paid.
+    // Cách này giúp COD/Tiền mặt không cần quyền Update collection payments.
+    if (fallback == 'paid') {
+      return 'paid';
+    }
+
+    try {
+      final records = await pb
+          .collection('payments')
+          .getFullList(filter: 'order = "$orderId"', sort: '-updated');
+
+      if (records.isEmpty) {
+        return fallback;
+      }
+
+      final status = (records.first.data['status'] ?? '').toString().trim();
+
+      return status.isEmpty ? fallback : status;
+    } catch (e) {
+      debugPrint('MANAGER DETAIL LOAD PAYMENT ERROR: $e');
+      return fallback;
     }
   }
 
   Future<void> _updateNextStatus(OrderModel order) async {
     final nextStatus = _nextStatus(order.orderStatus);
 
-    if (nextStatus.isEmpty) {
+    if (nextStatus.isEmpty || _isBusy) {
       return;
     }
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Text(
-            'Chuyển sang "${_statusLabel(nextStatus)}"?',
-            style: const TextStyle(fontWeight: FontWeight.w900),
-          ),
-          content: Text(
-            'Hệ thống sẽ cập nhật trạng thái đơn '
-            '#${_shortId(order.id)} và gửi thông báo đến khách hàng.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext, false);
-              },
-              child: const Text('Chưa cập nhật'),
-            ),
-            FilledButton(
-              onPressed: () {
-                Navigator.pop(dialogContext, true);
-              },
-              child: const Text('Xác nhận'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (confirmed != true) {
-      return;
-    }
-
+    // Không hiển thị hộp thoại xác nhận trung gian.
+    // Bấm nút là cập nhật trạng thái ngay.
     await _runBusy(() async {
       final provider = context.read<OrderProvider>();
 
@@ -1213,9 +1296,20 @@ class _ManagerWebOrderDetailDialogState
   }
 
   Future<void> _updatePaymentStatus(OrderModel order) async {
-    if (_selectedPaymentStatus == order.paymentStatus) {
+    if (_selectedPaymentStatus == _currentPaymentStatus || _isBusy) {
       return;
     }
+
+    // Manager chỉ xác nhận trạng thái thu tiền tổng quát trên ORDER.
+    // Không PATCH trực tiếp collection payments để tránh lỗi API Rule 404.
+    //
+    // payments.status:
+    //   dùng cho QR/MoMo demo (pending / paid / failed)
+    //
+    // orders.payment_status:
+    //   dùng cho xác nhận của Manager, đặc biệt COD/Tiền mặt.
+    final orderPaymentStatus =
+        _selectedPaymentStatus == 'paid' ? 'paid' : 'unpaid';
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -1225,13 +1319,13 @@ class _ManagerWebOrderDetailDialogState
             borderRadius: BorderRadius.circular(20),
           ),
           title: const Text(
-            'Cập nhật thanh toán',
+            'Xác nhận thanh toán',
             style: TextStyle(fontWeight: FontWeight.w900),
           ),
           content: Text(
-            'Chuyển trạng thái thanh toán từ '
-            '"${_paymentLabel(order.paymentStatus)}" sang '
-            '"${_paymentLabel(_selectedPaymentStatus)}"?',
+            orderPaymentStatus == 'paid'
+                ? 'Xác nhận đơn #${_shortId(order.id)} đã thu tiền?'
+                : 'Chuyển đơn #${_shortId(order.id)} về chưa thanh toán?',
           ),
           actions: [
             TextButton(
@@ -1244,7 +1338,7 @@ class _ManagerWebOrderDetailDialogState
               onPressed: () {
                 Navigator.pop(dialogContext, true);
               },
-              child: const Text('Cập nhật'),
+              child: const Text('Xác nhận'),
             ),
           ],
         );
@@ -1253,7 +1347,7 @@ class _ManagerWebOrderDetailDialogState
 
     if (confirmed != true) {
       setState(() {
-        _selectedPaymentStatus = order.paymentStatus;
+        _selectedPaymentStatus = _currentPaymentStatus;
       });
       return;
     }
@@ -1263,7 +1357,7 @@ class _ManagerWebOrderDetailDialogState
 
       final success = await provider.updatePaymentStatus(
         orderId: order.id,
-        paymentStatus: _selectedPaymentStatus,
+        paymentStatus: orderPaymentStatus,
         reloadAll: true,
       );
 
@@ -1274,6 +1368,26 @@ class _ManagerWebOrderDetailDialogState
       }
 
       await provider.loadOrderDetail(order.id);
+
+      final refreshedOrder = provider.selectedOrder;
+      final fallback =
+          refreshedOrder != null && refreshedOrder.id == order.id
+              ? refreshedOrder.paymentStatus
+              : orderPaymentStatus;
+
+      final actualStatus = await _fetchActualPaymentStatus(
+        order.id,
+        fallback: fallback,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _currentPaymentStatus = actualStatus;
+        _selectedPaymentStatus = actualStatus;
+      });
     });
   }
 
@@ -1534,6 +1648,12 @@ class _ManagerWebOrderDetailDialogState
                                   return;
                                 }
 
+                                // Manager chỉ xác nhận Chưa thanh toán / Đã thanh toán.
+                                // pending/failed là trạng thái của QR/MoMo demo.
+                                if (value == 'pending' || value == 'failed') {
+                                  return;
+                                }
+
                                 setState(() {
                                   _selectedPaymentStatus = value;
                                 });
@@ -1546,13 +1666,13 @@ class _ManagerWebOrderDetailDialogState
                         onPressed:
                             _isBusy ||
                                     _selectedPaymentStatus ==
-                                        order.paymentStatus
+                                        _currentPaymentStatus
                                 ? null
                                 : () {
                                   _updatePaymentStatus(order);
                                 },
                         icon: const Icon(Icons.save_rounded),
-                        label: const Text('Lưu trạng thái thanh toán'),
+                        label: const Text('Xác nhận trạng thái thanh toán'),
                       ),
                     ),
                     const SizedBox(height: 10),

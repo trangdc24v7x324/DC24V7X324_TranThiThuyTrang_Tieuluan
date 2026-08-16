@@ -47,6 +47,10 @@ class _HomePageState extends State<HomePage> {
   String selectedCategory = 'all';
   int selectedIndex = 0;
 
+  /// Mỗi lần kéo làm mới Home, tăng version để FoodCard
+  /// đọc lại số sao và số đánh giá thật từ product_reviews.
+  int _ratingRefreshVersion = 0;
+
   @override
   void initState() {
     super.initState();
@@ -97,6 +101,12 @@ class _HomePageState extends State<HomePage> {
     try {
       await context.read<NotificationProvider>().loadCustomerNotifications();
     } catch (_) {}
+
+    if (!mounted) return;
+
+    setState(() {
+      _ratingRefreshVersion++;
+    });
   }
 
   void toggleFavorite(ProductModel item) {
@@ -258,6 +268,7 @@ class _HomePageState extends State<HomePage> {
                           favoritedItems: favoritedItems,
                           searchQuery: searchQuery,
                           selectedCategory: selectedCategory,
+                          ratingRefreshVersion: _ratingRefreshVersion,
                           onFavoriteToggle: toggleFavorite,
                         ),
                       ),
@@ -296,6 +307,7 @@ class _ProductContent extends StatelessWidget {
   final List<ProductModel> favoritedItems;
   final String searchQuery;
   final String selectedCategory;
+  final int ratingRefreshVersion;
   final ValueChanged<ProductModel> onFavoriteToggle;
 
   const _ProductContent({
@@ -303,6 +315,7 @@ class _ProductContent extends StatelessWidget {
     required this.favoritedItems,
     required this.searchQuery,
     required this.selectedCategory,
+    required this.ratingRefreshVersion,
     required this.onFavoriteToggle,
   });
 
@@ -321,6 +334,7 @@ class _ProductContent extends StatelessWidget {
       onFavoriteToggle: onFavoriteToggle,
       searchQuery: searchQuery,
       selectedCategory: selectedCategory,
+      ratingRefreshVersion: ratingRefreshVersion,
     );
   }
 }

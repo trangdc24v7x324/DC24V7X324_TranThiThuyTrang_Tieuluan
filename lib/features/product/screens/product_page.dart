@@ -1,3 +1,6 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
 import 'package:project_trangdc24v7x324/models/cart_item_model.dart';
 import 'package:project_trangdc24v7x324/models/product_model.dart';
@@ -5,9 +8,6 @@ import 'package:project_trangdc24v7x324/models/product_review_model.dart';
 import 'package:project_trangdc24v7x324/providers/cart_provider.dart';
 import 'package:project_trangdc24v7x324/providers/product_provider.dart';
 import 'package:project_trangdc24v7x324/providers/review_provider.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class ProductReviewsSection extends StatefulWidget {
@@ -120,6 +120,7 @@ class _ProductReviewsSectionState extends State<ProductReviewsSection> {
     final provider = context.watch<ReviewProvider>();
 
     final bool loggedIn = getPocketBase().authStore.isValid;
+    final bool canReview = provider.canReview;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,7 +162,38 @@ class _ProductReviewsSectionState extends State<ProductReviewsSection> {
 
         const SizedBox(height: 20),
 
-        if (loggedIn) ...[
+        if (!loggedIn) ...[
+          const _ReviewEligibilityNotice(
+            icon: Icons.lock_outline_rounded,
+            message: 'Đăng nhập để đánh giá sản phẩm.',
+          ),
+          const SizedBox(height: 20),
+        ] else if (provider.isCheckingEligibility ||
+            (provider.isLoading && provider.reviews.isEmpty)) ...[
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                SizedBox(width: 10),
+                Expanded(child: Text('Đang kiểm tra quyền đánh giá...')),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+        ] else if (!canReview) ...[
+          const _ReviewEligibilityNotice(
+            icon: Icons.shopping_bag_outlined,
+            message:
+                'Bạn chỉ có thể đánh giá sản phẩm sau khi đã mua, '
+                'đơn hàng hoàn thành và đã thanh toán.',
+          ),
+          const SizedBox(height: 20),
+        ] else ...[
           Text(
             provider.myReview == null
                 ? 'Đánh giá của bạn'
@@ -235,13 +267,6 @@ class _ProductReviewsSectionState extends State<ProductReviewsSection> {
           ),
 
           const SizedBox(height: 24),
-        ] else ...[
-          Text(
-            'Đăng nhập để đánh giá sản phẩm.',
-            style: TextStyle(color: Colors.grey.shade600),
-          ),
-
-          const SizedBox(height: 20),
         ],
 
         const Text(
@@ -300,6 +325,44 @@ class _ProductReviewsSectionState extends State<ProductReviewsSection> {
               style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ReviewEligibilityNotice extends StatelessWidget {
+  final IconData icon;
+  final String message;
+
+  const _ReviewEligibilityNotice({required this.icon, required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(13),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7ED),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFFED7AA)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: const Color(0xFFEA580C), size: 20),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: Color(0xFF9A3412),
+                fontSize: 13,
+                height: 1.35,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -654,39 +717,58 @@ class _ProductPageState extends State<ProductPage> {
                     // =========================================
                     // RATING + DELIVERY
                     // =========================================
-                    Row(
-                      children: [
-                        const Icon(Icons.star, color: Colors.amber, size: 18),
-
-                        const SizedBox(width: 4),
-
-                        Text(
-                          product.reviewCount > 0
-                              ? '${product.rating.toStringAsFixed(1)} '
-                                  '(${product.reviewCount} đánh giá)'
-                              : 'Chưa có đánh giá',
-                          style: GoogleFonts.roboto(
-                            textStyle: const TextStyle(
-                              fontSize: 16,
-                              color: Color(0xff808080),
+                    Consumer<ReviewProvider>(
+                      builder: (context, reviewProvider, _) {
+                        return Row(
+                          children: [
+                            Icon(
+                              reviewProvider.reviewCount > 0
+                                  ? Icons.star_rounded
+                                  : Icons.star_border_rounded,
+                              color:
+                                  reviewProvider.reviewCount > 0
+                                      ? Colors.amber
+                                      : Colors.grey.shade400,
+                              size: 18,
                             ),
-                          ),
-                        ),
-
-                        if (product.deliveryTime.isNotEmpty) ...[
-                          const SizedBox(width: 8),
-
-                          Text(
-                            '• ${product.deliveryTime}',
-                            style: GoogleFonts.roboto(
-                              textStyle: const TextStyle(
-                                fontSize: 16,
-                                color: Color(0xff808080),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                reviewProvider.isLoading
+                                    ? 'Đang tải đánh giá...'
+                                    : reviewProvider.reviewCount > 0
+                                    ? '${reviewProvider.averageRating.toStringAsFixed(1)} '
+                                        '(${reviewProvider.reviewCount} đánh giá)'
+                                    : 'Chưa có đánh giá',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.roboto(
+                                  textStyle: const TextStyle(
+                                    fontSize: 16,
+                                    color: Color(0xff808080),
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ],
+                            if (product.deliveryTime.isNotEmpty) ...[
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  '• ${product.deliveryTime}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.roboto(
+                                    textStyle: const TextStyle(
+                                      fontSize: 16,
+                                      color: Color(0xff808080),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        );
+                      },
                     ),
 
                     const SizedBox(height: 18),

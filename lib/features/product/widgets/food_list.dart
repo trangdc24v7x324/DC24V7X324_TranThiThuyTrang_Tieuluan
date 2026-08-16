@@ -14,12 +14,16 @@ class FoodAvailable extends StatelessWidget {
   final String searchQuery;
   final String selectedCategory;
 
+  /// Dùng để yêu cầu toàn bộ FoodCard tải lại rating thật.
+  final int ratingRefreshVersion;
+
   const FoodAvailable({
     super.key,
     required this.favoritedItems,
     required this.onFavoriteToggle,
     required this.searchQuery,
     required this.selectedCategory,
+    this.ratingRefreshVersion = 0,
   });
 
   bool isFavorited(ProductModel product) {
@@ -121,6 +125,7 @@ class FoodAvailable extends StatelessWidget {
             return FoodCard(
               product: item,
               isFavorited: isFavorited(item),
+              ratingRefreshVersion: ratingRefreshVersion,
               onFavoriteToggle: () => onFavoriteToggle(item),
               onAddToCart: () {
                 final cart = context.read<CartProvider>();

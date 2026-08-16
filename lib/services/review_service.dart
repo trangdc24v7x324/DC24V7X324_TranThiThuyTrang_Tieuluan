@@ -3,9 +3,12 @@ import 'package:pocketbase/pocketbase.dart';
 
 import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
 import 'package:project_trangdc24v7x324/models/product_review_model.dart';
+import 'package:project_trangdc24v7x324/services/order_service.dart';
 
 class ReviewService {
   PocketBase get _pb => getPocketBase();
+
+  final OrderService _orderService = OrderService();
 
   // =========================================================
   // GET PRODUCT REVIEWS
@@ -105,6 +108,24 @@ class ReviewService {
   }
 
   // =========================================================
+  // REVIEW ELIGIBILITY
+  // =========================================================
+
+  Future<bool> canCurrentUserReview(String productId) async {
+    if (!_pb.authStore.isValid) {
+      return false;
+    }
+
+    final safeProductId = productId.trim();
+
+    if (safeProductId.isEmpty) {
+      return false;
+    }
+
+    return _orderService.hasCompletedPurchase(safeProductId);
+  }
+
+  // =========================================================
   // CREATE / UPDATE REVIEW
   // =========================================================
 
@@ -125,6 +146,15 @@ class ReviewService {
 
     if (userId == null || userId.isEmpty) {
       throw Exception('Không tìm thấy tài khoản.');
+    }
+
+    final canReview = await canCurrentUserReview(productId);
+
+    if (!canReview) {
+      throw Exception(
+        'Bạn chỉ có thể đánh giá sản phẩm đã mua trong '
+        'đơn hoàn thành và đã thanh toán.',
+      );
     }
 
     final existing = await getMyReview(productId);

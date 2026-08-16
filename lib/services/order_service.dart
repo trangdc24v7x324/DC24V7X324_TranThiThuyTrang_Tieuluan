@@ -296,19 +296,26 @@ class OrderService {
   // =========================================================
 
   Future<bool> hasCompletedPurchase(String productId) async {
-    if (productId.trim().isEmpty) {
+    final safeProductId = productId.trim();
+
+    if (safeProductId.isEmpty) {
       return false;
     }
 
     final purchasedIds = await fetchCompletedPurchasedProductIds();
 
-    return purchasedIds.contains(productId);
+    return purchasedIds.contains(safeProductId);
   }
 
+  /// Chỉ trả về sản phẩm mà Customer thực sự đủ điều kiện đánh giá:
+  /// - đúng user đang đăng nhập;
+  /// - order_status = completed;
+  /// - thanh toán thực tế = paid;
+  /// - order_items có chứa sản phẩm.
   Future<Set<String>> fetchCompletedPurchasedProductIds() async {
     final authUser = pb.authStore.model;
 
-    if (authUser == null) {
+    if (authUser == null || authUser.id.trim().isEmpty) {
       return <String>{};
     }
 
@@ -318,6 +325,7 @@ class OrderService {
           filter:
               'user = "${authUser.id}" && '
               'order_status = "completed"',
+          sort: '-updated',
         );
 
     if (completedOrders.isEmpty) {
@@ -326,17 +334,54 @@ class OrderService {
 
     final Set<String> productIds = <String>{};
 
-    // Làm tuần tự để rõ ràng và ổn định cho MVP.
     for (final order in completedOrders) {
+      final orderPaymentStatus =
+          (order.data['payment_status'] ?? '').toString().trim();
+
+      bool isPaid = orderPaymentStatus == 'paid';
+
+      // QR/MoMo demo: trạng thái thanh toán thật nằm ở collection payments.
+      if (!isPaid) {
+        try {
+          final paymentRecords = await pb
+              .collection('payments')
+              .getFullList(
+                filter: 'order = "${order.id}"',
+                sort: '-updated',
+              );
+
+          if (paymentRecords.isNotEmpty) {
+            final paymentStatus =
+                (paymentRecords.first.data['status'] ?? '')
+                    .toString()
+                    .trim();
+
+            isPaid = paymentStatus == 'paid';
+          }
+        } catch (e) {
+          print(
+            'Không thể kiểm tra payment của order '
+            '${order.id}: $e',
+          );
+        }
+      }
+
+      if (!isPaid) {
+        continue;
+      }
+
       final itemRecords = await pb
           .collection('order_items')
           .getFullList(filter: 'order = "${order.id}"');
 
       for (final itemRecord in itemRecords) {
-        final productId = (itemRecord.data['product'] ?? '').toString().trim();
+        final purchasedProductId =
+            (itemRecord.data['product'] ?? '')
+                .toString()
+                .trim();
 
-        if (productId.isNotEmpty) {
-          productIds.add(productId);
+        if (purchasedProductId.isNotEmpty) {
+          productIds.add(purchasedProductId);
         }
       }
     }

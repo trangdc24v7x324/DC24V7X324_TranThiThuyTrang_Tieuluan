@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:project_trangdc24v7x324/models/product_review_model.dart';
 import 'package:project_trangdc24v7x324/services/review_service.dart';
 
@@ -12,6 +11,8 @@ class ReviewProvider extends ChangeNotifier {
 
   bool _isLoading = false;
   bool _isSaving = false;
+  bool _isCheckingEligibility = false;
+  bool _canReview = false;
 
   String? _errorMessage;
 
@@ -22,6 +23,10 @@ class ReviewProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   bool get isSaving => _isSaving;
+
+  bool get isCheckingEligibility => _isCheckingEligibility;
+
+  bool get canReview => _canReview;
 
   String? get errorMessage => _errorMessage;
 
@@ -37,6 +42,23 @@ class ReviewProvider extends ChangeNotifier {
     return total / _reviews.length;
   }
 
+  Future<bool> checkReviewEligibility(String productId) async {
+    _isCheckingEligibility = true;
+    notifyListeners();
+
+    try {
+      _canReview = await _service.canCurrentUserReview(productId);
+      return _canReview;
+    } catch (error) {
+      _canReview = false;
+      debugPrint('checkReviewEligibility error: $error');
+      return false;
+    } finally {
+      _isCheckingEligibility = false;
+      notifyListeners();
+    }
+  }
+
   // =========================================================
   // LOAD
   // =========================================================
@@ -48,6 +70,9 @@ class ReviewProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Danh sách đánh giá phải tải độc lập với việc kiểm tra quyền review.
+      // Nếu API Rule của orders/payments tạm thời lỗi, người dùng vẫn xem
+      // được đánh giá công khai; chỉ form đánh giá bị khóa.
       final results = await Future.wait([
         _service.getReviews(productId),
         _service.getMyReview(productId),
@@ -58,6 +83,15 @@ class ReviewProvider extends ChangeNotifier {
         ..addAll(results[0] as List<ProductReviewModel>);
 
       _myReview = results[1] as ProductReviewModel?;
+
+      try {
+        _canReview = await _service.canCurrentUserReview(productId);
+      } catch (eligibilityError) {
+        _canReview = false;
+        debugPrint(
+          'loadReviews eligibility error: $eligibilityError',
+        );
+      }
     } catch (error) {
       _errorMessage = 'Không thể tải đánh giá';
 
@@ -78,6 +112,16 @@ class ReviewProvider extends ChangeNotifier {
     required int rating,
     required String comment,
   }) async {
+    final canReview = await checkReviewEligibility(productId);
+
+    if (!canReview) {
+      _errorMessage =
+          'Bạn chỉ có thể đánh giá sản phẩm đã mua trong '
+          'đơn hoàn thành và đã thanh toán.';
+      notifyListeners();
+      return false;
+    }
+
     _isSaving = true;
     _errorMessage = null;
 
@@ -133,6 +177,8 @@ class ReviewProvider extends ChangeNotifier {
   void clear() {
     _reviews.clear();
     _myReview = null;
+    _canReview = false;
+    _isCheckingEligibility = false;
     _errorMessage = null;
 
     notifyListeners();

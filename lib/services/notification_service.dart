@@ -125,20 +125,46 @@ class NotificationService {
     final records = await pb
         .collection('notifications')
         .getFullList(
-          sort: '-created',
+          sort: '-updated',
           filter:
               'targetRole = "personal" && '
               'targetUser = "$safeUserId"',
         );
 
-    return records.map((record) {
-      return AppNotificationModel.fromJson({
-        'id': record.id,
-        ...record.data,
-        'created': record.created,
-        'updated': record.updated,
-      });
-    }).toList();
+    final mapped =
+        records.map((record) {
+          return AppNotificationModel.fromJson({
+            'id': record.id,
+            ...record.data,
+            'created': record.created,
+            'updated': record.updated,
+          });
+        }).toList();
+
+    // =========================================================
+    // GỘP NOTIFICATION ĐƠN HÀNG CŨ
+    // =========================================================
+    // Các bản test cũ có thể đã tạo 4-5 record cho cùng một order.
+    // UI Customer chỉ giữ record mới nhất của mỗi orderId.
+    //
+    // Notification marketing không có orderId nên vẫn giữ nguyên từng record.
+    final List<AppNotificationModel> result = [];
+    final Set<String> seenOrderIds = {};
+
+    for (final item in mapped) {
+      final orderId = item.orderId.trim();
+
+      if (orderId.isEmpty) {
+        result.add(item);
+        continue;
+      }
+
+      if (seenOrderIds.add(orderId)) {
+        result.add(item);
+      }
+    }
+
+    return result;
   }
 
   Future<List<AppNotificationModel>> fetchManagerNotifications() async {
@@ -281,6 +307,39 @@ class NotificationService {
 
     if (safeOrderId.isNotEmpty) {
       data['orderId'] = safeOrderId;
+    }
+
+    // ---------------------------------------------------------
+    // 1 ĐƠN HÀNG = 1 THÔNG BÁO CUSTOMER
+    // ---------------------------------------------------------
+    // Nếu đây là notification personal có orderId thì tìm record
+    // đã tồn tại của đúng Customer + đúng order.
+    //
+    // Khi Manager cập nhật trạng thái:
+    // - KHÔNG tạo record mới;
+    // - cập nhật chính record cũ;
+    // - isRead = false để Customer nhận biết có trạng thái mới;
+    // - PocketBase tự cập nhật trường system "updated".
+    if (safeRole == 'personal' &&
+        safeTargetUser.isNotEmpty &&
+        safeOrderId.isNotEmpty) {
+      final existing = await pb
+          .collection('notifications')
+          .getFullList(
+            sort: '-updated',
+            filter:
+                'targetRole = "personal" && '
+                'targetUser = "$safeTargetUser" && '
+                'orderId = "$safeOrderId"',
+          );
+
+      if (existing.isNotEmpty) {
+        await pb
+            .collection('notifications')
+            .update(existing.first.id, body: {...data, 'isRead': false});
+
+        return;
+      }
     }
 
     await pb.collection('notifications').create(body: data);

@@ -128,7 +128,7 @@ class PaymentService {
 
     final records = await pb
         .collection(collectionName)
-        .getFullList(filter: 'order = "$normalizedOrderId"', sort: '-created');
+        .getFullList(filter: 'order = "$normalizedOrderId"', sort: '-updated');
 
     if (records.isEmpty) {
       return null;
@@ -138,9 +138,40 @@ class PaymentService {
   }
 
   Future<PaymentRecordModel> fetchById(String paymentId) async {
-    final record = await pb.collection(collectionName).getOne(paymentId);
+    final normalizedPaymentId = paymentId.trim();
 
-    return _fromRecord(record);
+    if (normalizedPaymentId.isEmpty) {
+      throw Exception('paymentId không hợp lệ.');
+    }
+
+    final records = await pb
+        .collection(collectionName)
+        .getFullList(filter: 'id = "$normalizedPaymentId"', sort: '-updated');
+
+    if (records.isEmpty) {
+      throw Exception('Không tìm thấy payment hiện tại.');
+    }
+
+    return _fromRecord(records.first);
+  }
+
+  Future<PaymentRecordModel> _resolvePayment({
+    required String paymentId,
+    required String orderId,
+  }) async {
+    final normalizedOrderId = orderId.trim();
+
+    if (normalizedOrderId.isEmpty) {
+      throw Exception('orderId không hợp lệ.');
+    }
+
+    final byOrder = await fetchByOrderId(normalizedOrderId);
+
+    if (byOrder != null) {
+      return byOrder;
+    }
+
+    return fetchOrCreateForOrder(normalizedOrderId);
   }
 
   // =========================================================
@@ -154,12 +185,12 @@ class PaymentService {
     required String orderId,
     String providerCode = '',
   }) async {
-    final record = await pb.collection(collectionName).getOne(paymentId);
+    final payment = await _resolvePayment(
+      paymentId: paymentId,
+      orderId: orderId,
+    );
 
-    final currentStatus = (record.data['status'] ?? '').toString();
-
-    // Idempotent đơn giản.
-    if (currentStatus == 'paid') {
+    if (payment.status == 'paid') {
       return;
     }
 
@@ -168,20 +199,27 @@ class PaymentService {
             ? providerCode.trim()
             : 'DEMO-PAID-${DateTime.now().millisecondsSinceEpoch}';
 
-    await pb
-        .collection(collectionName)
-        .update(
-          paymentId,
-          body: {
-            'status': 'paid',
-            'transactionCode': code,
-            'rawResponse': <String, dynamic>{
-              'source': 'yourfood_demo',
-              'result': 'success',
-              'confirmedAt': DateTime.now().toIso8601String(),
+    try {
+      await pb
+          .collection(collectionName)
+          .update(
+            payment.id,
+            body: {
+              'status': 'paid',
+              'transactionCode': code,
+              'rawResponse': <String, dynamic>{
+                'source': 'yourfood_demo',
+                'result': 'success',
+                'confirmedAt': DateTime.now().toIso8601String(),
+              },
             },
-          },
-        );
+          );
+    } catch (e) {
+      throw Exception(
+        'Không thể cập nhật payment sang paid. '
+        'Hãy kiểm tra Update rule của collection payments. Chi tiết: $e',
+      );
+    }
   }
 
   Future<void> markDemoFailed({
@@ -189,61 +227,77 @@ class PaymentService {
     required String orderId,
     String reason = '',
   }) async {
-    final record = await pb.collection(collectionName).getOne(paymentId);
+    final payment = await _resolvePayment(
+      paymentId: paymentId,
+      orderId: orderId,
+    );
 
-    final currentStatus = (record.data['status'] ?? '').toString();
-
-    if (currentStatus == 'paid') {
+    if (payment.status == 'paid') {
       throw Exception(
         'Payment đã thanh toán thành công, '
         'không thể chuyển sang thất bại.',
       );
     }
 
-    await pb
-        .collection(collectionName)
-        .update(
-          paymentId,
-          body: {
-            'status': 'failed',
-            'rawResponse': <String, dynamic>{
-              'source': 'yourfood_demo',
-              'result': 'failed',
-              'reason':
-                  reason.trim().isEmpty
-                      ? 'Mô phỏng giao dịch thất bại'
-                      : reason.trim(),
-              'failedAt': DateTime.now().toIso8601String(),
+    try {
+      await pb
+          .collection(collectionName)
+          .update(
+            payment.id,
+            body: {
+              'status': 'failed',
+              'rawResponse': <String, dynamic>{
+                'source': 'yourfood_demo',
+                'result': 'failed',
+                'reason':
+                    reason.trim().isEmpty
+                        ? 'Mô phỏng giao dịch thất bại'
+                        : reason.trim(),
+                'failedAt': DateTime.now().toIso8601String(),
+              },
             },
-          },
-        );
+          );
+    } catch (e) {
+      throw Exception(
+        'Không thể cập nhật payment sang failed. '
+        'Hãy kiểm tra Update rule của collection payments. Chi tiết: $e',
+      );
+    }
   }
 
   Future<void> retryDemoPayment({
     required String paymentId,
     required String orderId,
   }) async {
-    final record = await pb.collection(collectionName).getOne(paymentId);
+    final payment = await _resolvePayment(
+      paymentId: paymentId,
+      orderId: orderId,
+    );
 
-    final currentStatus = (record.data['status'] ?? '').toString();
-
-    if (currentStatus == 'paid') {
+    if (payment.status == 'paid') {
       return;
     }
 
-    await pb
-        .collection(collectionName)
-        .update(
-          paymentId,
-          body: {
-            'status': 'pending',
-            'rawResponse': <String, dynamic>{
-              'source': 'yourfood_demo_retry',
-              'result': 'pending',
-              'retriedAt': DateTime.now().toIso8601String(),
+    try {
+      await pb
+          .collection(collectionName)
+          .update(
+            payment.id,
+            body: {
+              'status': 'pending',
+              'rawResponse': <String, dynamic>{
+                'source': 'yourfood_demo_retry',
+                'result': 'pending',
+                'retriedAt': DateTime.now().toIso8601String(),
+              },
             },
-          },
-        );
+          );
+    } catch (e) {
+      throw Exception(
+        'Không thể đưa payment về pending. '
+        'Hãy kiểm tra Update rule của collection payments. Chi tiết: $e',
+      );
+    }
   }
 
   // =========================================================
