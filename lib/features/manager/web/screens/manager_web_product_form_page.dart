@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/manager/web/screens/manager_web_product_form_page.dart
+// Vai trò: Màn hình Manager Web quản lý sản phẩm biểu mẫu.
+// Luồng sử dụng: Hiển thị nghiệp vụ quản lý trên trình duyệt và điều phối dữ liệu qua Provider/Service.
 
 import 'dart:typed_data';
 
@@ -13,16 +16,21 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+// Lớp ManagerWebProductFormPage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class ManagerWebProductFormPage extends StatefulWidget {
   final ProductModel? product;
 
+  // Khởi tạo ManagerWebProductFormPage: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý sản phẩm
+  // biểu mẫu.
   const ManagerWebProductFormPage({super.key, this.product});
 
+  // Tạo state (createState): liên kết ManagerWebProductFormPage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<ManagerWebProductFormPage> createState() =>
       _ManagerWebProductFormPageState();
 }
 
+// Lớp _ManagerWebProductFormPageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final ImagePicker _imagePicker = ImagePicker();
@@ -49,8 +57,10 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
 
   String? _localError;
 
+  // Đọc is chỉnh sửa (_isEdit): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   bool get _isEdit => widget.product != null;
 
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
@@ -95,6 +105,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
     Future.microtask(_loadInitialData);
   }
 
+  // Giải phóng tài nguyên (dispose): hủy controller/listener khi widget bị loại khỏi cây giao diện.
   @override
   void dispose() {
     _titleController.removeListener(_refreshPreview);
@@ -112,12 +123,14 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
     super.dispose();
   }
 
+  // Làm mới xem trước (_refreshPreview): đồng bộ dữ liệu biểu mẫu vào phần preview trước khi lưu.
   void _refreshPreview() {
     if (mounted) {
       setState(() {});
     }
   }
 
+  // Tải ban đầu dữ liệu (_loadInitialData): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> _loadInitialData() async {
     setState(() {
       _isLoadingInitialData = true;
@@ -155,6 +168,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
     }
   }
 
+  // Chọn ảnh (_pickImage): mở bộ chọn ảnh, nhận file và cập nhật phần xem trước.
   Future<void> _pickImage() async {
     if (_isSubmitting) return;
 
@@ -191,6 +205,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
     }
   }
 
+  // Xóa đã chọn hình ảnh (_removeSelectedImage): loại bỏ dữ liệu được chọn và đồng bộ state liên quan.
   void _removeSelectedImage() {
     if (_isSubmitting) return;
 
@@ -200,6 +215,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
     });
   }
 
+  // Chọn ngày bắt đầu sale (_pickSaleStartDate): mở DatePicker và lưu mốc bắt đầu khuyến mãi.
   Future<void> _pickSaleStartDate() async {
     if (_isSubmitting) return;
 
@@ -232,6 +248,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
     });
   }
 
+  // Chọn ngày kết thúc sale (_pickSaleEndDate): mở DatePicker và lưu mốc kết thúc khuyến mãi.
   Future<void> _pickSaleEndDate() async {
     if (_isSubmitting) return;
 
@@ -262,6 +279,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
     });
   }
 
+  // Chọn ed danh mục (_selectedCategory): lưu lựa chọn để dùng cho lọc, biểu mẫu hoặc nghiệp vụ tiếp theo.
   CategoryModel? _selectedCategory(ProductProvider provider) {
     final categoryId = _selectedCategoryId;
 
@@ -278,6 +296,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
     }
   }
 
+  // Phân tích tiền (_parseMoney): chuyển dữ liệu đầu vào sang kiểu/cấu trúc ứng dụng cần dùng.
   double? _parseMoney(String value) {
     final normalized = value
         .trim()
@@ -288,6 +307,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
     return double.tryParse(normalized);
   }
 
+  // Xử lý _submit: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý sản phẩm biểu mẫu.
   Future<void> _submit() async {
     if (_isSubmitting) return;
 
@@ -424,11 +444,13 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
     Navigator.pop(context, true);
   }
 
+  // Kiểm tra điều kiện (_cancel): đánh giá khả năng cel và trả kết quả cho lớp gọi.
   void _cancel() {
     if (_isSubmitting) return;
     Navigator.pop(context, false);
   }
 
+  // Đăng xuất (_logout): kết thúc phiên, làm sạch state liên quan và đưa người dùng về trang đăng nhập.
   void _logout() {
     pb.authStore.clear();
 
@@ -439,6 +461,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
     );
   }
 
+  // Hiển thị tin nhắn (_showMessage): mở thông báo/dialog hoặc thành phần hỗ trợ trên giao diện.
   void _showMessage(String message) {
     if (!mounted) return;
 
@@ -447,6 +470,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _ManagerWebProductFormPageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final productProvider = context.watch<ProductProvider>();
@@ -596,6 +620,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
     );
   }
 
+  // Tạo giao diện trang intro (_buildPageIntro): dựng widget con từ dữ liệu hiện tại.
   Widget _buildPageIntro() {
     return Container(
       width: double.infinity,
@@ -654,6 +679,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
     );
   }
 
+  // Tạo giao diện main biểu mẫu (_buildMainForm): dựng widget con từ dữ liệu hiện tại.
   Widget _buildMainForm(ProductProvider provider) {
     return Column(
       children: [
@@ -978,6 +1004,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
     );
   }
 
+  // Tạo giao diện hình ảnh thẻ (_buildImageCard): dựng widget con từ dữ liệu hiện tại.
   Widget _buildImageCard() {
     final currentImage = widget.product?.image.trim() ?? '';
 
@@ -1044,6 +1071,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
     );
   }
 
+  // Tạo giao diện xem trước thẻ (_buildPreviewCard): dựng widget con từ dữ liệu hiện tại.
   Widget _buildPreviewCard(ProductProvider provider) {
     final title =
         _titleController.text.trim().isEmpty
@@ -1161,6 +1189,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
     );
   }
 
+  // Tạo giao diện trạng thái thẻ (_buildStatusCard): dựng widget con từ dữ liệu hiện tại.
   Widget _buildStatusCard() {
     return _SideCard(
       title: 'Trạng thái bán',
@@ -1196,6 +1225,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
     );
   }
 
+  // Tạo giao diện cuối danh sách actions (_buildBottomActions): dựng widget con từ dữ liệu hiện tại.
   Widget _buildBottomActions() {
     return Container(
       padding: const EdgeInsets.all(15),
@@ -1265,6 +1295,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
     );
   }
 
+  // Xử lý _imagePlaceholder: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý sản phẩm biểu mẫu.
   Widget _imagePlaceholder() {
     return const Center(
       child: Column(
@@ -1289,6 +1320,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
     );
   }
 
+  // Xử lý _inputDecoration: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý sản phẩm biểu mẫu.
   InputDecoration _inputDecoration({
     required String label,
     required IconData icon,
@@ -1327,12 +1359,14 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
   }
 }
 
+// Lớp _FormSection: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _FormSection extends StatelessWidget {
   final String title;
   final String subtitle;
   final IconData icon;
   final Widget child;
 
+  // Khởi tạo _FormSection: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý sản phẩm biểu mẫu.
   const _FormSection({
     required this.title,
     required this.subtitle,
@@ -1340,6 +1374,7 @@ class _FormSection extends StatelessWidget {
     required this.child,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _FormSection từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1398,12 +1433,14 @@ class _FormSection extends StatelessWidget {
   }
 }
 
+// Lớp _SideCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _SideCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final IconData icon;
   final Widget child;
 
+  // Khởi tạo _SideCard: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý sản phẩm biểu mẫu.
   const _SideCard({
     required this.title,
     required this.subtitle,
@@ -1411,6 +1448,7 @@ class _SideCard extends StatelessWidget {
     required this.child,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _SideCard từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1456,6 +1494,7 @@ class _SideCard extends StatelessWidget {
   }
 }
 
+// Lớp _DateField: thành phần phục vụ màn hình manager web quản lý sản phẩm biểu mẫu.
 class _DateField extends StatelessWidget {
   final String title;
   final DateTime? value;
@@ -1463,6 +1502,7 @@ class _DateField extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onClear;
 
+  // Khởi tạo _DateField: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý sản phẩm biểu mẫu.
   const _DateField({
     required this.title,
     required this.value,
@@ -1471,6 +1511,7 @@ class _DateField extends StatelessWidget {
     required this.onClear,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _DateField từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -1527,12 +1568,15 @@ class _DateField extends StatelessWidget {
   }
 }
 
+// Lớp _ErrorBanner: thành phần phục vụ màn hình manager web quản lý sản phẩm biểu mẫu.
 class _ErrorBanner extends StatelessWidget {
   final String message;
   final VoidCallback onClose;
 
+  // Khởi tạo _ErrorBanner: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý sản phẩm biểu mẫu.
   const _ErrorBanner({required this.message, required this.onClose});
 
+  // Xây dựng giao diện (build): dựng cây widget của _ErrorBanner từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1570,6 +1614,7 @@ class _ErrorBanner extends StatelessWidget {
   }
 }
 
+// Định dạng ngày giá trị (_formatDateValue): chuyển dữ liệu thô thành giá trị dễ đọc để hiển thị.
 String _formatDateValue(DateTime? value) {
   if (value == null) {
     return 'Không giới hạn';
@@ -1580,6 +1625,7 @@ String _formatDateValue(DateTime? value) {
   return '${two(value.day)}/${two(value.month)}/${value.year}';
 }
 
+// Định dạng tiền (_formatMoney): chuyển dữ liệu thô thành giá trị dễ đọc để hiển thị.
 String _formatMoney(double value) {
   final digits = value.round().toString();
   final buffer = StringBuffer();

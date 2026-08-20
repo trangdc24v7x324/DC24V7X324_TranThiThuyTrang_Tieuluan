@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/manager/web/screens/manager_web_orders_page.dart
+// Vai trò: Màn hình Manager Web quản lý đơn hàng.
+// Luồng sử dụng: Hiển thị nghiệp vụ quản lý trên trình duyệt và điều phối dữ liệu qua Provider/Service.
 
 import 'dart:math' as math;
 
@@ -15,6 +18,8 @@ import 'package:project_trangdc24v7x324/services/map_navigation_service.dart';
 import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 import 'package:provider/provider.dart';
 
+// Mở chỉ đường giao hàng: dùng tọa độ đã lưu của đơn và vị trí hiện tại của thiết bị.
+// Mở chỉ đường (_openDeliveryDirections): lấy tọa độ đơn hàng và gọi MapNavigationService mở Google Maps.
 Future<void> _openDeliveryDirections(
   BuildContext context,
   OrderModel order,
@@ -39,14 +44,17 @@ Future<void> _openDeliveryDirections(
   }
 }
 
+// Lớp ManagerWebOrdersPage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class ManagerWebOrdersPage extends StatefulWidget {
-
+  // Khởi tạo ManagerWebOrdersPage: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý đơn hàng.
   const ManagerWebOrdersPage({super.key});
 
+  // Tạo state (createState): liên kết ManagerWebOrdersPage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<ManagerWebOrdersPage> createState() => _ManagerWebOrdersPageState();
 }
 
+// Lớp _ManagerWebOrdersPageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _ManagerWebOrdersPageState extends State<ManagerWebOrdersPage> {
   final TextEditingController _searchController = TextEditingController();
 
@@ -57,18 +65,21 @@ class _ManagerWebOrdersPageState extends State<ManagerWebOrdersPage> {
 
   final Map<String, String> _paymentStatusByOrderId = {};
 
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
     Future.microtask(_loadData);
   }
 
+  // Giải phóng tài nguyên (dispose): hủy controller/listener khi widget bị loại khỏi cây giao diện.
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
 
+  // Tải dữ liệu (_loadData): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> _loadData() async {
     await Future.wait([
       context.read<OrderProvider>().loadAllOrders(),
@@ -77,6 +88,7 @@ class _ManagerWebOrdersPageState extends State<ManagerWebOrdersPage> {
     ]);
   }
 
+  // Tải thanh toán statuses (_loadPaymentStatuses): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> _loadPaymentStatuses() async {
     try {
       final records = await pb
@@ -93,6 +105,7 @@ class _ManagerWebOrdersPageState extends State<ManagerWebOrdersPage> {
           continue;
         }
 
+        // records đã sort -updated nên record đầu tiên của mỗi order là mới nhất.
         loaded.putIfAbsent(orderId, () => status);
       }
 
@@ -108,18 +121,24 @@ class _ManagerWebOrdersPageState extends State<ManagerWebOrdersPage> {
     } catch (e) {
       debugPrint('MANAGER LOAD PAYMENT STATUSES ERROR: $e');
 
+      // Không làm hỏng trang Order nếu collection payments tạm thời lỗi.
+      // Khi đó UI fallback về orders.payment_status.
     }
   }
 
+  // Xác định payment hiệu lực (_effectivePaymentStatus): ưu tiên PaymentRecord và fallback về trạng thái trong order.
   String _effectivePaymentStatus(OrderModel order) {
-
+    // Manager xác nhận đã thu tiền (đặc biệt COD/tiền mặt)
+    // thì trạng thái paid của order được ưu tiên.
     if (order.paymentStatus == 'paid') {
       return 'paid';
     }
 
+    // Với QR/MoMo demo, trạng thái chi tiết lấy từ payments.
     return _paymentStatusByOrderId[order.id] ?? order.paymentStatus;
   }
 
+  // Lọc/tìm đơn hàng (_filterOrders): tạo tập dữ liệu phù hợp theo điều kiện đang chọn.
   List<OrderModel> _filterOrders(List<OrderModel> orders) {
     final query = _searchController.text.trim().toLowerCase();
 
@@ -157,6 +176,7 @@ class _ManagerWebOrdersPageState extends State<ManagerWebOrdersPage> {
     return result;
   }
 
+  // Hiển thị hộp thoại (_resetFilters): dựng dialog phục vụ thao tác trong màn hình manager web quản lý đơn hàng.
   void _resetFilters() {
     _searchController.clear();
 
@@ -167,6 +187,7 @@ class _ManagerWebOrdersPageState extends State<ManagerWebOrdersPage> {
     });
   }
 
+  // Mở chi tiết đơn (_openOrderDetail): truyền order được chọn sang giao diện chi tiết.
   Future<void> _openOrderDetail(OrderModel order) async {
     await showDialog<void>(
       context: context,
@@ -183,6 +204,7 @@ class _ManagerWebOrdersPageState extends State<ManagerWebOrdersPage> {
     await _loadData();
   }
 
+  // Đăng xuất (_logout): kết thúc phiên, làm sạch state liên quan và đưa người dùng về trang đăng nhập.
   void _logout() {
     pb.authStore.clear();
 
@@ -193,6 +215,7 @@ class _ManagerWebOrdersPageState extends State<ManagerWebOrdersPage> {
     );
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _ManagerWebOrdersPageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final orderProvider = context.watch<OrderProvider>();
@@ -379,12 +402,14 @@ class _ManagerWebOrdersPageState extends State<ManagerWebOrdersPage> {
   }
 }
 
+// Lớp _OrderSummaryGrid: thành phần phục vụ màn hình manager web quản lý đơn hàng.
 class _OrderSummaryGrid extends StatelessWidget {
   final int processing;
   final int completed;
   final int cancelled;
   final double paidRevenue;
 
+  // Khởi tạo _OrderSummaryGrid: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý đơn hàng.
   const _OrderSummaryGrid({
     required this.processing,
     required this.completed,
@@ -392,6 +417,7 @@ class _OrderSummaryGrid extends StatelessWidget {
     required this.paidRevenue,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _OrderSummaryGrid từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final cards = [
@@ -450,6 +476,7 @@ class _OrderSummaryGrid extends StatelessWidget {
   }
 }
 
+// Lớp _OrderSummaryCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _OrderSummaryCard extends StatelessWidget {
   final String label;
   final String value;
@@ -457,6 +484,7 @@ class _OrderSummaryCard extends StatelessWidget {
   final IconData icon;
   final Color color;
 
+  // Khởi tạo _OrderSummaryCard: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý đơn hàng.
   const _OrderSummaryCard({
     required this.label,
     required this.value,
@@ -465,6 +493,7 @@ class _OrderSummaryCard extends StatelessWidget {
     required this.color,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _OrderSummaryCard từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -530,6 +559,7 @@ class _OrderSummaryCard extends StatelessWidget {
   }
 }
 
+// Lớp _OrderFilters: thành phần phục vụ màn hình manager web quản lý đơn hàng.
 class _OrderFilters extends StatelessWidget {
   final TextEditingController searchController;
   final String statusFilter;
@@ -539,6 +569,7 @@ class _OrderFilters extends StatelessWidget {
   final ValueChanged<String?> onPaymentChanged;
   final VoidCallback onReset;
 
+  // Khởi tạo _OrderFilters: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý đơn hàng.
   const _OrderFilters({
     required this.searchController,
     required this.statusFilter,
@@ -549,6 +580,7 @@ class _OrderFilters extends StatelessWidget {
     required this.onReset,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _OrderFilters từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -705,6 +737,7 @@ class _OrderFilters extends StatelessWidget {
     );
   }
 
+  // Lọc/tìm trang trí ô nhập (_filterDecoration): tạo tập dữ liệu phù hợp theo điều kiện đang chọn.
   InputDecoration _filterDecoration(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
@@ -719,6 +752,7 @@ class _OrderFilters extends StatelessWidget {
   }
 }
 
+// Lớp _OrdersPanel: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _OrdersPanel extends StatelessWidget {
   final bool isLoading;
   final String? errorMessage;
@@ -729,6 +763,7 @@ class _OrdersPanel extends StatelessWidget {
   final ValueChanged<OrderModel> onOpen;
   final VoidCallback onRetry;
 
+  // Khởi tạo _OrdersPanel: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý đơn hàng.
   const _OrdersPanel({
     required this.isLoading,
     required this.errorMessage,
@@ -740,6 +775,7 @@ class _OrdersPanel extends StatelessWidget {
     required this.onRetry,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _OrdersPanel từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -830,12 +866,14 @@ class _OrdersPanel extends StatelessWidget {
   }
 }
 
+// Lớp _OrderTable: thành phần phục vụ màn hình manager web quản lý đơn hàng.
 class _OrderTable extends StatelessWidget {
   final List<OrderModel> orders;
   final int startIndex;
   final Map<String, String> paymentStatuses;
   final ValueChanged<OrderModel> onOpen;
 
+  // Khởi tạo _OrderTable: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý đơn hàng.
   const _OrderTable({
     required this.orders,
     required this.startIndex,
@@ -843,6 +881,7 @@ class _OrderTable extends StatelessWidget {
     required this.onOpen,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _OrderTable từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
@@ -982,17 +1021,20 @@ class _OrderTable extends StatelessWidget {
   }
 }
 
+// Lớp _OrderCards: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _OrderCards extends StatelessWidget {
   final List<OrderModel> orders;
   final Map<String, String> paymentStatuses;
   final ValueChanged<OrderModel> onOpen;
 
+  // Khởi tạo _OrderCards: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý đơn hàng.
   const _OrderCards({
     required this.orders,
     required this.paymentStatuses,
     required this.onOpen,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _OrderCards từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -1122,16 +1164,20 @@ class _OrderCards extends StatelessWidget {
   }
 }
 
+// Lớp ManagerWebOrderDetailDialog: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class ManagerWebOrderDetailDialog extends StatefulWidget {
   final String orderId;
 
+  // Khởi tạo ManagerWebOrderDetailDialog: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý đơn hàng.
   const ManagerWebOrderDetailDialog({super.key, required this.orderId});
 
+  // Tạo state (createState): liên kết ManagerWebOrderDetailDialog với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<ManagerWebOrderDetailDialog> createState() =>
       _ManagerWebOrderDetailDialogState();
 }
 
+// Lớp _ManagerWebOrderDetailDialogState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _ManagerWebOrderDetailDialogState
     extends State<ManagerWebOrderDetailDialog> {
   bool _isBusy = false;
@@ -1139,12 +1185,14 @@ class _ManagerWebOrderDetailDialogState
   String _selectedPaymentStatus = 'unpaid';
   String _currentPaymentStatus = 'unpaid';
 
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
     Future.microtask(_loadDetail);
   }
 
+  // Tải chi tiết (_loadDetail): lấy các bản ghi liên quan và cập nhật state màn hình.
   Future<void> _loadDetail() async {
     await context.read<OrderProvider>().loadOrderDetail(widget.orderId);
 
@@ -1171,11 +1219,13 @@ class _ManagerWebOrderDetailDialogState
     }
   }
 
+  // Lấy actual thanh toán trạng thái (_fetchActualPaymentStatus): truy xuất từ PocketBase và trả kết quả cho lớp gọi.
   Future<String> _fetchActualPaymentStatus(
     String orderId, {
     required String fallback,
   }) async {
-
+    // Nếu Manager đã xác nhận thu tiền ở orders thì ưu tiên paid.
+    // Cách này giúp COD/Tiền mặt không cần quyền Update collection payments.
     if (fallback == 'paid') {
       return 'paid';
     }
@@ -1198,6 +1248,7 @@ class _ManagerWebOrderDetailDialogState
     }
   }
 
+  // Cập nhật kế tiếp trạng thái (_updateNextStatus): gửi thay đổi tới service/backend và đồng bộ state hiện tại.
   Future<void> _updateNextStatus(OrderModel order) async {
     final nextStatus = _nextStatus(order.orderStatus);
 
@@ -1205,6 +1256,8 @@ class _ManagerWebOrderDetailDialogState
       return;
     }
 
+    // Không hiển thị hộp thoại xác nhận trung gian.
+    // Bấm nút là cập nhật trạng thái ngay.
     await _runBusy(() async {
       final provider = context.read<OrderProvider>();
 
@@ -1224,6 +1277,7 @@ class _ManagerWebOrderDetailDialogState
     });
   }
 
+  // Hủy đơn (_cancelOrder): xác nhận thao tác, cập nhật trạng thái đơn và làm mới dữ liệu liên quan.
   Future<void> _cancelOrder(OrderModel order) async {
     final controller = TextEditingController();
     String? validationMessage;
@@ -1314,11 +1368,20 @@ class _ManagerWebOrderDetailDialogState
     });
   }
 
+  // Cập nhật thanh toán trạng thái (_updatePaymentStatus): gửi thay đổi tới service/backend và đồng bộ state hiện tại.
   Future<void> _updatePaymentStatus(OrderModel order) async {
     if (_selectedPaymentStatus == _currentPaymentStatus || _isBusy) {
       return;
     }
 
+    // Manager chỉ xác nhận trạng thái thu tiền tổng quát trên ORDER.
+    // Không PATCH trực tiếp collection payments để tránh lỗi API Rule 404.
+    //
+    // payments.status:
+    //   dùng cho QR/MoMo demo (pending / paid / failed)
+    //
+    // orders.payment_status:
+    //   dùng cho xác nhận của Manager, đặc biệt COD/Tiền mặt.
     final orderPaymentStatus =
         _selectedPaymentStatus == 'paid' ? 'paid' : 'unpaid';
 
@@ -1402,6 +1465,7 @@ class _ManagerWebOrderDetailDialogState
     });
   }
 
+  // Xử lý _runBusy: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý đơn hàng.
   Future<void> _runBusy(Future<void> Function() action) async {
     if (_isBusy) {
       return;
@@ -1431,6 +1495,7 @@ class _ManagerWebOrderDetailDialogState
     }
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _ManagerWebOrderDetailDialogState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -1507,6 +1572,7 @@ class _ManagerWebOrderDetailDialogState
     );
   }
 
+  // Tạo giao diện đơn hàng nội dung (_buildOrderBody): dựng widget con từ dữ liệu hiện tại.
   Widget _buildOrderBody(OrderModel order) {
     final next = _nextStatus(order.orderStatus);
 
@@ -1675,6 +1741,8 @@ class _ManagerWebOrderDetailDialogState
                                   return;
                                 }
 
+                                // Manager chỉ xác nhận Chưa thanh toán / Đã thanh toán.
+                                // pending/failed là trạng thái của QR/MoMo demo.
                                 if (value == 'pending' || value == 'failed') {
                                   return;
                                 }
@@ -1836,6 +1904,7 @@ class _ManagerWebOrderDetailDialogState
   }
 }
 
+// Lớp _DetailHeader: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _DetailHeader extends StatelessWidget {
   final OrderModel? order;
   final bool isBusy;
@@ -1843,6 +1912,7 @@ class _DetailHeader extends StatelessWidget {
   final VoidCallback? onCopyId;
   final VoidCallback? onPrint;
 
+  // Khởi tạo _DetailHeader: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý đơn hàng.
   const _DetailHeader({
     required this.order,
     required this.isBusy,
@@ -1851,6 +1921,7 @@ class _DetailHeader extends StatelessWidget {
     required this.onPrint,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _DetailHeader từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -1922,9 +1993,11 @@ class _DetailHeader extends StatelessWidget {
   }
 }
 
+// Lớp _StatusTimeline: thành phần phục vụ màn hình manager web quản lý đơn hàng.
 class _StatusTimeline extends StatelessWidget {
   final OrderModel order;
 
+  // Khởi tạo _StatusTimeline: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý đơn hàng.
   const _StatusTimeline({required this.order});
 
   static const statuses = [
@@ -1935,6 +2008,7 @@ class _StatusTimeline extends StatelessWidget {
     'completed',
   ];
 
+  // Xây dựng giao diện (build): dựng cây widget của _StatusTimeline từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     if (order.isCancelled) {
@@ -2091,17 +2165,20 @@ class _StatusTimeline extends StatelessWidget {
   }
 }
 
+// Lớp _TimelineDot: thành phần phục vụ màn hình manager web quản lý đơn hàng.
 class _TimelineDot extends StatelessWidget {
   final bool reached;
   final bool current;
   final Color color;
 
+  // Khởi tạo _TimelineDot: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý đơn hàng.
   const _TimelineDot({
     required this.reached,
     required this.current,
     required this.color,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _TimelineDot từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
@@ -2135,12 +2212,14 @@ class _TimelineDot extends StatelessWidget {
   }
 }
 
+// Lớp _SectionCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _SectionCard extends StatelessWidget {
   final String title;
   final IconData icon;
   final Widget child;
   final Color? accentColor;
 
+  // Khởi tạo _SectionCard: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý đơn hàng.
   const _SectionCard({
     required this.title,
     required this.icon,
@@ -2148,6 +2227,7 @@ class _SectionCard extends StatelessWidget {
     this.accentColor,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _SectionCard từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final color = accentColor ?? AppColors.primary;
@@ -2195,17 +2275,20 @@ class _SectionCard extends StatelessWidget {
   }
 }
 
+// Lớp _InfoLine: thành phần phục vụ màn hình manager web quản lý đơn hàng.
 class _InfoLine extends StatelessWidget {
   final String label;
   final String value;
   final bool emphasize;
 
+  // Khởi tạo _InfoLine: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý đơn hàng.
   const _InfoLine({
     required this.label,
     required this.value,
     this.emphasize = false,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _InfoLine từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -2272,17 +2355,20 @@ class _InfoLine extends StatelessWidget {
   }
 }
 
+// Lớp _MoneyLine: thành phần phục vụ màn hình manager web quản lý đơn hàng.
 class _MoneyLine extends StatelessWidget {
   final String label;
   final double value;
   final bool isTotal;
 
+  // Khởi tạo _MoneyLine: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý đơn hàng.
   const _MoneyLine({
     required this.label,
     required this.value,
     this.isTotal = false,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _MoneyLine từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final negative = value < 0;
@@ -2321,11 +2407,14 @@ class _MoneyLine extends StatelessWidget {
   }
 }
 
+// Lớp _OrderItemTile: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _OrderItemTile extends StatelessWidget {
   final OrderItemModel item;
 
+  // Khởi tạo _OrderItemTile: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý đơn hàng.
   const _OrderItemTile({required this.item});
 
+  // Xây dựng giao diện (build): dựng cây widget của _OrderItemTile từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -2409,11 +2498,14 @@ class _OrderItemTile extends StatelessWidget {
   }
 }
 
+// Lớp _ProductImage: thành phần phục vụ màn hình manager web quản lý đơn hàng.
 class _ProductImage extends StatelessWidget {
   final String url;
 
+  // Khởi tạo _ProductImage: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý đơn hàng.
   const _ProductImage({required this.url});
 
+  // Xây dựng giao diện (build): dựng cây widget của _ProductImage từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     if (url.trim().isEmpty) {
@@ -2434,6 +2526,7 @@ class _ProductImage extends StatelessWidget {
     );
   }
 
+  // Xử lý _placeholder: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý đơn hàng.
   Widget _placeholder() {
     return Container(
       width: 64,
@@ -2447,12 +2540,15 @@ class _ProductImage extends StatelessWidget {
   }
 }
 
+// Lớp _StatusChip: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _StatusChip extends StatelessWidget {
   final String label;
   final Color color;
 
+  // Khởi tạo _StatusChip: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý đơn hàng.
   const _StatusChip({required this.label, required this.color});
 
+  // Xây dựng giao diện (build): dựng cây widget của _StatusChip từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -2473,12 +2569,15 @@ class _StatusChip extends StatelessWidget {
   }
 }
 
+// Lớp _OrderErrorState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _OrderErrorState extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
 
+  // Khởi tạo _OrderErrorState: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý đơn hàng.
   const _OrderErrorState({required this.message, required this.onRetry});
 
+  // Xây dựng giao diện (build): dựng cây widget của _OrderErrorState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -2510,10 +2609,12 @@ class _OrderErrorState extends StatelessWidget {
   }
 }
 
+// Lớp _EmptyOrders: thành phần phục vụ màn hình manager web quản lý đơn hàng.
 class _EmptyOrders extends StatelessWidget {
-
+  // Khởi tạo _EmptyOrders: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý đơn hàng.
   const _EmptyOrders();
 
+  // Xây dựng giao diện (build): dựng cây widget của _EmptyOrders từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return const Center(
@@ -2546,12 +2647,15 @@ class _EmptyOrders extends StatelessWidget {
   }
 }
 
+// Lớp _DetailError: thành phần phục vụ màn hình manager web quản lý đơn hàng.
 class _DetailError extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
 
+  // Khởi tạo _DetailError: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý đơn hàng.
   const _DetailError({required this.message, required this.onRetry});
 
+  // Xây dựng giao diện (build): dựng cây widget của _DetailError từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -2573,6 +2677,7 @@ class _DetailError extends StatelessWidget {
   }
 }
 
+// Lớp _PaginationBar: thành phần phục vụ màn hình manager web quản lý đơn hàng.
 class _PaginationBar extends StatelessWidget {
   final int currentPage;
   final int totalPages;
@@ -2584,6 +2689,7 @@ class _PaginationBar extends StatelessWidget {
   final VoidCallback? onPrevious;
   final VoidCallback? onNext;
 
+  // Khởi tạo _PaginationBar: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý đơn hàng.
   const _PaginationBar({
     required this.currentPage,
     required this.totalPages,
@@ -2596,6 +2702,7 @@ class _PaginationBar extends StatelessWidget {
     required this.onNext,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _PaginationBar từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -2667,6 +2774,7 @@ class _PaginationBar extends StatelessWidget {
   }
 }
 
+// Xử lý _nextStatus: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý đơn hàng.
 String _nextStatus(String status) {
   switch (status) {
     case 'placed':
@@ -2682,6 +2790,7 @@ String _nextStatus(String status) {
   }
 }
 
+// Xử lý _nextStatusIcon: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý đơn hàng.
 IconData _nextStatusIcon(String status) {
   switch (status) {
     case 'confirmed':
@@ -2697,6 +2806,7 @@ IconData _nextStatusIcon(String status) {
   }
 }
 
+// Xử lý _statusLabel: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý đơn hàng.
 String _statusLabel(String status) {
   switch (status) {
     case 'placed':
@@ -2716,6 +2826,7 @@ String _statusLabel(String status) {
   }
 }
 
+// Xử lý _statusDescription: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý đơn hàng.
 String _statusDescription(String status) {
   switch (status) {
     case 'placed':
@@ -2733,6 +2844,7 @@ String _statusDescription(String status) {
   }
 }
 
+// Xử lý _statusColor: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý đơn hàng.
 Color _statusColor(String status) {
   switch (status) {
     case 'placed':
@@ -2752,6 +2864,7 @@ Color _statusColor(String status) {
   }
 }
 
+// Xử lý _paymentLabel: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý đơn hàng.
 String _paymentLabel(String status) {
   switch (status) {
     case 'paid':
@@ -2767,6 +2880,7 @@ String _paymentLabel(String status) {
   }
 }
 
+// Xử lý _paymentColor: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý đơn hàng.
 Color _paymentColor(String status) {
   switch (status) {
     case 'paid':
@@ -2780,6 +2894,7 @@ Color _paymentColor(String status) {
   }
 }
 
+// Xử lý _shortId: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý đơn hàng.
 String _shortId(String id) {
   final value = id.trim().toUpperCase();
 
@@ -2790,6 +2905,7 @@ String _shortId(String id) {
   return value.substring(0, 10);
 }
 
+// Định dạng ngày (_formatDate): chuyển dữ liệu thô thành giá trị dễ đọc để hiển thị.
 String _formatDate(DateTime date) {
   String two(int value) => value.toString().padLeft(2, '0');
 
@@ -2797,6 +2913,7 @@ String _formatDate(DateTime date) {
       '${two(date.hour)}:${two(date.minute)}';
 }
 
+// Định dạng tiền (_formatMoney): chuyển dữ liệu thô thành giá trị dễ đọc để hiển thị.
 String _formatMoney(double value) {
   final digits = value.round().toString();
   final buffer = StringBuffer();

@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/manager/web/screens/manager_web_home_page.dart
+// Vai trò: Màn hình Manager Web quản lý trang chủ.
+// Luồng sử dụng: Hiển thị nghiệp vụ quản lý trên trình duyệt và điều phối dữ liệu qua Provider/Service.
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -11,22 +14,26 @@ import 'package:project_trangdc24v7x324/providers/profile_provider.dart';
 import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 
+// Lớp ManagerWebHomePage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class ManagerWebHomePage extends StatefulWidget {
-
+  // Khởi tạo ManagerWebHomePage: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý trang chủ.
   const ManagerWebHomePage({super.key});
 
+  // Tạo state (createState): liên kết ManagerWebHomePage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<ManagerWebHomePage> createState() => _ManagerWebHomePageState();
 }
 
+// Lớp _ManagerWebHomePageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _ManagerWebHomePageState extends State<ManagerWebHomePage> {
-
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
     Future.microtask(_loadData);
   }
 
+  // Tải dữ liệu (_loadData): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> _loadData() async {
     final managerId = pb.authStore.model?.id ?? '';
 
@@ -46,6 +53,7 @@ class _ManagerWebHomePageState extends State<ManagerWebHomePage> {
     await Future.wait(futures);
   }
 
+  // Đăng xuất (_logout): kết thúc phiên, làm sạch state liên quan và đưa người dùng về trang đăng nhập.
   void _logout() {
     pb.authStore.clear();
 
@@ -56,6 +64,7 @@ class _ManagerWebHomePageState extends State<ManagerWebHomePage> {
     );
   }
 
+  // Mở định tuyến (_openRoute): điều hướng hoặc hiển thị thành phần tương ứng từ thao tác người dùng.
   Future<void> _openRoute(String routeName) async {
     await Navigator.pushNamed(context, routeName);
 
@@ -66,6 +75,7 @@ class _ManagerWebHomePageState extends State<ManagerWebHomePage> {
     await _loadData();
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _ManagerWebHomePageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final orderProvider = context.watch<OrderProvider>();
@@ -225,17 +235,20 @@ class _ManagerWebHomePageState extends State<ManagerWebHomePage> {
   }
 }
 
+// Lớp _WelcomeBanner: thành phần phục vụ màn hình manager web quản lý trang chủ.
 class _WelcomeBanner extends StatelessWidget {
   final String managerName;
   final int pendingOrders;
   final int unreadMessages;
 
+  // Khởi tạo _WelcomeBanner: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý trang chủ.
   const _WelcomeBanner({
     required this.managerName,
     required this.pendingOrders,
     required this.unreadMessages,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _WelcomeBanner từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final isCompact = MediaQuery.sizeOf(context).width < 720;
@@ -311,12 +324,14 @@ class _WelcomeBanner extends StatelessWidget {
   }
 }
 
+// Lớp _SectionHeader: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _SectionHeader extends StatelessWidget {
   final String title;
   final String subtitle;
   final String? actionLabel;
   final VoidCallback? onAction;
 
+  // Khởi tạo _SectionHeader: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý trang chủ.
   const _SectionHeader({
     required this.title,
     required this.subtitle,
@@ -324,6 +339,7 @@ class _SectionHeader extends StatelessWidget {
     this.onAction,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _SectionHeader từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -363,11 +379,14 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
+// Lớp _ResponsiveStatsGrid: thành phần phục vụ màn hình manager web quản lý trang chủ.
 class _ResponsiveStatsGrid extends StatelessWidget {
   final List<Widget> children;
 
+  // Khởi tạo _ResponsiveStatsGrid: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý trang chủ.
   const _ResponsiveStatsGrid({required this.children});
 
+  // Xây dựng giao diện (build): dựng cây widget của _ResponsiveStatsGrid từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -397,12 +416,15 @@ class _ResponsiveStatsGrid extends StatelessWidget {
   }
 }
 
+// Lớp _QuickActionGrid: thành phần phục vụ màn hình manager web quản lý trang chủ.
 class _QuickActionGrid extends StatelessWidget {
   final List<_QuickAction> actions;
   final ValueChanged<String> onOpen;
 
+  // Khởi tạo _QuickActionGrid: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý trang chủ.
   const _QuickActionGrid({required this.actions, required this.onOpen});
 
+  // Xây dựng giao diện (build): dựng cây widget của _QuickActionGrid từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -440,12 +462,15 @@ class _QuickActionGrid extends StatelessWidget {
   }
 }
 
+// Lớp _QuickActionCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _QuickActionCard extends StatelessWidget {
   final _QuickAction action;
   final VoidCallback onTap;
 
+  // Khởi tạo _QuickActionCard: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý trang chủ.
   const _QuickActionCard({required this.action, required this.onTap});
 
+  // Xây dựng giao diện (build): dựng cây widget của _QuickActionCard từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -549,6 +574,7 @@ class _QuickActionCard extends StatelessWidget {
   }
 }
 
+// Lớp _QuickAction: thành phần phục vụ màn hình manager web quản lý trang chủ.
 class _QuickAction {
   final String title;
   final String subtitle;
@@ -557,6 +583,7 @@ class _QuickAction {
   final String routeName;
   final int badge;
 
+  // Khởi tạo _QuickAction: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý trang chủ.
   const _QuickAction({
     required this.title,
     required this.subtitle,

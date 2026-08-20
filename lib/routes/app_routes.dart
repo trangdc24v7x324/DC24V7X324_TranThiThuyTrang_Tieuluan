@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/routes/app_routes.dart
+// Vai trò: Cấu hình định tuyến toàn ứng dụng.
+// Luồng sử dụng: Khai báo tên route, ánh xạ màn hình và xử lý các route cần arguments.
 
 import 'package:project_trangdc24v7x324/features/auth/screens/forgot_password_page.dart';
 import 'package:project_trangdc24v7x324/features/auth/screens/login_page.dart';
@@ -23,9 +26,11 @@ import 'package:project_trangdc24v7x324/features/product/screens/product_page.da
 import 'package:project_trangdc24v7x324/features/profile/screens/profile_page.dart';
 import 'package:flutter/material.dart';
 
+// Lớp AppRoutes: thành phần phục vụ cấu hình định tuyến toàn ứng dụng.
 class AppRoutes {
   static const String splash = '/';
 
+  // Customer
   static const String home = '/home';
   static const String product = '/product';
   static const String profile = '/profile';
@@ -37,10 +42,12 @@ class AppRoutes {
   static const String paymentTest = '/payment-test';
   static const String orderDetail = '/order-detail';
 
+  // Auth
   static const String login = '/login';
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
 
+  // Manager
   static const String managerHome = '/manager-home';
   static const String managerOrders = '/manager-orders';
   static const String managerRevenue = '/manager-revenue';
@@ -50,13 +57,15 @@ class AppRoutes {
   static const String managerChatDetail = '/manager-chat-detail';
   static const String managerNotifications = '/manager-notifications';
 
+  // Đọc định tuyến (routes): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   static Map<String, WidgetBuilder> get routes => {
-
+    // Auth
     splash: (context) => const SplashScreen(),
     login: (context) => const LoginPage(),
     register: (context) => const RegisterPage(),
     forgotPassword: (context) => const ForgotPasswordPage(),
 
+    // Customer
     home: (context) => const HomePage(),
     product: (context) => const ProductPage(),
     profile: (context) => const ProfilePage(),
@@ -66,6 +75,8 @@ class AppRoutes {
     notifications: (context) => const NotificationsPage(),
     payment: (context) => const PaymentPage(),
 
+    // Manager
+    // EntryPage sẽ tự chọn giao diện Web hoặc giao diện app bằng kIsWeb.
     managerHome: (context) => const ManagerHomeEntryPage(),
     managerProducts: (context) => const ManagerProductsEntryPage(),
     managerCategories: (context) => const ManagerCategoriesEntryPage(),
@@ -75,6 +86,8 @@ class AppRoutes {
     managerNotifications: (context) => const ManagerNotificationsEntryPage(),
   };
 
+  /// Các route cần nhận arguments động được xử lý tại đây.
+  // Xử lý onGenerateRoute: thực hiện phần nghiệp vụ tương ứng trong cấu hình định tuyến toàn ứng dụng.
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case managerChatDetail:
@@ -90,6 +103,7 @@ class AppRoutes {
     return null;
   }
 
+  // Tạo giao diện quản lý trò chuyện chi tiết định tuyến (_buildManagerChatDetailRoute): dựng widget con từ dữ liệu hiện tại.
   static Route<dynamic> _buildManagerChatDetailRoute(RouteSettings settings) {
     final args = settings.arguments;
 
@@ -118,6 +132,7 @@ class AppRoutes {
     );
   }
 
+  // Tạo giao diện đơn hàng chi tiết định tuyến (_buildOrderDetailRoute): dựng widget con từ dữ liệu hiện tại.
   static Route<dynamic> _buildOrderDetailRoute(RouteSettings settings) {
     final args = settings.arguments;
 
@@ -144,6 +159,7 @@ class AppRoutes {
     return _routeError(settings, 'Không nhận được orderId.');
   }
 
+  // Tạo giao diện thanh toán mô phỏng định tuyến (_buildPaymentTestRoute): dựng widget con từ dữ liệu hiện tại.
   static Route<dynamic> _buildPaymentTestRoute(RouteSettings settings) {
     final args = settings.arguments;
     String orderId = '';
@@ -169,6 +185,7 @@ class AppRoutes {
     );
   }
 
+  // Xử lý _routeError: thực hiện phần nghiệp vụ tương ứng trong cấu hình định tuyến toàn ứng dụng.
   static MaterialPageRoute<dynamic> _routeError(
     RouteSettings settings,
     String message,

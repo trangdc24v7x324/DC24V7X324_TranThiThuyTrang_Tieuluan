@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/profile/widgets/address_section.dart
+// Vai trò: Widget hồ sơ cho địa chỉ khu vực.
+// Luồng sử dụng: Hiển thị/chỉnh sửa một phần hồ sơ và trả sự kiện về màn hình Profile.
 
 import 'package:flutter/material.dart';
 
@@ -5,6 +8,7 @@ import 'package:project_trangdc24v7x324/models/address_model.dart';
 import 'package:project_trangdc24v7x324/services/delivery_service.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/section_card.dart';
 
+// Lớp AddressSection: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class AddressSection extends StatefulWidget {
   final List<AddressModel> addresses;
   final bool isEditing;
@@ -12,6 +16,7 @@ class AddressSection extends StatefulWidget {
 
   final Future<void> Function(List<AddressModel> updatedAddresses) onSave;
 
+  // Khởi tạo AddressSection: nhận các tham số cần thiết để tạo đối tượng cho widget hồ sơ cho địa chỉ khu vực.
   const AddressSection({
     super.key,
     required this.addresses,
@@ -20,10 +25,12 @@ class AddressSection extends StatefulWidget {
     required this.onSave,
   });
 
+  // Tạo state (createState): liên kết AddressSection với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<AddressSection> createState() => _AddressSectionState();
 }
 
+// Lớp _AddressSectionState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _AddressSectionState extends State<AddressSection> {
   final DeliveryService _deliveryService = DeliveryService();
 
@@ -32,6 +39,7 @@ class _AddressSectionState extends State<AddressSection> {
   bool _isSaving = false;
   int? _resolvingIndex;
 
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
@@ -39,6 +47,7 @@ class _AddressSectionState extends State<AddressSection> {
     _localAddresses = _copyAddresses(widget.addresses);
   }
 
+  // Đồng bộ widget (didUpdateWidget): cập nhật state khi widget cha truyền cấu hình mới.
   @override
   void didUpdateWidget(covariant AddressSection oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -48,15 +57,17 @@ class _AddressSectionState extends State<AddressSection> {
     }
   }
 
+  // Xử lý _copyAddresses: thực hiện phần nghiệp vụ tương ứng trong widget hồ sơ cho địa chỉ khu vực.
   List<AddressModel> _copyAddresses(List<AddressModel> addresses) {
     return addresses.map((address) => address.copyWith()).toList();
   }
 
+  // Thêm new địa chỉ (_addNewAddress): đưa mục mới vào state/backend và cập nhật giao diện.
   void _addNewAddress() {
     setState(() {
       _localAddresses.add(
         AddressModel(
-
+          // Record mới chưa có PocketBase id.
           id: '',
           userId: '',
           label: _localAddresses.isEmpty ? 'Nhà' : 'Khác',
@@ -72,6 +83,7 @@ class _AddressSectionState extends State<AddressSection> {
     });
   }
 
+  // Xóa địa chỉ (_removeAddress): loại bỏ dữ liệu được chọn và đồng bộ state liên quan.
   void _removeAddress(int index) {
     setState(() {
       final wasDefault = _localAddresses[index].isDefault;
@@ -84,6 +96,7 @@ class _AddressSectionState extends State<AddressSection> {
     });
   }
 
+  // Cập nhật mặc định địa chỉ (_setDefaultAddress): gán state nội bộ và thông báo lại cho UI khi cần.
   void _setDefaultAddress(int index) {
     setState(() {
       _localAddresses =
@@ -97,6 +110,7 @@ class _AddressSectionState extends State<AddressSection> {
     });
   }
 
+  // Xử lý địa chỉ (_resolveAddress): chuẩn hóa điều kiện đầu vào và thực hiện nhánh nghiệp vụ phù hợp.
   Future<void> _resolveAddress(int index, {bool showMessage = true}) async {
     if (_resolvingIndex != null ||
         index < 0 ||
@@ -152,6 +166,7 @@ class _AddressSectionState extends State<AddressSection> {
     }
   }
 
+  // Xử lý còn thiếu tọa độ (_resolveMissingCoordinates): chuẩn hóa điều kiện đầu vào và thực hiện nhánh nghiệp vụ phù hợp.
   Future<void> _resolveMissingCoordinates() async {
     for (int i = 0; i < _localAddresses.length; i++) {
       final address = _localAddresses[i];
@@ -164,12 +179,14 @@ class _AddressSectionState extends State<AddressSection> {
     }
   }
 
+  // Kiểm tra điều kiện (_isPhoneValid): đánh giá trạng thái số điện thoại hợp lệ và trả kết quả cho lớp gọi.
   bool _isPhoneValid(String value) {
     final normalized = value.replaceAll(RegExp(r'[\s\-.()]'), '');
 
     return RegExp(r'^(0|\+84)[0-9]{9,10}$').hasMatch(normalized);
   }
 
+  // Lưu địa chỉ (_saveAddresses): kiểm tra dữ liệu, ghi thay đổi và đồng bộ state sau khi thành công.
   Future<void> _saveAddresses() async {
     if (_isSaving) {
       return;
@@ -218,7 +235,8 @@ class _AddressSectionState extends State<AddressSection> {
     });
 
     try {
-
+      // Cố gắng resolve tọa độ trước khi lưu.
+      // Không chặn lưu nếu native geocoding không resolve được.
       await _resolveMissingCoordinates();
 
       await widget.onSave(_localAddresses);
@@ -231,6 +249,7 @@ class _AddressSectionState extends State<AddressSection> {
     }
   }
 
+  // Hiển thị tin nhắn (_showMessage): mở thông báo/dialog hoặc thành phần hỗ trợ trên giao diện.
   void _showMessage(String message) {
     if (!mounted) {
       return;
@@ -241,6 +260,7 @@ class _AddressSectionState extends State<AddressSection> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  // Tạo giao diện view mục (_buildViewItem): dựng widget con từ dữ liệu hiện tại.
   Widget _buildViewItem(AddressModel address) {
     return Container(
       width: double.infinity,
@@ -373,6 +393,7 @@ class _AddressSectionState extends State<AddressSection> {
     );
   }
 
+  // Tạo giao diện chỉnh sửa mục (_buildEditItem): dựng widget con từ dữ liệu hiện tại.
   Widget _buildEditItem(int index) {
     final address = _localAddresses[index];
 
@@ -466,7 +487,7 @@ class _AddressSectionState extends State<AddressSection> {
             ),
             maxLines: 2,
             onChanged: (value) {
-
+              // Address text đổi thì tọa độ cũ không còn đáng tin.
               _localAddresses[index] = _localAddresses[index].copyWith(
                 addressLine: value,
                 latitude: 0,
@@ -559,6 +580,7 @@ class _AddressSectionState extends State<AddressSection> {
     );
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _AddressSectionState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return SectionCard(

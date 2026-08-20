@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/chat/screens/chat_page.dart
+// Vai trò: Màn hình trò chuyện.
+// Luồng sử dụng: Hiển thị hội thoại hoặc danh sách chat và phối hợp ChatProvider để tải/gửi tin nhắn.
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -10,20 +13,24 @@ import 'package:project_trangdc24v7x324/shared/theme/app_text.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
 
+// Lớp ChatPage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class ChatPage extends StatefulWidget {
   final String otherUserId;
   final String otherUserName;
 
+  // Khởi tạo ChatPage: nhận các tham số cần thiết để tạo đối tượng cho màn hình trò chuyện.
   const ChatPage({
     super.key,
     required this.otherUserId,
     this.otherUserName = 'Người dùng',
   });
 
+  // Tạo state (createState): liên kết ChatPage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<ChatPage> createState() => _ChatPageState();
 }
 
+// Lớp _ChatPageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
 
@@ -34,6 +41,7 @@ class _ChatPageState extends State<ChatPage> {
 
   bool _isOpening = true;
 
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
@@ -46,6 +54,7 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
+  // Mở hội thoại (_openConversation): điều hướng hoặc hiển thị thành phần tương ứng từ thao tác người dùng.
   Future<void> _openConversation() async {
     if (currentUserId.isEmpty || widget.otherUserId.trim().isEmpty) {
       if (mounted) {
@@ -76,6 +85,7 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+  // Giải phóng tài nguyên (dispose): hủy controller/listener khi widget bị loại khỏi cây giao diện.
   @override
   void dispose() {
     _chatProvider.unsubscribe();
@@ -84,6 +94,7 @@ class _ChatPageState extends State<ChatPage> {
     super.dispose();
   }
 
+  // Gửi tin nhắn (_sendMessage): kiểm tra nội dung, gọi ChatProvider/Service và cập nhật hội thoại.
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
 
@@ -116,6 +127,7 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
+  // Cuộn hội thoại (_scrollToBottom): đưa danh sách về tin nhắn mới nhất sau khi tải hoặc gửi.
   void _scrollToBottom({bool jump = false}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_scrollController.hasClients) {
@@ -137,6 +149,7 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _ChatPageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return AppLayout(
@@ -231,12 +244,15 @@ class _ChatPageState extends State<ChatPage> {
   }
 }
 
+// Lớp _ChatError: thành phần phục vụ màn hình trò chuyện.
 class _ChatError extends StatelessWidget {
   final String message;
   final Future<void> Function()? onRetry;
 
+  // Khởi tạo _ChatError: nhận các tham số cần thiết để tạo đối tượng cho màn hình trò chuyện.
   const _ChatError({required this.message, this.onRetry});
 
+  // Xây dựng giao diện (build): dựng cây widget của _ChatError từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -271,10 +287,12 @@ class _ChatError extends StatelessWidget {
   }
 }
 
+// Lớp _EmptyChat: thành phần phục vụ màn hình trò chuyện.
 class _EmptyChat extends StatelessWidget {
-
+  // Khởi tạo _EmptyChat: nhận các tham số cần thiết để tạo đối tượng cho màn hình trò chuyện.
   const _EmptyChat();
 
+  // Xây dựng giao diện (build): dựng cây widget của _EmptyChat từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -305,17 +323,20 @@ class _EmptyChat extends StatelessWidget {
   }
 }
 
+// Lớp _ChatBubble: thành phần phục vụ màn hình trò chuyện.
 class _ChatBubble extends StatelessWidget {
   final ChatMessageModel message;
   final bool isMe;
   final String statusText;
 
+  // Khởi tạo _ChatBubble: nhận các tham số cần thiết để tạo đối tượng cho màn hình trò chuyện.
   const _ChatBubble({
     required this.message,
     required this.isMe,
     required this.statusText,
   });
 
+  // Định dạng tin nhắn thời gian (_formatMessageTime): chuyển dữ liệu thô thành giá trị dễ đọc để hiển thị.
   String _formatMessageTime(DateTime? time) {
     if (time == null) return '';
 
@@ -340,6 +361,7 @@ class _ChatBubble extends StatelessWidget {
     return '$hour:$minute $day/$month';
   }
 
+  // Tạo giao diện meta văn bản (_buildMetaText): dựng widget con từ dữ liệu hiện tại.
   String _buildMetaText() {
     final timeText = _formatMessageTime(message.created);
 
@@ -354,6 +376,7 @@ class _ChatBubble extends StatelessWidget {
     return timeText;
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _ChatBubble từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final metaText = _buildMetaText();
@@ -408,12 +431,14 @@ class _ChatBubble extends StatelessWidget {
   }
 }
 
+// Lớp _ChatInput: thành phần phục vụ màn hình trò chuyện.
 class _ChatInput extends StatelessWidget {
   final TextEditingController controller;
   final bool isSending;
   final bool enabled;
   final VoidCallback onSend;
 
+  // Khởi tạo _ChatInput: nhận các tham số cần thiết để tạo đối tượng cho màn hình trò chuyện.
   const _ChatInput({
     required this.controller,
     required this.isSending,
@@ -421,6 +446,7 @@ class _ChatInput extends StatelessWidget {
     required this.onSend,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _ChatInput từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final canUse = enabled && !isSending;

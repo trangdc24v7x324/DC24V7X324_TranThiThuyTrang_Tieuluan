@@ -1,14 +1,21 @@
+// FILE HỌC TẬP: lib/shared/widgets/category_selector.dart
+// Vai trò: Widget dùng chung cho danh mục bộ chọn.
+// Luồng sử dụng: Đóng gói bố cục/giao diện lặp lại để tái sử dụng trong nhiều màn hình.
 
 import 'package:flutter/material.dart';
 
+// Lớp CategorySelector: thành phần phục vụ widget dùng chung cho danh mục bộ chọn.
 class CategorySelector extends StatelessWidget {
   final String selectedCategory;
   final ValueChanged<String> onCategorySelected;
 
+  // Nhận categories từ provider.
   final List<dynamic> categories;
 
+  // Chỉ HomePage bật tùy chọn này để thêm tab khuyến mãi ảo.
   final bool showPromotion;
 
+  // Khởi tạo CategorySelector: nhận các tham số cần thiết để tạo đối tượng cho widget dùng chung cho danh mục bộ chọn.
   const CategorySelector({
     super.key,
     required this.selectedCategory,
@@ -17,6 +24,7 @@ class CategorySelector extends StatelessWidget {
     this.showPromotion = false,
   });
 
+  // Lấy biểu tượng (_getIcon): truy xuất và trả kết quả cho lớp gọi.
   IconData _getIcon(String icon) {
     switch (icon) {
       case 'promotion':
@@ -32,6 +40,7 @@ class CategorySelector extends StatelessWidget {
     }
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của CategorySelector từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final items = [

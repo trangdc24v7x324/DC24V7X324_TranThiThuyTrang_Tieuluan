@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/manager/web/screens/manager_web_notifications_page.dart
+// Vai trò: Màn hình Manager Web quản lý thông báo.
+// Luồng sử dụng: Hiển thị nghiệp vụ quản lý trên trình duyệt và điều phối dữ liệu qua Provider/Service.
 
 import 'package:flutter/material.dart';
 import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
@@ -11,15 +14,18 @@ import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 import 'package:provider/provider.dart';
 
+// Lớp ManagerWebNotificationsPage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class ManagerWebNotificationsPage extends StatefulWidget {
-
+  // Khởi tạo ManagerWebNotificationsPage: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý thông báo.
   const ManagerWebNotificationsPage({super.key});
 
+  // Tạo state (createState): liên kết ManagerWebNotificationsPage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<ManagerWebNotificationsPage> createState() =>
       _ManagerWebNotificationsPageState();
 }
 
+// Lớp _ManagerWebNotificationsPageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _ManagerWebNotificationsPageState
     extends State<ManagerWebNotificationsPage> {
   final TextEditingController _titleController = TextEditingController();
@@ -30,6 +36,7 @@ class _ManagerWebNotificationsPageState
   bool _isSubmitting = false;
   String? _localError;
 
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
@@ -40,6 +47,7 @@ class _ManagerWebNotificationsPageState
     Future.microtask(_loadData);
   }
 
+  // Giải phóng tài nguyên (dispose): hủy controller/listener khi widget bị loại khỏi cây giao diện.
   @override
   void dispose() {
     _titleController.removeListener(_refreshPreview);
@@ -49,12 +57,14 @@ class _ManagerWebNotificationsPageState
     super.dispose();
   }
 
+  // Làm mới xem trước (_refreshPreview): đồng bộ dữ liệu biểu mẫu vào phần preview trước khi lưu.
   void _refreshPreview() {
     if (mounted) {
       setState(() {});
     }
   }
 
+  // Tải dữ liệu (_loadData): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> _loadData() async {
     final productProvider = context.read<ProductProvider>();
 
@@ -65,6 +75,7 @@ class _ManagerWebNotificationsPageState
     ]);
   }
 
+  // Chọn ed sản phẩm (_selectedProduct): lưu lựa chọn để dùng cho lọc, biểu mẫu hoặc nghiệp vụ tiếp theo.
   ProductModel? _selectedProduct(List<ProductModel> products) {
     if (_selectedProductId == null || _selectedProductId!.isEmpty) {
       return null;
@@ -76,6 +87,7 @@ class _ManagerWebNotificationsPageState
     return matches.isEmpty ? null : matches.first;
   }
 
+  // Xử lý _changeType: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý thông báo.
   void _changeType(String? value) {
     if (value == null) {
       return;
@@ -91,6 +103,7 @@ class _ManagerWebNotificationsPageState
     });
   }
 
+  // Chọn sản phẩm (_selectProduct): lưu lựa chọn để dùng cho lọc, biểu mẫu hoặc nghiệp vụ tiếp theo.
   void _selectProduct(String? productId, List<ProductModel> products) {
     setState(() {
       _selectedProductId = productId;
@@ -116,6 +129,7 @@ class _ManagerWebNotificationsPageState
     }
   }
 
+  // Xử lý mẫu (_applyTemplate): chuẩn hóa điều kiện đầu vào và thực hiện nhánh nghiệp vụ phù hợp.
   void _applyTemplate(_NotificationTemplate template) {
     setState(() {
       _selectedType = template.type;
@@ -127,6 +141,7 @@ class _ManagerWebNotificationsPageState
     _contentController.text = template.body;
   }
 
+  // Xóa biểu mẫu (_clearForm): loại bỏ dữ liệu được chọn và đồng bộ state liên quan.
   void _clearForm() {
     _titleController.clear();
     _contentController.clear();
@@ -138,6 +153,7 @@ class _ManagerWebNotificationsPageState
     });
   }
 
+  // Xử lý _submit: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý thông báo.
   Future<void> _submit() async {
     final title = _titleController.text.trim();
     final body = _contentController.text.trim();
@@ -208,6 +224,7 @@ class _ManagerWebNotificationsPageState
     }
   }
 
+  // Đăng xuất (_logout): kết thúc phiên, làm sạch state liên quan và đưa người dùng về trang đăng nhập.
   void _logout() {
     pb.authStore.clear();
 
@@ -218,6 +235,7 @@ class _ManagerWebNotificationsPageState
     );
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _ManagerWebNotificationsPageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final productProvider = context.watch<ProductProvider>();
@@ -366,17 +384,21 @@ class _ManagerWebNotificationsPageState
   }
 }
 
+// Lớp _SentNotificationsHistoryCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _SentNotificationsHistoryCard extends StatelessWidget {
   final List<AppNotificationModel> notifications;
   final bool isLoading;
   final Future<void> Function() onRefresh;
 
+  // Khởi tạo _SentNotificationsHistoryCard: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý thông
+  // báo.
   const _SentNotificationsHistoryCard({
     required this.notifications,
     required this.isLoading,
     required this.onRefresh,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _SentNotificationsHistoryCard từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -580,6 +602,7 @@ class _SentNotificationsHistoryCard extends StatelessWidget {
   }
 }
 
+// Định dạng history thời gian (_formatHistoryTime): chuyển dữ liệu thô thành giá trị dễ đọc để hiển thị.
 String _formatHistoryTime(DateTime time) {
   final local = time.toLocal();
   final day = local.day.toString().padLeft(2, '0');
@@ -589,11 +612,14 @@ String _formatHistoryTime(DateTime time) {
   return '$day/$month $hour:$minute';
 }
 
+// Lớp _NotificationOverview: thành phần phục vụ màn hình manager web quản lý thông báo.
 class _NotificationOverview extends StatelessWidget {
   final String selectedType;
 
+  // Khởi tạo _NotificationOverview: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý thông báo.
   const _NotificationOverview({required this.selectedType});
 
+  // Xây dựng giao diện (build): dựng cây widget của _NotificationOverview từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final color = _typeColor(selectedType);
@@ -650,6 +676,7 @@ class _NotificationOverview extends StatelessWidget {
   }
 }
 
+// Lớp _NotificationFormCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _NotificationFormCard extends StatelessWidget {
   final String selectedType;
   final String? selectedProductId;
@@ -664,6 +691,7 @@ class _NotificationFormCard extends StatelessWidget {
   final VoidCallback onSubmit;
   final VoidCallback onClear;
 
+  // Khởi tạo _NotificationFormCard: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý thông báo.
   const _NotificationFormCard({
     required this.selectedType,
     required this.selectedProductId,
@@ -679,6 +707,7 @@ class _NotificationFormCard extends StatelessWidget {
     required this.onClear,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _NotificationFormCard từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -903,10 +932,12 @@ class _NotificationFormCard extends StatelessWidget {
   }
 }
 
+// Lớp _AudienceBox: thành phần phục vụ màn hình manager web quản lý thông báo.
 class _AudienceBox extends StatelessWidget {
-
+  // Khởi tạo _AudienceBox: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý thông báo.
   const _AudienceBox();
 
+  // Xây dựng giao diện (build): dựng cây widget của _AudienceBox từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -952,12 +983,14 @@ class _AudienceBox extends StatelessWidget {
   }
 }
 
+// Lớp _NotificationPreviewCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _NotificationPreviewCard extends StatelessWidget {
   final String type;
   final String title;
   final String body;
   final ProductModel? product;
 
+  // Khởi tạo _NotificationPreviewCard: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý thông báo.
   const _NotificationPreviewCard({
     required this.type,
     required this.title,
@@ -965,6 +998,7 @@ class _NotificationPreviewCard extends StatelessWidget {
     required this.product,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _NotificationPreviewCard từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final color = _typeColor(type);
@@ -1117,11 +1151,14 @@ class _NotificationPreviewCard extends StatelessWidget {
   }
 }
 
+// Lớp _TemplateCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _TemplateCard extends StatelessWidget {
   final ValueChanged<_NotificationTemplate> onSelected;
 
+  // Khởi tạo _TemplateCard: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý thông báo.
   const _TemplateCard({required this.onSelected});
 
+  // Xây dựng giao diện (build): dựng cây widget của _TemplateCard từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     const templates = [
@@ -1221,10 +1258,12 @@ class _TemplateCard extends StatelessWidget {
   }
 }
 
+// Lớp _UsageTipsCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _UsageTipsCard extends StatelessWidget {
-
+  // Khởi tạo _UsageTipsCard: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý thông báo.
   const _UsageTipsCard();
 
+  // Xây dựng giao diện (build): dựng cây widget của _UsageTipsCard từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1267,11 +1306,14 @@ class _UsageTipsCard extends StatelessWidget {
   }
 }
 
+// Lớp _TipLine: thành phần phục vụ màn hình manager web quản lý thông báo.
 class _TipLine extends StatelessWidget {
   final String text;
 
+  // Khởi tạo _TipLine: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý thông báo.
   const _TipLine({required this.text});
 
+  // Xây dựng giao diện (build): dựng cây widget của _TipLine từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -1300,11 +1342,13 @@ class _TipLine extends StatelessWidget {
   }
 }
 
+// Lớp _NotificationTemplate: thành phần phục vụ màn hình manager web quản lý thông báo.
 class _NotificationTemplate {
   final String type;
   final String title;
   final String body;
 
+  // Khởi tạo _NotificationTemplate: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý thông báo.
   const _NotificationTemplate({
     required this.type,
     required this.title,
@@ -1312,6 +1356,7 @@ class _NotificationTemplate {
   });
 }
 
+// Xử lý _decoration: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý thông báo.
 InputDecoration _decoration({
   required String label,
   required IconData icon,
@@ -1338,6 +1383,7 @@ InputDecoration _decoration({
   );
 }
 
+// Xử lý _typeLabel: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý thông báo.
 String _typeLabel(String type) {
   switch (type) {
     case 'promotion':
@@ -1351,6 +1397,7 @@ String _typeLabel(String type) {
   }
 }
 
+// Xử lý _typeIcon: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý thông báo.
 IconData _typeIcon(String type) {
   switch (type) {
     case 'promotion':
@@ -1364,6 +1411,7 @@ IconData _typeIcon(String type) {
   }
 }
 
+// Xử lý _typeColor: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý thông báo.
 Color _typeColor(String type) {
   switch (type) {
     case 'promotion':
@@ -1377,6 +1425,7 @@ Color _typeColor(String type) {
   }
 }
 
+// Định dạng tiền (_formatMoney): chuyển dữ liệu thô thành giá trị dễ đọc để hiển thị.
 String _formatMoney(double value) {
   final digits = value.round().toString();
   final buffer = StringBuffer();

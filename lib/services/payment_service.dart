@@ -1,10 +1,19 @@
+// FILE HỌC TẬP: lib/services/payment_service.dart
+// Vai trò: Service nghiệp vụ thanh toán.
+// Luồng sử dụng: Thực hiện truy vấn PocketBase hoặc tác vụ hệ thống và trả kết quả cho Provider/UI.
 
 import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
 import 'package:project_trangdc24v7x324/models/payment_record_model.dart';
 
+// Lớp PaymentService: tập trung nghiệp vụ và thao tác dữ liệu/backend cho chức năng tương ứng.
 class PaymentService {
   static const String collectionName = 'payments';
 
+  // =========================================================
+  // METHOD
+  // =========================================================
+
+  // Kiểm tra điều kiện (isCashMethod): đánh giá trạng thái cash phương thức và trả kết quả cho lớp gọi.
   bool isCashMethod(String method) {
     final value = method.toLowerCase().trim();
 
@@ -17,10 +26,16 @@ class PaymentService {
         value.contains('cash');
   }
 
+  // Xử lý initialStatusForMethod: thực hiện phần nghiệp vụ tương ứng trong service nghiệp vụ thanh toán.
   String initialStatusForMethod(String method) {
     return isCashMethod(method) ? 'unpaid' : 'pending';
   }
 
+  // =========================================================
+  // CREATE
+  // =========================================================
+
+  // Xử lý ban đầu thanh toán (ensureInitialPayment): chuẩn hóa điều kiện đầu vào và thực hiện nhánh nghiệp vụ phù hợp.
   Future<PaymentRecordModel> ensureInitialPayment({
     required String orderId,
     required String method,
@@ -41,6 +56,7 @@ class PaymentService {
       throw Exception('Số tiền thanh toán không hợp lệ.');
     }
 
+    // Mỗi order chỉ dùng một payment record trong MVP.
     final existing = await fetchByOrderId(normalizedOrderId);
 
     if (existing != null) {
@@ -57,7 +73,7 @@ class PaymentService {
         .collection(collectionName)
         .create(
           body: {
-
+            // Khớp DB hiện tại.
             'order': normalizedOrderId,
             'method': normalizedMethod,
             'amount': amount,
@@ -74,6 +90,10 @@ class PaymentService {
     return _fromRecord(record);
   }
 
+  /// Khi quay lại từ lịch sử đơn hàng:
+  /// - có payment => đọc đúng record cũ
+  /// - thiếu payment => dựng lại từ order hiện có
+  // Lấy or create for đơn hàng (fetchOrCreateForOrder): truy xuất từ PocketBase và trả kết quả cho lớp gọi.
   Future<PaymentRecordModel> fetchOrCreateForOrder(String orderId) async {
     final normalizedOrderId = orderId.trim();
 
@@ -104,6 +124,11 @@ class PaymentService {
     );
   }
 
+  // =========================================================
+  // READ
+  // =========================================================
+
+  // Lấy by đơn hàng mã (fetchByOrderId): truy xuất từ PocketBase và trả kết quả cho lớp gọi.
   Future<PaymentRecordModel?> fetchByOrderId(String orderId) async {
     final normalizedOrderId = orderId.trim();
 
@@ -122,6 +147,8 @@ class PaymentService {
     return _fromRecord(records.first);
   }
 
+  // Tải payment theo nhiều đơn: một request rồi lấy record mới nhất của từng order.
+  // Lấy latest by đơn hàng các mã (fetchLatestByOrderIds): truy xuất từ PocketBase và trả kết quả cho lớp gọi.
   Future<Map<String, PaymentRecordModel>> fetchLatestByOrderIds(
     Iterable<String> orderIds,
   ) async {
@@ -155,6 +182,7 @@ class PaymentService {
     return result;
   }
 
+  // Lấy by mã (fetchById): truy xuất từ PocketBase và trả kết quả cho lớp gọi.
   Future<PaymentRecordModel> fetchById(String paymentId) async {
     final normalizedPaymentId = paymentId.trim();
 
@@ -173,6 +201,7 @@ class PaymentService {
     return _fromRecord(records.first);
   }
 
+  // Xử lý thanh toán (_resolvePayment): chuẩn hóa điều kiện đầu vào và thực hiện nhánh nghiệp vụ phù hợp.
   Future<PaymentRecordModel> _resolvePayment({
     required String paymentId,
     required String orderId,
@@ -192,6 +221,13 @@ class PaymentService {
     return fetchOrCreateForOrder(normalizedOrderId);
   }
 
+  // =========================================================
+  // DEMO STATUS
+  // Existing DB statuses only:
+  // unpaid / pending / paid / failed
+  // =========================================================
+
+  // Đánh dấu demo đã thanh toán (markDemoPaid): cập nhật cờ trạng thái của dữ liệu và đồng bộ giao diện.
   Future<void> markDemoPaid({
     required String paymentId,
     required String orderId,
@@ -234,6 +270,7 @@ class PaymentService {
     }
   }
 
+  // Đánh dấu demo failed (markDemoFailed): cập nhật cờ trạng thái của dữ liệu và đồng bộ giao diện.
   Future<void> markDemoFailed({
     required String paymentId,
     required String orderId,
@@ -277,6 +314,7 @@ class PaymentService {
     }
   }
 
+  // Nghiệp vụ retryDemoPayment: truy vấn/cập nhật PocketBase và trả dữ liệu cho service nghiệp vụ thanh toán.
   Future<void> retryDemoPayment({
     required String paymentId,
     required String orderId,
@@ -312,6 +350,11 @@ class PaymentService {
     }
   }
 
+  // =========================================================
+  // QR DEMO
+  // =========================================================
+
+  // Tạo giao diện demo qr payload (buildDemoQrPayload): dựng widget con từ dữ liệu hiện tại.
   String buildDemoQrPayload(PaymentRecordModel payment) {
     return [
       'YOURFOOD',
@@ -322,6 +365,11 @@ class PaymentService {
     ].join('|');
   }
 
+  // =========================================================
+  // INTERNAL
+  // =========================================================
+
+  // Xử lý _fromRecord: thực hiện phần nghiệp vụ tương ứng trong service nghiệp vụ thanh toán.
   PaymentRecordModel _fromRecord(dynamic record) {
     return PaymentRecordModel.fromJson({
       'id': record.id,
@@ -331,6 +379,7 @@ class PaymentService {
     });
   }
 
+  // Xử lý _toDouble: thực hiện phần nghiệp vụ tương ứng trong service nghiệp vụ thanh toán.
   double _toDouble(dynamic value) {
     if (value is num) {
       return value.toDouble();

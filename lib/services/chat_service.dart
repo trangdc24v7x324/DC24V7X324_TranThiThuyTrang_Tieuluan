@@ -1,10 +1,14 @@
+// FILE HỌC TẬP: lib/services/chat_service.dart
+// Vai trò: Service nghiệp vụ trò chuyện.
+// Luồng sử dụng: Thực hiện truy vấn PocketBase hoặc tác vụ hệ thống và trả kết quả cho Provider/UI.
 
 import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
 import 'package:project_trangdc24v7x324/models/chat_message_model.dart';
 import 'package:pocketbase/pocketbase.dart';
 
+// Lớp ChatService: tập trung nghiệp vụ và thao tác dữ liệu/backend cho chức năng tương ứng.
 class ChatService {
-
+  // Nghiệp vụ _escapeFilterValue: truy vấn/cập nhật PocketBase và trả dữ liệu cho service nghiệp vụ trò chuyện.
   String _escapeFilterValue(String value) {
     return value.replaceAll(r'\', r'\\').replaceAll('"', r'\"');
   }
@@ -158,7 +162,7 @@ class ChatService {
         return activeManager.items.first.id;
       }
     } catch (_) {
-
+      // Cho phép schema cũ chưa có trường isActive.
     }
 
     final result = await pb

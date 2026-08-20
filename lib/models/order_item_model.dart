@@ -1,4 +1,8 @@
+// FILE HỌC TẬP: lib/models/order_item_model.dart
+// Vai trò: Mô hình dữ liệu đơn hàng mục.
+// Luồng sử dụng: Chuẩn hóa dữ liệu giữa PocketBase và Dart, cung cấp ánh xạ và bản sao model.
 
+// Lớp OrderItemModel: biểu diễn dữ liệu nghiệp vụ và hỗ trợ ánh xạ dữ liệu vào/ra.
 class OrderItemModel {
   final String id;
   final String orderId;
@@ -18,6 +22,7 @@ class OrderItemModel {
   final DateTime? created;
   final DateTime? updated;
 
+  // Khởi tạo OrderItemModel: nhận các tham số cần thiết để tạo đối tượng cho mô hình dữ liệu đơn hàng mục.
   const OrderItemModel({
     required this.id,
     required this.orderId,
@@ -35,6 +40,7 @@ class OrderItemModel {
     this.updated,
   });
 
+  // Khởi tạo OrderItemModel.fromJson: tạo đối tượng OrderItemModel bằng constructor fromJson từ dữ liệu đầu vào.
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
     return OrderItemModel(
       id: json['id']?.toString() ?? '',
@@ -54,6 +60,7 @@ class OrderItemModel {
     );
   }
 
+  // Chuyển sang JSON (toJson): đóng gói model thành Map để lưu hoặc truyền sang service.
   Map<String, dynamic> toJson() {
     return {
       'order': orderId,
@@ -70,6 +77,7 @@ class OrderItemModel {
     };
   }
 
+  // Sao chép model (copyWith): tạo bản mới từ dữ liệu hiện tại và thay các trường được truyền vào.
   OrderItemModel copyWith({
     String? id,
     String? orderId,
@@ -104,12 +112,14 @@ class OrderItemModel {
     );
   }
 
+  // Xử lý _toDouble: thực hiện phần nghiệp vụ tương ứng trong mô hình dữ liệu đơn hàng mục.
   static double _toDouble(dynamic value) {
     if (value == null) return 0;
     if (value is num) return value.toDouble();
     return double.tryParse(value.toString()) ?? 0;
   }
 
+  // Xử lý _toInt: thực hiện phần nghiệp vụ tương ứng trong mô hình dữ liệu đơn hàng mục.
   static int _toInt(dynamic value, {int defaultValue = 0}) {
     if (value == null) return defaultValue;
     if (value is num) return value.toInt();

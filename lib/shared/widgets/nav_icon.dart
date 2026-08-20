@@ -1,13 +1,18 @@
+// FILE HỌC TẬP: lib/shared/widgets/nav_icon.dart
+// Vai trò: Widget dùng chung cho điều hướng biểu tượng.
+// Luồng sử dụng: Đóng gói bố cục/giao diện lặp lại để tái sử dụng trong nhiều màn hình.
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+// Lớp NavIcon: thành phần phục vụ widget dùng chung cho điều hướng biểu tượng.
 class NavIcon extends StatelessWidget {
   final int index;
   final int selectedIndex;
   final ValueChanged<int> onTap;
   final int badgeCount;
 
+  // Khởi tạo NavIcon: nhận các tham số cần thiết để tạo đối tượng cho widget dùng chung cho điều hướng biểu tượng.
   const NavIcon({
     super.key,
     required this.index,
@@ -16,6 +21,7 @@ class NavIcon extends StatelessWidget {
     this.badgeCount = 0,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của NavIcon từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     IconData icon;

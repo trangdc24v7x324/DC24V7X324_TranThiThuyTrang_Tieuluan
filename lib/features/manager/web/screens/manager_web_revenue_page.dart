@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/manager/web/screens/manager_web_revenue_page.dart
+// Vai trò: Màn hình Manager Web quản lý doanh thu.
+// Luồng sử dụng: Hiển thị nghiệp vụ quản lý trên trình duyệt và điều phối dữ liệu qua Provider/Service.
 
 import 'dart:math' as math;
 
@@ -12,14 +15,17 @@ import 'package:project_trangdc24v7x324/providers/profile_provider.dart';
 import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 
+// Lớp ManagerWebRevenuePage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class ManagerWebRevenuePage extends StatefulWidget {
-
+  // Khởi tạo ManagerWebRevenuePage: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý doanh thu.
   const ManagerWebRevenuePage({super.key});
 
+  // Tạo state (createState): liên kết ManagerWebRevenuePage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<ManagerWebRevenuePage> createState() => _ManagerWebRevenuePageState();
 }
 
+// Lớp _ManagerWebRevenuePageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _ManagerWebRevenuePageState extends State<ManagerWebRevenuePage> {
   String _range = 'today';
   DateTimeRange? _customRange;
@@ -31,12 +37,14 @@ class _ManagerWebRevenuePageState extends State<ManagerWebRevenuePage> {
   bool _isAuxLoading = false;
   String? _auxError;
 
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
     Future.microtask(_loadData);
   }
 
+  // Tải dữ liệu (_loadData): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> _loadData() async {
     await Future.wait([
       context.read<OrderProvider>().loadAllOrders(),
@@ -45,6 +53,7 @@ class _ManagerWebRevenuePageState extends State<ManagerWebRevenuePage> {
     ]);
   }
 
+  // Tải phụ trợ dữ liệu (_loadAuxiliaryData): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> _loadAuxiliaryData() async {
     if (mounted) {
       setState(() {
@@ -58,6 +67,9 @@ class _ManagerWebRevenuePageState extends State<ManagerWebRevenuePage> {
     final productNames = <String, String>{};
     final errors = <String>[];
 
+    // =========================================================
+    // PAYMENT STATUS THẬT
+    // =========================================================
     try {
       final records = await pb
           .collection('payments')
@@ -71,6 +83,7 @@ class _ManagerWebRevenuePageState extends State<ManagerWebRevenuePage> {
           continue;
         }
 
+        // Đã sort -updated nên record đầu tiên là trạng thái mới nhất.
         paymentMap.putIfAbsent(orderId, () => status);
       }
     } catch (e) {
@@ -78,6 +91,9 @@ class _ManagerWebRevenuePageState extends State<ManagerWebRevenuePage> {
       errors.add('payments');
     }
 
+    // =========================================================
+    // PRODUCT NAME
+    // =========================================================
     try {
       final products = await pb
           .collection('products')
@@ -95,6 +111,9 @@ class _ManagerWebRevenuePageState extends State<ManagerWebRevenuePage> {
       errors.add('products');
     }
 
+    // =========================================================
+    // RATING THẬT TỪ PRODUCT_REVIEWS
+    // =========================================================
     try {
       final reviews = await pb
           .collection('product_reviews')
@@ -164,20 +183,29 @@ class _ManagerWebRevenuePageState extends State<ManagerWebRevenuePage> {
     });
   }
 
-  String _effectivePaymentStatus(OrderModel order) {
+  // =========================================================
+  // FILTER
+  // =========================================================
 
+  // Xác định payment hiệu lực (_effectivePaymentStatus): ưu tiên PaymentRecord và fallback về trạng thái trong order.
+  String _effectivePaymentStatus(OrderModel order) {
+    // Manager đã xác nhận thanh toán, đặc biệt COD/Tiền mặt.
     if (order.paymentStatus == 'paid') {
       return 'paid';
     }
 
+    // QR/MoMo demo ưu tiên trạng thái trong payments.
     return _paymentStatusByOrderId[order.id] ?? order.paymentStatus;
   }
 
+  // Xử lý _businessDate: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý doanh thu.
   DateTime _businessDate(OrderModel order) {
-
+    // DB hiện chưa có completed_at riêng.
+    // updated là mốc gần nhất với lúc hoàn tất/xác nhận đơn.
     return (order.updated ?? order.created ?? order.orderDate).toLocal();
   }
 
+  // Đọc đang hoạt động ngày khoảng (_activeDateRange): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   DateTimeRange? get _activeDateRange {
     final now = DateTime.now();
 
@@ -227,6 +255,7 @@ class _ManagerWebRevenuePageState extends State<ManagerWebRevenuePage> {
     }
   }
 
+  // Kiểm tra điều kiện (_isInsideSelectedRange): đánh giá trạng thái nằm trong đã chọn khoảng và trả kết quả cho lớp gọi.
   bool _isInsideSelectedRange(DateTime date) {
     final range = _activeDateRange;
 
@@ -237,6 +266,7 @@ class _ManagerWebRevenuePageState extends State<ManagerWebRevenuePage> {
     return !date.isBefore(range.start) && !date.isAfter(range.end);
   }
 
+  // Xử lý _qualifiedOrders: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý doanh thu.
   List<OrderModel> _qualifiedOrders(List<OrderModel> source) {
     final result =
         source.where((order) {
@@ -256,6 +286,7 @@ class _ManagerWebRevenuePageState extends State<ManagerWebRevenuePage> {
     return result;
   }
 
+  // Chọn custom khoảng (_selectCustomRange): lưu lựa chọn để dùng cho lọc, biểu mẫu hoặc nghiệp vụ tiếp theo.
   Future<void> _selectCustomRange() async {
     final now = DateTime.now();
 
@@ -289,12 +320,18 @@ class _ManagerWebRevenuePageState extends State<ManagerWebRevenuePage> {
     });
   }
 
+  // Chọn preset (_selectPreset): lưu lựa chọn để dùng cho lọc, biểu mẫu hoặc nghiệp vụ tiếp theo.
   void _selectPreset(String value) {
     setState(() {
       _range = value;
     });
   }
 
+  // =========================================================
+  // DIALOGS
+  // =========================================================
+
+  // Hiển thị đã bán sản phẩm hộp thoại (_showSoldProductsDialog): mở thông báo/dialog hoặc thành phần hỗ trợ trên giao diện.
   Future<void> _showSoldProductsDialog(List<_ProductStat> products) async {
     await showDialog<void>(
       context: context,
@@ -381,6 +418,7 @@ class _ManagerWebRevenuePageState extends State<ManagerWebRevenuePage> {
     );
   }
 
+  // Hiển thị điểm đánh giá hộp thoại (_showRatingsDialog): mở thông báo/dialog hoặc thành phần hỗ trợ trên giao diện.
   Future<void> _showRatingsDialog(List<_RatingStat> ratings) async {
     await showDialog<void>(
       context: context,
@@ -469,6 +507,11 @@ class _ManagerWebRevenuePageState extends State<ManagerWebRevenuePage> {
     );
   }
 
+  // =========================================================
+  // LABELS
+  // =========================================================
+
+  // Xử lý _rangeDescription: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý doanh thu.
   String _rangeDescription() {
     if (_range == 'custom' && _customRange != null) {
       return '${_formatDay(_customRange!.start)} - '
@@ -489,6 +532,7 @@ class _ManagerWebRevenuePageState extends State<ManagerWebRevenuePage> {
     }
   }
 
+  // Đăng xuất (_logout): kết thúc phiên, làm sạch state liên quan và đưa người dùng về trang đăng nhập.
   void _logout() {
     pb.authStore.clear();
 
@@ -499,6 +543,7 @@ class _ManagerWebRevenuePageState extends State<ManagerWebRevenuePage> {
     );
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _ManagerWebRevenuePageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final orderProvider = context.watch<OrderProvider>();
@@ -511,8 +556,12 @@ class _ManagerWebRevenuePageState extends State<ManagerWebRevenuePage> {
 
     final avatarUrl = profile?.avatarUrl ?? '';
 
+    // Chỉ tính đơn HOÀN THÀNH + ĐÃ THANH TOÁN.
     final qualifiedOrders = _qualifiedOrders(orderProvider.orders);
 
+    // Doanh thu được tách rõ:
+    // - Tiền sản phẩm: orders.subtotal (đã phản ánh giá sale)
+    // - Phí giao hàng: orders.delivery_fee
     final productRevenue = qualifiedOrders.fold<double>(
       0,
       (sum, order) => sum + order.subtotal,
@@ -767,6 +816,11 @@ class _ManagerWebRevenuePageState extends State<ManagerWebRevenuePage> {
   }
 }
 
+// ===========================================================
+// HEADER + FILTER
+// ===========================================================
+
+// Lớp _DashboardHeader: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _DashboardHeader extends StatelessWidget {
   final String selectedRange;
   final String rangeDescription;
@@ -774,6 +828,7 @@ class _DashboardHeader extends StatelessWidget {
   final ValueChanged<String> onPresetSelected;
   final VoidCallback onCustomRange;
 
+  // Khởi tạo _DashboardHeader: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý doanh thu.
   const _DashboardHeader({
     required this.selectedRange,
     required this.rangeDescription,
@@ -782,6 +837,7 @@ class _DashboardHeader extends StatelessWidget {
     required this.onCustomRange,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _DashboardHeader từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final filters = const [
@@ -913,6 +969,11 @@ class _DashboardHeader extends StatelessWidget {
   }
 }
 
+// ===========================================================
+// KPI
+// ===========================================================
+
+// Lớp _KpiGrid: thành phần phục vụ màn hình manager web quản lý doanh thu.
 class _KpiGrid extends StatelessWidget {
   final double totalRevenue;
   final double productRevenue;
@@ -921,6 +982,7 @@ class _KpiGrid extends StatelessWidget {
   final int orderCount;
   final VoidCallback? onSoldProductsTap;
 
+  // Khởi tạo _KpiGrid: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý doanh thu.
   const _KpiGrid({
     required this.totalRevenue,
     required this.productRevenue,
@@ -930,6 +992,7 @@ class _KpiGrid extends StatelessWidget {
     required this.onSoldProductsTap,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _KpiGrid từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final cards = [
@@ -992,6 +1055,7 @@ class _KpiGrid extends StatelessWidget {
   }
 }
 
+// Lớp _KpiCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _KpiCard extends StatelessWidget {
   final String label;
   final String value;
@@ -1000,6 +1064,7 @@ class _KpiCard extends StatelessWidget {
   final Color color;
   final VoidCallback? onTap;
 
+  // Khởi tạo _KpiCard: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý doanh thu.
   const _KpiCard({
     required this.label,
     required this.value,
@@ -1009,6 +1074,7 @@ class _KpiCard extends StatelessWidget {
     this.onTap,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _KpiCard từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -1086,12 +1152,19 @@ class _KpiCard extends StatelessWidget {
   }
 }
 
+// ===========================================================
+// REVENUE CHART
+// ===========================================================
+
+// Lớp _RevenueChartCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _RevenueChartCard extends StatelessWidget {
   final String title;
   final List<_ChartPoint> points;
 
+  // Khởi tạo _RevenueChartCard: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý doanh thu.
   const _RevenueChartCard({required this.title, required this.points});
 
+  // Xây dựng giao diện (build): dựng cây widget của _RevenueChartCard từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final maxValue = points.fold<double>(
@@ -1142,7 +1215,7 @@ class _RevenueChartCard extends StatelessWidget {
                                       width: 32,
                                       height: barHeight,
                                       decoration: BoxDecoration(
-                                        color: AppColors.primary.withValues(alpha:
+                                        color: AppColors.primary.withValues(alpha: 
                                           0.80,
                                         ),
                                         borderRadius:
@@ -1174,12 +1247,18 @@ class _RevenueChartCard extends StatelessWidget {
   }
 }
 
+// ===========================================================
+// REVENUE SPLIT
+// ===========================================================
+
+// Lớp _RevenueSplitCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _RevenueSplitCard extends StatelessWidget {
   final double totalRevenue;
   final double productRevenue;
   final double deliveryRevenue;
   final int orderCount;
 
+  // Khởi tạo _RevenueSplitCard: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý doanh thu.
   const _RevenueSplitCard({
     required this.totalRevenue,
     required this.productRevenue,
@@ -1187,6 +1266,7 @@ class _RevenueSplitCard extends StatelessWidget {
     required this.orderCount,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _RevenueSplitCard từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final productRatio =
@@ -1246,12 +1326,14 @@ class _RevenueSplitCard extends StatelessWidget {
   }
 }
 
+// Lớp _SplitRow: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _SplitRow extends StatelessWidget {
   final String label;
   final double amount;
   final double ratio;
   final Color color;
 
+  // Khởi tạo _SplitRow: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý doanh thu.
   const _SplitRow({
     required this.label,
     required this.amount,
@@ -1259,6 +1341,7 @@ class _SplitRow extends StatelessWidget {
     required this.color,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _SplitRow từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -1313,12 +1396,18 @@ class _SplitRow extends StatelessWidget {
   }
 }
 
+// ===========================================================
+// SOLD PRODUCTS
+// ===========================================================
+
+// Lớp _SoldProductsCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _SoldProductsCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final List<_ProductStat> items;
   final VoidCallback? onViewAll;
 
+  // Khởi tạo _SoldProductsCard: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý doanh thu.
   const _SoldProductsCard({
     required this.title,
     required this.subtitle,
@@ -1326,6 +1415,7 @@ class _SoldProductsCard extends StatelessWidget {
     required this.onViewAll,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _SoldProductsCard từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return _DashboardCard(
@@ -1428,12 +1518,18 @@ class _SoldProductsCard extends StatelessWidget {
   }
 }
 
+// ===========================================================
+// RATINGS
+// ===========================================================
+
+// Lớp _RatingsCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _RatingsCard extends StatelessWidget {
   final List<_RatingStat> items;
   final double averageRating;
   final int totalReviewCount;
   final VoidCallback? onViewAll;
 
+  // Khởi tạo _RatingsCard: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý doanh thu.
   const _RatingsCard({
     required this.items,
     required this.averageRating,
@@ -1441,6 +1537,7 @@ class _RatingsCard extends StatelessWidget {
     required this.onViewAll,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _RatingsCard từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return _DashboardCard(
@@ -1496,17 +1593,20 @@ class _RatingsCard extends StatelessWidget {
   }
 }
 
+// Lớp _RatingBadge: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _RatingBadge extends StatelessWidget {
   final double average;
   final int count;
   final bool compact;
 
+  // Khởi tạo _RatingBadge: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý doanh thu.
   const _RatingBadge({
     required this.average,
     required this.count,
     this.compact = false,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _RatingBadge từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     if (count <= 0) {
@@ -1560,6 +1660,11 @@ class _RatingBadge extends StatelessWidget {
   }
 }
 
+// ===========================================================
+// COMMON CARD
+// ===========================================================
+
+// Lớp _DashboardCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _DashboardCard extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -1567,6 +1672,7 @@ class _DashboardCard extends StatelessWidget {
   final Widget child;
   final Widget? trailing;
 
+  // Khởi tạo _DashboardCard: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý doanh thu.
   const _DashboardCard({
     required this.title,
     required this.subtitle,
@@ -1575,6 +1681,7 @@ class _DashboardCard extends StatelessWidget {
     this.trailing,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _DashboardCard từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1636,12 +1743,14 @@ class _DashboardCard extends StatelessWidget {
   }
 }
 
+// Lớp _DialogHeader: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _DialogHeader extends StatelessWidget {
   final String title;
   final String subtitle;
   final IconData icon;
   final VoidCallback onClose;
 
+  // Khởi tạo _DialogHeader: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý doanh thu.
   const _DialogHeader({
     required this.title,
     required this.subtitle,
@@ -1649,6 +1758,7 @@ class _DialogHeader extends StatelessWidget {
     required this.onClose,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _DialogHeader từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -1699,11 +1809,14 @@ class _DialogHeader extends StatelessWidget {
   }
 }
 
+// Lớp _CompactWarning: thành phần phục vụ màn hình manager web quản lý doanh thu.
 class _CompactWarning extends StatelessWidget {
   final String message;
 
+  // Khởi tạo _CompactWarning: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý doanh thu.
   const _CompactWarning({required this.message});
 
+  // Xây dựng giao diện (build): dựng cây widget của _CompactWarning từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1738,11 +1851,14 @@ class _CompactWarning extends StatelessWidget {
   }
 }
 
+// Lớp _AnalyticsEmpty: thành phần phục vụ màn hình manager web quản lý doanh thu.
 class _AnalyticsEmpty extends StatelessWidget {
   final String message;
 
+  // Khởi tạo _AnalyticsEmpty: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý doanh thu.
   const _AnalyticsEmpty({required this.message});
 
+  // Xây dựng giao diện (build): dựng cây widget của _AnalyticsEmpty từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -1758,12 +1874,15 @@ class _AnalyticsEmpty extends StatelessWidget {
   }
 }
 
+// Lớp _ErrorCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _ErrorCard extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
 
+  // Khởi tạo _ErrorCard: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý doanh thu.
   const _ErrorCard({required this.message, required this.onRetry});
 
+  // Xây dựng giao diện (build): dựng cây widget của _ErrorCard từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1791,13 +1910,20 @@ class _ErrorCard extends StatelessWidget {
   }
 }
 
+// ===========================================================
+// DATA MODELS
+// ===========================================================
+
+// Lớp _ChartPoint: thành phần phục vụ màn hình manager web quản lý doanh thu.
 class _ChartPoint {
   final String label;
   final double value;
 
+  // Khởi tạo _ChartPoint: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý doanh thu.
   const _ChartPoint({required this.label, required this.value});
 }
 
+// Lớp _ProductStat: thành phần phục vụ màn hình manager web quản lý doanh thu.
 class _ProductStat {
   final String productId;
   final String name;
@@ -1807,15 +1933,18 @@ class _ProductStat {
   double rating = 0;
   int reviewCount = 0;
 
+  // Khởi tạo _ProductStat: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý doanh thu.
   _ProductStat({required this.productId, required this.name});
 }
 
+// Lớp _RatingStat: thành phần phục vụ màn hình manager web quản lý doanh thu.
 class _RatingStat {
   final String productId;
   final String productName;
   final double average;
   final int count;
 
+  // Khởi tạo _RatingStat: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý doanh thu.
   const _RatingStat({
     required this.productId,
     required this.productName,
@@ -1824,6 +1953,11 @@ class _RatingStat {
   });
 }
 
+// ===========================================================
+// BUILD STATISTICS
+// ===========================================================
+
+// Tạo giao diện sản phẩm thống kê (_buildProductStats): dựng widget con từ dữ liệu hiện tại.
 List<_ProductStat> _buildProductStats(
   List<OrderModel> orders,
   Map<String, _RatingStat> ratings,
@@ -1876,6 +2010,7 @@ List<_ProductStat> _buildProductStats(
   return result;
 }
 
+// Tạo giao diện doanh thu biểu đồ points (_buildRevenueChartPoints): dựng widget con từ dữ liệu hiện tại.
 List<_ChartPoint> _buildRevenueChartPoints(
   List<OrderModel> orders,
   DateTime Function(OrderModel) businessDate,
@@ -1886,6 +2021,7 @@ List<_ChartPoint> _buildRevenueChartPoints(
     return const [];
   }
 
+  // Hôm nay: hiển thị theo giờ để nhìn được hàng/doanh thu trong ngày.
   if (range == 'today') {
     final grouped = <int, double>{};
 
@@ -1951,12 +2087,18 @@ List<_ChartPoint> _buildRevenueChartPoints(
   }).toList();
 }
 
+// ===========================================================
+// FORMAT
+// ===========================================================
+
+// Định dạng day (_formatDay): chuyển dữ liệu thô thành giá trị dễ đọc để hiển thị.
 String _formatDay(DateTime date) {
   String two(int value) => value.toString().padLeft(2, '0');
 
   return '${two(date.day)}/${two(date.month)}/${date.year}';
 }
 
+// Định dạng tiền (_formatMoney): chuyển dữ liệu thô thành giá trị dễ đọc để hiển thị.
 String _formatMoney(double value) {
   final rounded = value.round();
   final negative = rounded < 0;

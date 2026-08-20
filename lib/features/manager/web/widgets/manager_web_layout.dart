@@ -1,9 +1,13 @@
+// FILE HỌC TẬP: lib/features/manager/web/widgets/manager_web_layout.dart
+// Vai trò: Widget Web dùng cho web bố cục.
+// Luồng sử dụng: Đóng gói thành phần giao diện hoặc tiện ích dùng lại trong khu vực Manager Web.
 
 import 'package:flutter/material.dart';
 
 import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 
+// Lớp ManagerWebLayout: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class ManagerWebLayout extends StatelessWidget {
   final String title;
   final String currentRoute;
@@ -14,6 +18,7 @@ class ManagerWebLayout extends StatelessWidget {
   final Widget? floatingActionButton;
   final VoidCallback? onLogout;
 
+  // Khởi tạo ManagerWebLayout: nhận các tham số cần thiết để tạo đối tượng cho widget web dùng cho web bố cục.
   const ManagerWebLayout({
     super.key,
     required this.title,
@@ -28,6 +33,7 @@ class ManagerWebLayout extends StatelessWidget {
 
   static const double desktopBreakpoint = 900;
 
+  // Điều hướng định tuyến (_goToRoute): chuyển người dùng tới route phù hợp với luồng hiện tại.
   void _goToRoute(BuildContext context, String routeName) {
     if (routeName == currentRoute) {
       return;
@@ -36,6 +42,7 @@ class ManagerWebLayout extends StatelessWidget {
     Navigator.pushReplacementNamed(context, routeName);
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của ManagerWebLayout từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final bool isDesktop =
@@ -131,6 +138,7 @@ class ManagerWebLayout extends StatelessWidget {
   }
 }
 
+// Lớp ManagerTopBar: thành phần phục vụ widget web dùng cho web bố cục.
 class ManagerTopBar extends StatelessWidget {
   final String title;
   final String managerName;
@@ -138,6 +146,7 @@ class ManagerTopBar extends StatelessWidget {
   final List<Widget> actions;
   final VoidCallback onProfilePressed;
 
+  // Khởi tạo ManagerTopBar: nhận các tham số cần thiết để tạo đối tượng cho widget web dùng cho web bố cục.
   const ManagerTopBar({
     super.key,
     required this.title,
@@ -147,6 +156,7 @@ class ManagerTopBar extends StatelessWidget {
     required this.onProfilePressed,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của ManagerTopBar từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -196,6 +206,7 @@ class ManagerTopBar extends StatelessWidget {
   }
 }
 
+// Lớp ManagerSidebar: thành phần phục vụ widget web dùng cho web bố cục.
 class ManagerSidebar extends StatelessWidget {
   final String currentRoute;
   final String managerName;
@@ -203,6 +214,7 @@ class ManagerSidebar extends StatelessWidget {
   final ValueChanged<String> onRouteSelected;
   final VoidCallback? onLogout;
 
+  // Khởi tạo ManagerSidebar: nhận các tham số cần thiết để tạo đối tượng cho widget web dùng cho web bố cục.
   const ManagerSidebar({
     super.key,
     required this.currentRoute,
@@ -250,6 +262,7 @@ class ManagerSidebar extends StatelessWidget {
     ),
   ];
 
+  // Xây dựng giao diện (build): dựng cây widget của ManagerSidebar từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -424,17 +437,20 @@ class ManagerSidebar extends StatelessWidget {
   }
 }
 
+// Lớp _SidebarTile: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _SidebarTile extends StatelessWidget {
   final _ManagerMenuItem item;
   final bool selected;
   final VoidCallback onTap;
 
+  // Khởi tạo _SidebarTile: nhận các tham số cần thiết để tạo đối tượng cho widget web dùng cho web bố cục.
   const _SidebarTile({
     required this.item,
     required this.selected,
     required this.onTap,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _SidebarTile từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -477,17 +493,20 @@ class _SidebarTile extends StatelessWidget {
   }
 }
 
+// Lớp _AvatarButton: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _AvatarButton extends StatelessWidget {
   final String avatarUrl;
   final double size;
   final VoidCallback onTap;
 
+  // Khởi tạo _AvatarButton: nhận các tham số cần thiết để tạo đối tượng cho widget web dùng cho web bố cục.
   const _AvatarButton({
     required this.avatarUrl,
     required this.size,
     required this.onTap,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _AvatarButton từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -521,11 +540,13 @@ class _AvatarButton extends StatelessWidget {
   }
 }
 
+// Lớp _ManagerMenuItem: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _ManagerMenuItem {
   final String title;
   final String routeName;
   final IconData icon;
 
+  // Khởi tạo _ManagerMenuItem: nhận các tham số cần thiết để tạo đối tượng cho widget web dùng cho web bố cục.
   const _ManagerMenuItem({
     required this.title,
     required this.routeName,

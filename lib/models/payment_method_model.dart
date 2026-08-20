@@ -1,4 +1,8 @@
+// FILE HỌC TẬP: lib/models/payment_method_model.dart
+// Vai trò: Mô hình dữ liệu phương thức thanh toán.
+// Luồng sử dụng: Chuẩn hóa dữ liệu giữa PocketBase và Dart, cung cấp ánh xạ và bản sao model.
 
+// Lớp PaymentMethodModel: biểu diễn dữ liệu nghiệp vụ và hỗ trợ ánh xạ dữ liệu vào/ra.
 class PaymentMethodModel {
   final String id;
   final String userId;
@@ -10,6 +14,7 @@ class PaymentMethodModel {
   final DateTime? created;
   final DateTime? updated;
 
+  // Khởi tạo PaymentMethodModel: nhận các tham số cần thiết để tạo đối tượng cho mô hình dữ liệu phương thức thanh toán.
   const PaymentMethodModel({
     required this.id,
     required this.userId,
@@ -22,8 +27,10 @@ class PaymentMethodModel {
     this.updated,
   });
 
+  // Đọc title (title): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   String get title => displayName;
 
+  // Đọc subtitle (subtitle): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   String get subtitle {
     if (provider.isNotEmpty && accountNumber.isNotEmpty) {
       return '$provider - $accountNumber';
@@ -46,6 +53,7 @@ class PaymentMethodModel {
     }
   }
 
+  // Khởi tạo PaymentMethodModel.fromJson: tạo đối tượng PaymentMethodModel bằng constructor fromJson từ dữ liệu đầu vào.
   factory PaymentMethodModel.fromJson(Map<String, dynamic> json) {
     return PaymentMethodModel(
       id: json['id']?.toString() ?? '',
@@ -60,6 +68,7 @@ class PaymentMethodModel {
     );
   }
 
+  // Chuyển sang JSON (toJson): đóng gói model thành Map để lưu hoặc truyền sang service.
   Map<String, dynamic> toJson() {
     return {
       'user': userId,
@@ -71,6 +80,7 @@ class PaymentMethodModel {
     };
   }
 
+  // Sao chép model (copyWith): tạo bản mới từ dữ liệu hiện tại và thay các trường được truyền vào.
   PaymentMethodModel copyWith({
     String? id,
     String? userId,

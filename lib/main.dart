@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/main.dart
+// Vai trò: Điểm khởi động ứng dụng YourFood.
+// Luồng sử dụng: Khởi tạo PocketBase, đăng ký các Provider và cấu hình MaterialApp cùng hệ thống route.
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -13,6 +16,7 @@ import 'package:project_trangdc24v7x324/providers/notification_provider.dart';
 import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 import 'package:project_trangdc24v7x324/providers/review_provider.dart';
 
+// Khởi động ứng dụng (main): bảo đảm Flutter sẵn sàng, khởi tạo PocketBase rồi chạy MyApp.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -21,10 +25,12 @@ void main() async {
   runApp(const MyApp());
 }
 
+// Lớp MyApp: thành phần phục vụ điểm khởi động ứng dụng yourfood.
 class MyApp extends StatelessWidget {
-
+  // Khởi tạo MyApp: nhận các tham số cần thiết để tạo đối tượng cho điểm khởi động ứng dụng yourfood.
   const MyApp({super.key});
 
+  // Xây dựng giao diện (build): dựng cây widget của MyApp từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return MultiProvider(

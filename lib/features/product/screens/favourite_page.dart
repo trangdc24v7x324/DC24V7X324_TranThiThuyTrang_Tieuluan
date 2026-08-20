@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/product/screens/favourite_page.dart
+// Vai trò: Màn hình yêu thích.
+// Luồng sử dụng: Phục vụ luồng mua hàng: xem món, giỏ hàng, đặt đơn, thanh toán hoặc theo dõi đơn.
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -12,10 +15,12 @@ import 'package:project_trangdc24v7x324/shared/theme/app_text.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
 
+// Lớp FavouritePage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class FavouritePage extends StatelessWidget {
-
+  // Khởi tạo FavouritePage: nhận các tham số cần thiết để tạo đối tượng cho màn hình yêu thích.
   const FavouritePage({super.key});
 
+  // Xây dựng giao diện (build): dựng cây widget của FavouritePage từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final favorites =
@@ -35,10 +40,12 @@ class FavouritePage extends StatelessWidget {
   }
 }
 
+// Lớp _EmptyFavourite: thành phần phục vụ màn hình yêu thích.
 class _EmptyFavourite extends StatelessWidget {
-
+  // Khởi tạo _EmptyFavourite: nhận các tham số cần thiết để tạo đối tượng cho màn hình yêu thích.
   const _EmptyFavourite();
 
+  // Xây dựng giao diện (build): dựng cây widget của _EmptyFavourite từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -54,11 +61,14 @@ class _EmptyFavourite extends StatelessWidget {
   }
 }
 
+// Lớp _FavouriteGrid: thành phần phục vụ màn hình yêu thích.
 class _FavouriteGrid extends StatelessWidget {
   final List<ProductModel> favorites;
 
+  // Khởi tạo _FavouriteGrid: nhận các tham số cần thiết để tạo đối tượng cho màn hình yêu thích.
   const _FavouriteGrid({required this.favorites});
 
+  // Xây dựng giao diện (build): dựng cây widget của _FavouriteGrid từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(

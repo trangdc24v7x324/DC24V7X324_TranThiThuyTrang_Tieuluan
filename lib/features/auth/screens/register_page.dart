@@ -1,17 +1,23 @@
+// FILE HỌC TẬP: lib/features/auth/screens/register_page.dart
+// Vai trò: Màn hình đăng ký.
+// Luồng sử dụng: Nhận dữ liệu người dùng, gọi AuthService và điều hướng theo kết quả xác thực.
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:project_trangdc24v7x324/services/auth_service.dart';
 
+// Lớp RegisterPage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class RegisterPage extends StatefulWidget {
-
+  // Khởi tạo RegisterPage: nhận các tham số cần thiết để tạo đối tượng cho màn hình đăng ký.
   const RegisterPage({super.key});
 
+  // Tạo state (createState): liên kết RegisterPage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<RegisterPage> createState() => _RegisterPageState();
 }
 
+// Lớp _RegisterPageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _fullNameController = TextEditingController();
 
@@ -34,22 +40,42 @@ class _RegisterPageState extends State<RegisterPage> {
 
   String? _error;
 
+  // =========================================================
+  // EMAIL VALIDATION
+  // =========================================================
+
+  // Kiểm tra điều kiện (_isValidEmail): đánh giá trạng thái hợp lệ email và trả kết quả cho lớp gọi.
   bool _isValidEmail(String email) {
     final RegExp emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
     return emailRegex.hasMatch(email);
   }
 
+  // =========================================================
+  // NORMALIZE PHONE
+  // =========================================================
+
+  // Chuẩn hóa số điện thoại (_normalizePhone): đưa dữ liệu về định dạng thống nhất trước khi kiểm tra hoặc lưu.
   String _normalizePhone(String phone) {
     return phone.replaceAll(RegExp(r'[\s\.-]'), '');
   }
 
+  // =========================================================
+  // PHONE VALIDATION
+  // =========================================================
+
+  // Kiểm tra điều kiện (_isValidPhone): đánh giá trạng thái hợp lệ số điện thoại và trả kết quả cho lớp gọi.
   bool _isValidPhone(String phone) {
     final RegExp phoneRegex = RegExp(r'^(0\d{9}|\+84\d{9})$');
 
     return phoneRegex.hasMatch(phone);
   }
 
+  // =========================================================
+  // ERROR MESSAGE
+  // =========================================================
+
+  // Lấy đăng ký error tin nhắn (_getRegisterErrorMessage): truy xuất và trả kết quả cho lớp gọi.
   String _getRegisterErrorMessage(Object error) {
     final String message =
         error.toString().replaceFirst('Exception: ', '').trim();
@@ -71,6 +97,11 @@ class _RegisterPageState extends State<RegisterPage> {
         'Vui lòng kiểm tra lại thông tin.';
   }
 
+  // =========================================================
+  // REGISTER
+  // =========================================================
+
+  // Đăng ký (_register): kiểm tra thông tin tài khoản, gọi dịch vụ tạo người dùng và xử lý kết quả.
   Future<void> _register() async {
     if (_isLoading) return;
 
@@ -80,9 +111,14 @@ class _RegisterPageState extends State<RegisterPage> {
 
     final String email = _emailController.text.trim().toLowerCase();
 
+    // Không trim password.
     final String password = _passwordController.text;
 
     final String confirmPassword = _confirmPasswordController.text;
+
+    // =======================================================
+    // VALIDATION
+    // =======================================================
 
     if (fullName.isEmpty) {
       setState(() {
@@ -164,6 +200,10 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
+    // =======================================================
+    // REGISTER
+    // =======================================================
+
     setState(() {
       _isLoading = true;
       _error = null;
@@ -179,6 +219,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
       if (!mounted) return;
 
+      // Trả email về LoginPage.
       Navigator.pop(context, email);
     } catch (error) {
       if (!mounted) return;
@@ -190,6 +231,11 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
+  // =========================================================
+  // INPUT DECORATION
+  // =========================================================
+
+  // Xử lý _inputDecoration: thực hiện phần nghiệp vụ tương ứng trong màn hình đăng ký.
   InputDecoration _inputDecoration({
     required String label,
     required IconData icon,
@@ -218,6 +264,11 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
+  // =========================================================
+  // DISPOSE
+  // =========================================================
+
+  // Giải phóng tài nguyên (dispose): hủy controller/listener khi widget bị loại khỏi cây giao diện.
   @override
   void dispose() {
     _fullNameController.dispose();
@@ -229,6 +280,11 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
+  // =========================================================
+  // UI
+  // =========================================================
+
+  // Xây dựng giao diện (build): dựng cây widget của _RegisterPageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
@@ -258,7 +314,9 @@ class _RegisterPageState extends State<RegisterPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
+                    // =====================
+                    // BACK
+                    // =====================
                     IconButton(
                       onPressed:
                           _isLoading
@@ -274,6 +332,9 @@ class _RegisterPageState extends State<RegisterPage> {
 
                     const SizedBox(height: 8),
 
+                    // =====================
+                    // HEADER
+                    // =====================
                     Center(
                       child: Column(
                         children: [
@@ -303,6 +364,9 @@ class _RegisterPageState extends State<RegisterPage> {
 
                     const SizedBox(height: 28),
 
+                    // =====================
+                    // FORM
+                    // =====================
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
@@ -342,6 +406,9 @@ class _RegisterPageState extends State<RegisterPage> {
 
                           const SizedBox(height: 20),
 
+                          // =====================
+                          // FULL NAME
+                          // =====================
                           TextField(
                             controller: _fullNameController,
                             enabled: !_isLoading,
@@ -356,6 +423,9 @@ class _RegisterPageState extends State<RegisterPage> {
 
                           const SizedBox(height: 14),
 
+                          // =====================
+                          // PHONE
+                          // =====================
                           TextField(
                             controller: _phoneController,
                             enabled: !_isLoading,
@@ -372,6 +442,9 @@ class _RegisterPageState extends State<RegisterPage> {
 
                           const SizedBox(height: 14),
 
+                          // =====================
+                          // EMAIL
+                          // =====================
                           TextField(
                             controller: _emailController,
                             enabled: !_isLoading,
@@ -386,6 +459,9 @@ class _RegisterPageState extends State<RegisterPage> {
 
                           const SizedBox(height: 14),
 
+                          // =====================
+                          // PASSWORD
+                          // =====================
                           TextField(
                             controller: _passwordController,
                             enabled: !_isLoading,
@@ -417,6 +493,9 @@ class _RegisterPageState extends State<RegisterPage> {
 
                           const SizedBox(height: 14),
 
+                          // =====================
+                          // CONFIRM PASSWORD
+                          // =====================
                           TextField(
                             controller: _confirmPasswordController,
                             enabled: !_isLoading,
@@ -450,6 +529,9 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                           ),
 
+                          // =====================
+                          // ERROR
+                          // =====================
                           if (_error != null) ...[
                             const SizedBox(height: 14),
                             Container(
@@ -476,6 +558,9 @@ class _RegisterPageState extends State<RegisterPage> {
 
                           const SizedBox(height: 20),
 
+                          // =====================
+                          // REGISTER BUTTON
+                          // =====================
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
@@ -516,6 +601,9 @@ class _RegisterPageState extends State<RegisterPage> {
 
                     const SizedBox(height: 20),
 
+                    // =====================
+                    // LOGIN
+                    // =====================
                     Center(
                       child: TextButton(
                         onPressed:

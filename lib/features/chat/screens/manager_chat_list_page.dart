@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/chat/screens/manager_chat_list_page.dart
+// Vai trò: Màn hình quản lý trò chuyện danh sách.
+// Luồng sử dụng: Hiển thị hội thoại hoặc danh sách chat và phối hợp ChatProvider để tải/gửi tin nhắn.
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -10,17 +13,21 @@ import 'package:project_trangdc24v7x324/shared/theme/app_text.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
 
+// Lớp ManagerChatListPage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class ManagerChatListPage extends StatefulWidget {
-
+  // Khởi tạo ManagerChatListPage: nhận các tham số cần thiết để tạo đối tượng cho màn hình quản lý trò chuyện danh sách.
   const ManagerChatListPage({super.key});
 
+  // Tạo state (createState): liên kết ManagerChatListPage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<ManagerChatListPage> createState() => _ManagerChatListPageState();
 }
 
+// Lớp _ManagerChatListPageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _ManagerChatListPageState extends State<ManagerChatListPage> {
   late final String managerId;
 
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
@@ -32,6 +39,7 @@ class _ManagerChatListPageState extends State<ManagerChatListPage> {
     });
   }
 
+  // Tải trò chuyện danh sách (_loadChatList): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> _loadChatList() async {
     if (managerId.isEmpty) return;
 
@@ -40,6 +48,7 @@ class _ManagerChatListPageState extends State<ManagerChatListPage> {
     );
   }
 
+  // Mở trò chuyện (_openChat): điều hướng hoặc hiển thị thành phần tương ứng từ thao tác người dùng.
   Future<void> _openChat({
     required String customerId,
     required String customerName,
@@ -57,6 +66,7 @@ class _ManagerChatListPageState extends State<ManagerChatListPage> {
     await _loadChatList();
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _ManagerChatListPageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return AppLayout(
@@ -142,12 +152,15 @@ class _ManagerChatListPageState extends State<ManagerChatListPage> {
   }
 }
 
+// Lớp _ChatUserTile: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _ChatUserTile extends StatelessWidget {
   final ChatRoomSummary item;
   final VoidCallback onTap;
 
+  // Khởi tạo _ChatUserTile: nhận các tham số cần thiết để tạo đối tượng cho màn hình quản lý trò chuyện danh sách.
   const _ChatUserTile({required this.item, required this.onTap});
 
+  // Xây dựng giao diện (build): dựng cây widget của _ChatUserTile từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final hasUnread = item.unreadCount > 0;
@@ -241,6 +254,7 @@ class _ChatUserTile extends StatelessWidget {
     );
   }
 
+  // Định dạng thời gian (_formatTime): chuyển dữ liệu thô thành giá trị dễ đọc để hiển thị.
   String _formatTime(DateTime time) {
     final now = DateTime.now();
 
@@ -257,11 +271,14 @@ class _ChatUserTile extends StatelessWidget {
   }
 }
 
+// Lớp _UnreadBadge: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _UnreadBadge extends StatelessWidget {
   final int count;
 
+  // Khởi tạo _UnreadBadge: nhận các tham số cần thiết để tạo đối tượng cho màn hình quản lý trò chuyện danh sách.
   const _UnreadBadge({required this.count});
 
+  // Xây dựng giao diện (build): dựng cây widget của _UnreadBadge từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -282,10 +299,12 @@ class _UnreadBadge extends StatelessWidget {
   }
 }
 
+// Lớp _EmptyManagerChat: thành phần phục vụ màn hình quản lý trò chuyện danh sách.
 class _EmptyManagerChat extends StatelessWidget {
-
+  // Khởi tạo _EmptyManagerChat: nhận các tham số cần thiết để tạo đối tượng cho màn hình quản lý trò chuyện danh sách.
   const _EmptyManagerChat();
 
+  // Xây dựng giao diện (build): dựng cây widget của _EmptyManagerChat từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Center(

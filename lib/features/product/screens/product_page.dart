@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/product/screens/product_page.dart
+// Vai trò: Màn hình sản phẩm.
+// Luồng sử dụng: Phục vụ luồng mua hàng: xem món, giỏ hàng, đặt đơn, thanh toán hoặc theo dõi đơn.
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -11,20 +14,25 @@ import 'package:project_trangdc24v7x324/providers/product_provider.dart';
 import 'package:project_trangdc24v7x324/providers/review_provider.dart';
 import 'package:provider/provider.dart';
 
+// Lớp ProductReviewsSection: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class ProductReviewsSection extends StatefulWidget {
   final String productId;
 
+  // Khởi tạo ProductReviewsSection: nhận các tham số cần thiết để tạo đối tượng cho màn hình sản phẩm.
   const ProductReviewsSection({super.key, required this.productId});
 
+  // Tạo state (createState): liên kết ProductReviewsSection với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<ProductReviewsSection> createState() => _ProductReviewsSectionState();
 }
 
+// Lớp _ProductReviewsSectionState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _ProductReviewsSectionState extends State<ProductReviewsSection> {
   final TextEditingController _commentController = TextEditingController();
 
   int _rating = 5;
 
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
@@ -32,6 +40,7 @@ class _ProductReviewsSectionState extends State<ProductReviewsSection> {
     Future.microtask(_loadReviews);
   }
 
+  // Tải đánh giá (_loadReviews): lấy danh sách review của sản phẩm và cập nhật state hiển thị.
   Future<void> _loadReviews() async {
     final provider = context.read<ReviewProvider>();
 
@@ -50,6 +59,7 @@ class _ProductReviewsSectionState extends State<ProductReviewsSection> {
     }
   }
 
+  // Giải phóng tài nguyên (dispose): hủy controller/listener khi widget bị loại khỏi cây giao diện.
   @override
   void dispose() {
     _commentController.dispose();
@@ -57,6 +67,7 @@ class _ProductReviewsSectionState extends State<ProductReviewsSection> {
     super.dispose();
   }
 
+  // Xử lý _submit: thực hiện phần nghiệp vụ tương ứng trong màn hình sản phẩm.
   Future<void> _submit() async {
     final provider = context.read<ReviewProvider>();
 
@@ -81,6 +92,7 @@ class _ProductReviewsSectionState extends State<ProductReviewsSection> {
     }
   }
 
+  // Xử lý _delete: thực hiện phần nghiệp vụ tương ứng trong màn hình sản phẩm.
   Future<void> _delete() async {
     final provider = context.read<ReviewProvider>();
 
@@ -101,6 +113,7 @@ class _ProductReviewsSectionState extends State<ProductReviewsSection> {
     }
   }
 
+  // Xử lý _stars: thực hiện phần nghiệp vụ tương ứng trong màn hình sản phẩm.
   Widget _stars(double value, {double size = 18}) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -116,6 +129,7 @@ class _ProductReviewsSectionState extends State<ProductReviewsSection> {
     );
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _ProductReviewsSectionState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<ReviewProvider>();
@@ -290,6 +304,7 @@ class _ProductReviewsSectionState extends State<ProductReviewsSection> {
     );
   }
 
+  // Tạo giao diện đánh giá (_buildReview): dựng widget con từ dữ liệu hiện tại.
   Widget _buildReview(ProductReviewModel review) {
     return Container(
       width: double.infinity,
@@ -332,12 +347,15 @@ class _ProductReviewsSectionState extends State<ProductReviewsSection> {
   }
 }
 
+// Lớp _ReviewEligibilityNotice: thành phần phục vụ màn hình sản phẩm.
 class _ReviewEligibilityNotice extends StatelessWidget {
   final IconData icon;
   final String message;
 
+  // Khởi tạo _ReviewEligibilityNotice: nhận các tham số cần thiết để tạo đối tượng cho màn hình sản phẩm.
   const _ReviewEligibilityNotice({required this.icon, required this.message});
 
+  // Xây dựng giao diện (build): dựng cây widget của _ReviewEligibilityNotice từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -370,25 +388,38 @@ class _ReviewEligibilityNotice extends StatelessWidget {
   }
 }
 
+// Lớp ProductPage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class ProductPage extends StatefulWidget {
-
+  // Khởi tạo ProductPage: nhận các tham số cần thiết để tạo đối tượng cho màn hình sản phẩm.
   const ProductPage({super.key});
 
+  // Tạo state (createState): liên kết ProductPage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<ProductPage> createState() => _ProductPageState();
 }
 
+// Lớp _ProductPageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _ProductPageState extends State<ProductPage> {
   int quantity = 1;
 
   final TextEditingController noteController = TextEditingController();
 
+  // =========================================================
+  // DISPOSE
+  // =========================================================
+
+  // Giải phóng tài nguyên (dispose): hủy controller/listener khi widget bị loại khỏi cây giao diện.
   @override
   void dispose() {
     noteController.dispose();
     super.dispose();
   }
 
+  // =========================================================
+  // FORMAT PRICE
+  // =========================================================
+
+  // Định dạng giá (formatPrice): chuyển số tiền thành chuỗi dễ đọc để hiển thị.
   String formatPrice(double price) {
     final String value = price.round().toString();
 
@@ -407,6 +438,11 @@ class _ProductPageState extends State<ProductPage> {
     return '$bufferđ';
   }
 
+  // =========================================================
+  // PRODUCT IMAGE
+  // =========================================================
+
+  // Tạo giao diện sản phẩm hình ảnh (_buildProductImage): dựng widget con từ dữ liệu hiện tại.
   Widget _buildProductImage(String image) {
     if (image.isEmpty) {
       return const Center(
@@ -440,8 +476,13 @@ class _ProductPageState extends State<ProductPage> {
     );
   }
 
-  Widget _buildPriceSection(ProductModel product) {
+  // =========================================================
+  // PRICE SECTION
+  // =========================================================
 
+  // Tạo giao diện price khu vực (_buildPriceSection): dựng widget con từ dữ liệu hiện tại.
+  Widget _buildPriceSection(ProductModel product) {
+    // Không sale.
     if (!product.hasActiveSale) {
       return Text(
         formatPrice(product.price),
@@ -455,12 +496,15 @@ class _ProductPageState extends State<ProductPage> {
       );
     }
 
+    // Có sale.
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-
+            // ===============================================
+            // SALE PRICE
+            // ===============================================
             Text(
               formatPrice(product.effectivePrice),
               style: GoogleFonts.roboto(
@@ -474,6 +518,9 @@ class _ProductPageState extends State<ProductPage> {
 
             const SizedBox(width: 10),
 
+            // ===============================================
+            // SALE BADGE
+            // ===============================================
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
               decoration: BoxDecoration(
@@ -494,6 +541,9 @@ class _ProductPageState extends State<ProductPage> {
 
         const SizedBox(height: 5),
 
+        // =================================================
+        // ORIGINAL PRICE
+        // =================================================
         Text(
           formatPrice(product.price),
           style: GoogleFonts.roboto(
@@ -508,6 +558,9 @@ class _ProductPageState extends State<ProductPage> {
 
         const SizedBox(height: 5),
 
+        // =================================================
+        // SAVING
+        // =================================================
         Text(
           'Tiết kiệm ${formatPrice(product.discountAmount)}',
           style: GoogleFonts.roboto(
@@ -522,6 +575,11 @@ class _ProductPageState extends State<ProductPage> {
     );
   }
 
+  // =========================================================
+  // BUILD
+  // =========================================================
+
+  // Xây dựng giao diện (build): dựng cây widget của _ProductPageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final Object? args = ModalRoute.of(context)?.settings.arguments;
@@ -559,7 +617,9 @@ class _ProductPageState extends State<ProductPage> {
       body: SafeArea(
         child: Column(
           children: [
-
+            // =================================================
+            // CONTENT
+            // =================================================
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -567,7 +627,9 @@ class _ProductPageState extends State<ProductPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
+                    // =========================================
+                    // IMAGE
+                    // =========================================
                     Center(
                       child: Container(
                         height: 280,
@@ -584,6 +646,9 @@ class _ProductPageState extends State<ProductPage> {
                               child: _buildProductImage(product.image),
                             ),
 
+                            // ===============================
+                            // SALE BADGE
+                            // ===============================
                             if (product.hasActiveSale)
                               Positioned(
                                 top: 4,
@@ -607,6 +672,9 @@ class _ProductPageState extends State<ProductPage> {
                                 ),
                               ),
 
+                            // ===============================
+                            // OUT OF STOCK
+                            // ===============================
                             if (!product.isAvailable)
                               Positioned.fill(
                                 child: Container(
@@ -641,6 +709,9 @@ class _ProductPageState extends State<ProductPage> {
 
                     const SizedBox(height: 24),
 
+                    // =========================================
+                    // TITLE
+                    // =========================================
                     Text(
                       product.title,
                       style: GoogleFonts.roboto(
@@ -652,6 +723,9 @@ class _ProductPageState extends State<ProductPage> {
                       ),
                     ),
 
+                    // =========================================
+                    // SUBTITLE
+                    // =========================================
                     if (product.subtitle.isNotEmpty) ...[
                       const SizedBox(height: 6),
 
@@ -668,6 +742,9 @@ class _ProductPageState extends State<ProductPage> {
 
                     const SizedBox(height: 10),
 
+                    // =========================================
+                    // RATING + DELIVERY
+                    // =========================================
                     Consumer<ReviewProvider>(
                       builder: (context, reviewProvider, _) {
                         return Row(
@@ -724,10 +801,16 @@ class _ProductPageState extends State<ProductPage> {
 
                     const SizedBox(height: 18),
 
+                    // =========================================
+                    // PRICE
+                    // =========================================
                     _buildPriceSection(product),
 
                     const SizedBox(height: 22),
 
+                    // =========================================
+                    // DESCRIPTION
+                    // =========================================
                     Text(
                       product.description.isEmpty
                           ? 'Chưa có mô tả cho sản phẩm này.'
@@ -743,6 +826,9 @@ class _ProductPageState extends State<ProductPage> {
 
                     const SizedBox(height: 24),
 
+                    // =========================================
+                    // NOTE
+                    // =========================================
                     Text(
                       'Ghi chú',
                       style: GoogleFonts.roboto(
@@ -786,6 +872,9 @@ class _ProductPageState extends State<ProductPage> {
 
                     const SizedBox(height: 28),
 
+                    // =========================================
+                    // QUANTITY
+                    // =========================================
                     Row(
                       children: [
                         Text(
@@ -801,6 +890,9 @@ class _ProductPageState extends State<ProductPage> {
 
                         const Spacer(),
 
+                        // =====================================
+                        // MINUS
+                        // =====================================
                         GestureDetector(
                           onTap:
                               product.isAvailable
@@ -849,6 +941,9 @@ class _ProductPageState extends State<ProductPage> {
 
                         const SizedBox(width: 14),
 
+                        // =====================================
+                        // PLUS
+                        // =====================================
                         GestureDetector(
                           onTap:
                               product.isAvailable
@@ -878,6 +973,9 @@ class _ProductPageState extends State<ProductPage> {
                       ],
                     ),
 
+                    // =========================================
+                    // TOTAL SAVING
+                    // =========================================
                     if (product.hasActiveSale && quantity > 1) ...[
                       const SizedBox(height: 16),
 
@@ -906,6 +1004,9 @@ class _ProductPageState extends State<ProductPage> {
               ),
             ),
 
+            // =================================================
+            // BOTTOM CART AREA
+            // =================================================
             Container(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
               decoration: const BoxDecoration(
@@ -925,7 +1026,9 @@ class _ProductPageState extends State<ProductPage> {
 
               child: Row(
                 children: [
-
+                  // ===========================================
+                  // TOTAL PRICE
+                  // ===========================================
                   Expanded(
                     flex: 2,
                     child: Container(
@@ -951,6 +1054,9 @@ class _ProductPageState extends State<ProductPage> {
 
                   const SizedBox(width: 14),
 
+                  // ===========================================
+                  // ADD CART
+                  // ===========================================
                   Expanded(
                     flex: 4,
                     child: SizedBox(

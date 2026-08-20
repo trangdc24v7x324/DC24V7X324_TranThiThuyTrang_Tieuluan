@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/profile/screens/profile_page.dart
+// Vai trò: Màn hình hồ sơ người dùng.
+// Luồng sử dụng: Hiển thị các nhóm thông tin tài khoản và gọi ProfileProvider khi người dùng chỉnh sửa.
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -11,20 +14,24 @@ import 'package:project_trangdc24v7x324/features/profile/widgets/profile_header.
 import 'package:project_trangdc24v7x324/providers/profile_provider.dart';
 import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 
+// DESIGN SYSTEM
 import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
 import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 
+// Lớp ProfilePage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class ProfilePage extends StatefulWidget {
-
+  // Khởi tạo ProfilePage: nhận các tham số cần thiết để tạo đối tượng cho màn hình hồ sơ người dùng.
   const ProfilePage({super.key});
 
+  // Tạo state (createState): liên kết ProfilePage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
+// Lớp _ProfilePageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _ProfilePageState extends State<ProfilePage> {
-
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
@@ -34,6 +41,7 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _ProfilePageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return AppLayout(
@@ -128,6 +136,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       updatedAddresses,
                     );
 
+
                     if (!context.mounted) return;
 
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -153,6 +162,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     final success = await provider.updatePaymentMethods(
                       updatedMethods,
                     );
+
 
                     if (!context.mounted) return;
 
@@ -204,6 +214,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  // Hiển thị logout hộp thoại (_showLogoutDialog): mở thông báo/dialog hoặc thành phần hỗ trợ trên giao diện.
   Future<bool?> _showLogoutDialog() {
     return showDialog<bool>(
       context: context,
@@ -232,6 +243,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  // Đổi mật khẩu (_showChangePasswordDialog): mở hộp thoại và điều phối thao tác cập nhật mật khẩu.
   void _showChangePasswordDialog(BuildContext context) {
     final oldPasswordController = TextEditingController();
     final newPasswordController = TextEditingController();
@@ -370,17 +382,20 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 }
 
+// Lớp _ActionTile: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _ActionTile extends StatelessWidget {
   final IconData icon;
   final String title;
   final VoidCallback onTap;
 
+  // Khởi tạo _ActionTile: nhận các tham số cần thiết để tạo đối tượng cho màn hình hồ sơ người dùng.
   const _ActionTile({
     required this.icon,
     required this.title,
     required this.onTap,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _ActionTile từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -410,12 +425,15 @@ class _ActionTile extends StatelessWidget {
   }
 }
 
+// Lớp _LogoutButton: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _LogoutButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
 
+  // Khởi tạo _LogoutButton: nhận các tham số cần thiết để tạo đối tượng cho màn hình hồ sơ người dùng.
   const _LogoutButton({required this.onPressed, required this.isLoading});
 
+  // Xây dựng giao diện (build): dựng cây widget của _LogoutButton từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -435,8 +453,8 @@ class _LogoutButton extends StatelessWidget {
                 : const Icon(Icons.logout_rounded),
         label: Text(isLoading ? 'Đang đăng xuất...' : 'Đăng xuất'),
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(255, 144, 12, 2),
-          foregroundColor: Colors.white,
+          backgroundColor: const Color.fromARGB(255, 144, 12, 2), // màu nền nút
+          foregroundColor: Colors.white, // màu chữ và icon
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),

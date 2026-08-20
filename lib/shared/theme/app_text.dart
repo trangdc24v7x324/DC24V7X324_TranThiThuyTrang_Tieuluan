@@ -1,7 +1,11 @@
+// FILE HỌC TẬP: lib/shared/theme/app_text.dart
+// Vai trò: Cấu hình giao diện dùng chung cho ứng dụng văn bản.
+// Luồng sử dụng: Tập trung hằng số giao diện để các màn hình sử dụng thống nhất.
 
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
+// Lớp AppText: thành phần phục vụ cấu hình giao diện dùng chung cho ứng dụng văn bản.
 class AppText {
   static const productTitle = TextStyle(
     fontSize: 16,

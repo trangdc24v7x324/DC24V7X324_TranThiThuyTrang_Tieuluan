@@ -1,8 +1,12 @@
+// FILE HỌC TẬP: lib/features/profile/widgets/general_info_section.dart
+// Vai trò: Widget hồ sơ cho chung thông tin khu vực.
+// Luồng sử dụng: Hiển thị/chỉnh sửa một phần hồ sơ và trả sự kiện về màn hình Profile.
 
 import 'package:flutter/material.dart';
 import 'package:project_trangdc24v7x324/models/user_profile_model.dart';
 import '../../../shared/widgets/section_card.dart';
 
+// Lớp GeneralInfoSection: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class GeneralInfoSection extends StatefulWidget {
   final UserProfileModel profile;
   final bool isEditing;
@@ -16,6 +20,7 @@ class GeneralInfoSection extends StatefulWidget {
   })
   onSave;
 
+  // Khởi tạo GeneralInfoSection: nhận các tham số cần thiết để tạo đối tượng cho widget hồ sơ cho chung thông tin khu vực.
   const GeneralInfoSection({
     super.key,
     required this.profile,
@@ -24,10 +29,12 @@ class GeneralInfoSection extends StatefulWidget {
     required this.onSave,
   });
 
+  // Tạo state (createState): liên kết GeneralInfoSection với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<GeneralInfoSection> createState() => _GeneralInfoSectionState();
 }
 
+// Lớp _GeneralInfoSectionState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _GeneralInfoSectionState extends State<GeneralInfoSection> {
   late final TextEditingController _fullNameController;
   late final TextEditingController _emailController;
@@ -37,6 +44,7 @@ class _GeneralInfoSectionState extends State<GeneralInfoSection> {
   DateTime? _selectedDate;
   bool _isSaving = false;
 
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
@@ -47,6 +55,7 @@ class _GeneralInfoSectionState extends State<GeneralInfoSection> {
     _selectedDate = widget.profile.dateOfBirth;
   }
 
+  // Đồng bộ widget (didUpdateWidget): cập nhật state khi widget cha truyền cấu hình mới.
   @override
   void didUpdateWidget(covariant GeneralInfoSection oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -60,6 +69,7 @@ class _GeneralInfoSectionState extends State<GeneralInfoSection> {
     }
   }
 
+  // Giải phóng tài nguyên (dispose): hủy controller/listener khi widget bị loại khỏi cây giao diện.
   @override
   void dispose() {
     _fullNameController.dispose();
@@ -68,11 +78,13 @@ class _GeneralInfoSectionState extends State<GeneralInfoSection> {
     super.dispose();
   }
 
+  // Định dạng ngày (_formatDate): chuyển dữ liệu thô thành giá trị dễ đọc để hiển thị.
   String _formatDate(DateTime? date) {
     if (date == null) return 'Chưa cập nhật';
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
   }
 
+  // Chọn ngày (_pickDate): mở công cụ chọn phù hợp và ghi kết quả vào state.
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -86,6 +98,7 @@ class _GeneralInfoSectionState extends State<GeneralInfoSection> {
     }
   }
 
+  // Xử lý _save: thực hiện phần nghiệp vụ tương ứng trong widget hồ sơ cho chung thông tin khu vực.
   Future<void> _save() async {
     if (_isSaving) return;
 
@@ -123,6 +136,7 @@ class _GeneralInfoSectionState extends State<GeneralInfoSection> {
     }
   }
 
+  // Xử lý _viewItem: thực hiện phần nghiệp vụ tương ứng trong widget hồ sơ cho chung thông tin khu vực.
   Widget _viewItem(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -150,6 +164,7 @@ class _GeneralInfoSectionState extends State<GeneralInfoSection> {
     );
   }
 
+  // Xử lý _editTextItem: thực hiện phần nghiệp vụ tương ứng trong widget hồ sơ cho chung thông tin khu vực.
   Widget _editTextItem(
     String label,
     TextEditingController controller, {
@@ -191,6 +206,7 @@ class _GeneralInfoSectionState extends State<GeneralInfoSection> {
     );
   }
 
+  // Xử lý _editGenderItem: thực hiện phần nghiệp vụ tương ứng trong widget hồ sơ cho chung thông tin khu vực.
   Widget _editGenderItem() {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -231,6 +247,7 @@ class _GeneralInfoSectionState extends State<GeneralInfoSection> {
     );
   }
 
+  // Xử lý _editDateItem: thực hiện phần nghiệp vụ tương ứng trong widget hồ sơ cho chung thông tin khu vực.
   Widget _editDateItem() {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -268,6 +285,7 @@ class _GeneralInfoSectionState extends State<GeneralInfoSection> {
     );
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _GeneralInfoSectionState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return SectionCard(

@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/auth/screens/login_page.dart
+// Vai trò: Màn hình đăng nhập.
+// Luồng sử dụng: Nhận dữ liệu người dùng, gọi AuthService và điều hướng theo kết quả xác thực.
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,14 +9,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 import 'package:project_trangdc24v7x324/services/auth_service.dart';
 
+// Lớp LoginPage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class LoginPage extends StatefulWidget {
-
+  // Khởi tạo LoginPage: nhận các tham số cần thiết để tạo đối tượng cho màn hình đăng nhập.
   const LoginPage({super.key});
 
+  // Tạo state (createState): liên kết LoginPage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
 
+// Lớp _LoginPageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
 
@@ -26,6 +32,7 @@ class _LoginPageState extends State<LoginPage> {
 
   String? _error;
 
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
@@ -33,6 +40,11 @@ class _LoginPageState extends State<LoginPage> {
     _loadLastEmail();
   }
 
+  // =========================================================
+  // LOAD EMAIL ĐÃ ĐĂNG NHẬP TRƯỚC ĐÓ
+  // =========================================================
+
+  // Tải last email (_loadLastEmail): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> _loadLastEmail() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -45,12 +57,22 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  // =========================================================
+  // VALIDATE EMAIL
+  // =========================================================
+
+  // Kiểm tra điều kiện (_isValidEmail): đánh giá trạng thái hợp lệ email và trả kết quả cho lớp gọi.
   bool _isValidEmail(String email) {
     final RegExp emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
     return emailRegex.hasMatch(email);
   }
 
+  // =========================================================
+  // CHUYỂN LỖI THÀNH THÔNG BÁO THÂN THIỆN
+  // =========================================================
+
+  // Lấy đăng nhập error tin nhắn (_getLoginErrorMessage): truy xuất và trả kết quả cho lớp gọi.
   String _getLoginErrorMessage(Object error) {
     final String message =
         error.toString().replaceFirst('Exception: ', '').trim();
@@ -79,12 +101,22 @@ class _LoginPageState extends State<LoginPage> {
         'Vui lòng kiểm tra email hoặc mật khẩu.';
   }
 
+  // =========================================================
+  // LOGIN
+  // =========================================================
+
+  // Đăng nhập (_login): kiểm tra email/mật khẩu, gọi AuthService và điều hướng theo vai trò.
   Future<void> _login() async {
     if (_isLoading) return;
 
     final String email = _emailController.text.trim().toLowerCase();
 
+    // Không trim password.
     final String password = _passwordController.text;
+
+    // =======================================================
+    // VALIDATION
+    // =======================================================
 
     if (email.isEmpty) {
       setState(() {
@@ -116,14 +148,25 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
+      // =====================================================
+      // AUTHENTICATE
+      // =====================================================
 
       await _authService.login(email: email, password: password);
+
+      // =====================================================
+      // LƯU EMAIL
+      // =====================================================
 
       final SharedPreferences prefs = await SharedPreferences.getInstance();
 
       await prefs.setString('last_email', email);
 
       if (!mounted) return;
+
+      // =====================================================
+      // KIỂM TRA ROLE
+      // =====================================================
 
       if (_authService.isManager) {
         setState(() {
@@ -145,6 +188,7 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
+      // Không thuộc role hợp lệ.
       await _authService.logout();
 
       if (!mounted) return;
@@ -163,6 +207,11 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  // =========================================================
+  // OPEN REGISTER
+  // =========================================================
+
+  // Mở đăng ký trang (_openRegisterPage): điều hướng hoặc hiển thị thành phần tương ứng từ thao tác người dùng.
   Future<void> _openRegisterPage() async {
     final Object? result = await Navigator.pushNamed(
       context,
@@ -171,6 +220,7 @@ class _LoginPageState extends State<LoginPage> {
 
     if (!mounted) return;
 
+    // RegisterPage sẽ trả email về nếu đăng ký thành công.
     if (result is String && result.trim().isNotEmpty) {
       final String registeredEmail = result.trim().toLowerCase();
 
@@ -193,6 +243,11 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  // =========================================================
+  // INPUT DECORATION
+  // =========================================================
+
+  // Xử lý _inputDecoration: thực hiện phần nghiệp vụ tương ứng trong màn hình đăng nhập.
   InputDecoration _inputDecoration({
     required String label,
     required IconData icon,
@@ -221,6 +276,11 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  // =========================================================
+  // DISPOSE
+  // =========================================================
+
+  // Giải phóng tài nguyên (dispose): hủy controller/listener khi widget bị loại khỏi cây giao diện.
   @override
   void dispose() {
     _emailController.dispose();
@@ -229,6 +289,11 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+  // =========================================================
+  // UI
+  // =========================================================
+
+  // Xây dựng giao diện (build): dựng cây widget của _LoginPageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
@@ -322,6 +387,9 @@ class _LoginPageState extends State<LoginPage> {
 
                           const SizedBox(height: 20),
 
+                          // =========================
+                          // EMAIL
+                          // =========================
                           TextField(
                             controller: _emailController,
                             enabled: !_isLoading,
@@ -336,6 +404,9 @@ class _LoginPageState extends State<LoginPage> {
 
                           const SizedBox(height: 14),
 
+                          // =========================
+                          // PASSWORD
+                          // =========================
                           TextField(
                             controller: _passwordController,
                             enabled: !_isLoading,
@@ -401,7 +472,9 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                           ),
-
+                          // =========================
+                          // ERROR
+                          // =========================
                           if (_error != null) ...[
                             const SizedBox(height: 14),
                             Container(
@@ -428,6 +501,9 @@ class _LoginPageState extends State<LoginPage> {
 
                           const SizedBox(height: 20),
 
+                          // =========================
+                          // LOGIN BUTTON
+                          // =========================
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(

@@ -1,4 +1,8 @@
+// FILE HỌC TẬP: lib/models/product_review_model.dart
+// Vai trò: Mô hình dữ liệu đánh giá sản phẩm.
+// Luồng sử dụng: Chuẩn hóa dữ liệu giữa PocketBase và Dart, cung cấp ánh xạ và bản sao model.
 
+// Lớp ProductReviewModel: biểu diễn dữ liệu nghiệp vụ và hỗ trợ ánh xạ dữ liệu vào/ra.
 class ProductReviewModel {
   final String id;
 
@@ -16,6 +20,7 @@ class ProductReviewModel {
   final DateTime? created;
   final DateTime? updated;
 
+  // Khởi tạo ProductReviewModel: nhận các tham số cần thiết để tạo đối tượng cho mô hình dữ liệu đánh giá sản phẩm.
   const ProductReviewModel({
     required this.id,
     required this.productId,
@@ -28,6 +33,7 @@ class ProductReviewModel {
     this.updated,
   });
 
+  // Khởi tạo ProductReviewModel.fromJson: tạo đối tượng ProductReviewModel bằng constructor fromJson từ dữ liệu đầu vào.
   factory ProductReviewModel.fromJson(Map<String, dynamic> json) {
     return ProductReviewModel(
       id: json['id']?.toString() ?? '',
@@ -42,6 +48,7 @@ class ProductReviewModel {
     );
   }
 
+  // Sao chép model (copyWith): tạo bản mới từ dữ liệu hiện tại và thay các trường được truyền vào.
   ProductReviewModel copyWith({
     String? id,
     String? productId,
@@ -66,6 +73,7 @@ class ProductReviewModel {
     );
   }
 
+  // Xử lý _toInt: thực hiện phần nghiệp vụ tương ứng trong mô hình dữ liệu đánh giá sản phẩm.
   static int _toInt(dynamic value) {
     if (value is num) {
       return value.toInt();
@@ -75,9 +83,11 @@ class ProductReviewModel {
   }
 }
 
+// Lớp ProductRatingStats: biểu diễn dữ liệu nghiệp vụ và hỗ trợ ánh xạ dữ liệu vào/ra.
 class ProductRatingStats {
   final double average;
   final int count;
 
+  // Khởi tạo ProductRatingStats: nhận các tham số cần thiết để tạo đối tượng cho mô hình dữ liệu đánh giá sản phẩm.
   const ProductRatingStats({this.average = 0, this.count = 0});
 }

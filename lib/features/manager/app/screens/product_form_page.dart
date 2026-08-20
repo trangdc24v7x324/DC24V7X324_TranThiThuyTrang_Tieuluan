@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/manager/app/screens/product_form_page.dart
+// Vai trò: Màn hình Manager App quản lý sản phẩm biểu mẫu.
+// Luồng sử dụng: Hiển thị nghiệp vụ quản lý trên ứng dụng và gọi Provider/Service tương ứng.
 
 import 'dart:typed_data';
 
@@ -10,15 +13,19 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+// Lớp ProductFormPage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class ProductFormPage extends StatefulWidget {
   final ProductModel? product;
 
+  // Khởi tạo ProductFormPage: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager app quản lý sản phẩm biểu mẫu.
   const ProductFormPage({super.key, this.product});
 
+  // Tạo state (createState): liên kết ProductFormPage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<ProductFormPage> createState() => _ProductFormPageState();
 }
 
+// Lớp _ProductFormPageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _ProductFormPageState extends State<ProductFormPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -48,8 +55,14 @@ class _ProductFormPageState extends State<ProductFormPage> {
   XFile? _selectedImageFile;
   Uint8List? _selectedImageBytes;
 
+  // Đọc trạng thái chỉnh sửa (isEdit): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   bool get isEdit => widget.product != null;
 
+  // =========================================================
+  // INIT
+  // =========================================================
+
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
@@ -106,6 +119,11 @@ class _ProductFormPageState extends State<ProductFormPage> {
     });
   }
 
+  // =========================================================
+  // DISPOSE
+  // =========================================================
+
+  // Giải phóng tài nguyên (dispose): hủy controller/listener khi widget bị loại khỏi cây giao diện.
   @override
   void dispose() {
     _titleController.dispose();
@@ -118,6 +136,11 @@ class _ProductFormPageState extends State<ProductFormPage> {
     super.dispose();
   }
 
+  // =========================================================
+  // MESSAGE
+  // =========================================================
+
+  // Hiển thị tin nhắn (_showMessage): mở thông báo/dialog hoặc thành phần hỗ trợ trên giao diện.
   void _showMessage(String message) {
     if (!mounted) return;
 
@@ -126,6 +149,11 @@ class _ProductFormPageState extends State<ProductFormPage> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  // =========================================================
+  // FORMAT DATE
+  // =========================================================
+
+  // Định dạng ngày (_formatDate): chuyển dữ liệu thô thành giá trị dễ đọc để hiển thị.
   String _formatDate(DateTime? date) {
     if (date == null) {
       return 'Chưa chọn';
@@ -138,6 +166,11 @@ class _ProductFormPageState extends State<ProductFormPage> {
     return '$day/$month/${date.year}';
   }
 
+  // =========================================================
+  // PICK IMAGE
+  // =========================================================
+
+  // Chọn ảnh (_pickImage): mở bộ chọn ảnh, nhận file và cập nhật phần xem trước.
   Future<void> _pickImage() async {
     if (_isSubmitting) return;
 
@@ -164,6 +197,11 @@ class _ProductFormPageState extends State<ProductFormPage> {
     });
   }
 
+  // =========================================================
+  // PICK SALE START DATE
+  // =========================================================
+
+  // Chọn ngày bắt đầu sale (_pickSaleStartDate): mở DatePicker và lưu mốc bắt đầu khuyến mãi.
   Future<void> _pickSaleStartDate() async {
     if (_isSubmitting) return;
 
@@ -188,6 +226,11 @@ class _ProductFormPageState extends State<ProductFormPage> {
     });
   }
 
+  // =========================================================
+  // PICK SALE END DATE
+  // =========================================================
+
+  // Chọn ngày kết thúc sale (_pickSaleEndDate): mở DatePicker và lưu mốc kết thúc khuyến mãi.
   Future<void> _pickSaleEndDate() async {
     if (_isSubmitting) return;
 
@@ -220,18 +263,25 @@ class _ProductFormPageState extends State<ProductFormPage> {
     });
   }
 
+  // Xóa khuyến mãi bắt đầu ngày (_clearSaleStartDate): loại bỏ dữ liệu được chọn và đồng bộ state liên quan.
   void _clearSaleStartDate() {
     setState(() {
       _saleStartAt = null;
     });
   }
 
+  // Xóa khuyến mãi kết thúc ngày (_clearSaleEndDate): loại bỏ dữ liệu được chọn và đồng bộ state liên quan.
   void _clearSaleEndDate() {
     setState(() {
       _saleEndAt = null;
     });
   }
 
+  // =========================================================
+  // CATEGORY
+  // =========================================================
+
+  // Chọn ed danh mục (_selectedCategory): lưu lựa chọn để dùng cho lọc, biểu mẫu hoặc nghiệp vụ tiếp theo.
   CategoryModel? _selectedCategory(ProductProvider provider) {
     if (_selectedCategoryId == null) {
       return null;
@@ -246,6 +296,11 @@ class _ProductFormPageState extends State<ProductFormPage> {
     }
   }
 
+  // =========================================================
+  // SUBMIT
+  // =========================================================
+
+  // Xử lý _submit: thực hiện phần nghiệp vụ tương ứng trong màn hình manager app quản lý sản phẩm biểu mẫu.
   Future<void> _submit() async {
     if (_isSubmitting) return;
 
@@ -268,6 +323,10 @@ class _ProductFormPageState extends State<ProductFormPage> {
       _showMessage('Giá sản phẩm không hợp lệ');
       return;
     }
+
+    // =======================================================
+    // SALE
+    // =======================================================
 
     double salePrice = 0;
 
@@ -298,6 +357,10 @@ class _ProductFormPageState extends State<ProductFormPage> {
       salePrice = double.tryParse(_salePriceController.text.trim()) ?? 0;
     }
 
+    // =======================================================
+    // IMAGE
+    // =======================================================
+
     if (!isEdit && _selectedImageBytes == null) {
       _showMessage('Vui lòng chọn ảnh sản phẩm');
       return;
@@ -307,6 +370,10 @@ class _ProductFormPageState extends State<ProductFormPage> {
       _isSubmitting = true;
     });
 
+    // =======================================================
+    // BUILD PRODUCT
+    // =======================================================
+
     final ProductModel product = ProductModel(
       id: widget.product?.id ?? '',
 
@@ -314,6 +381,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
 
       subtitle: _subtitleController.text.trim(),
 
+      // Rating thật đến từ product_reviews.
       rating: widget.product?.rating ?? 0,
 
       reviewCount: widget.product?.reviewCount ?? 0,
@@ -375,6 +443,11 @@ class _ProductFormPageState extends State<ProductFormPage> {
     _showMessage(provider.errorMessage ?? 'Lưu sản phẩm thất bại');
   }
 
+  // =========================================================
+  // IMAGE
+  // =========================================================
+
+  // Tạo giao diện hình ảnh xem trước (_buildImagePreview): dựng widget con từ dữ liệu hiện tại.
   Widget _buildImagePreview() {
     if (_selectedImageBytes != null) {
       return _imageBox(
@@ -399,6 +472,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
     return _emptyImageBox();
   }
 
+  // Xử lý _imageBox: thực hiện phần nghiệp vụ tương ứng trong màn hình manager app quản lý sản phẩm biểu mẫu.
   Widget _imageBox(Widget child) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),
@@ -406,6 +480,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
     );
   }
 
+  // Xử lý _emptyImageBox: thực hiện phần nghiệp vụ tương ứng trong màn hình manager app quản lý sản phẩm biểu mẫu.
   Widget _emptyImageBox() {
     return Container(
       height: 190,
@@ -418,6 +493,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
     );
   }
 
+  // Xử lý _decoration: thực hiện phần nghiệp vụ tương ứng trong màn hình manager app quản lý sản phẩm biểu mẫu.
   InputDecoration _decoration(
     String label, {
     String? hintText,
@@ -433,6 +509,11 @@ class _ProductFormPageState extends State<ProductFormPage> {
     );
   }
 
+  // =========================================================
+  // DATE FIELD
+  // =========================================================
+
+  // Tạo giao diện ngày field (_buildDateField): dựng widget con từ dữ liệu hiện tại.
   Widget _buildDateField({
     required String title,
     required DateTime? date,
@@ -486,6 +567,11 @@ class _ProductFormPageState extends State<ProductFormPage> {
     );
   }
 
+  // =========================================================
+  // SALE SECTION
+  // =========================================================
+
+  // Tạo giao diện khuyến mãi khu vực (_buildSaleSection): dựng widget con từ dữ liệu hiện tại.
   Widget _buildSaleSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -578,6 +664,11 @@ class _ProductFormPageState extends State<ProductFormPage> {
     );
   }
 
+  // =========================================================
+  // FORM
+  // =========================================================
+
+  // Tạo giao diện biểu mẫu (_buildForm): dựng widget con từ dữ liệu hiện tại.
   Widget _buildForm(ProductProvider provider) {
     final List<CategoryModel> categories = provider.categories;
 
@@ -744,6 +835,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
     );
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _ProductFormPageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final ProductProvider provider = context.watch<ProductProvider>();

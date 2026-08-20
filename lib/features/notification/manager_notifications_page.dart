@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/notification/manager_notifications_page.dart
+// Vai trò: Màn hình quản lý thông báo.
+// Luồng sử dụng: Tải, hiển thị và cập nhật trạng thái thông báo theo vai trò người dùng.
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -8,15 +11,18 @@ import 'package:project_trangdc24v7x324/providers/product_provider.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
 
+// Lớp ManagerNotificationsPage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class ManagerNotificationsPage extends StatefulWidget {
-
+  // Khởi tạo ManagerNotificationsPage: nhận các tham số cần thiết để tạo đối tượng cho màn hình quản lý thông báo.
   const ManagerNotificationsPage({super.key});
 
+  // Tạo state (createState): liên kết ManagerNotificationsPage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<ManagerNotificationsPage> createState() =>
       _ManagerNotificationsPageState();
 }
 
+// Lớp _ManagerNotificationsPageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _ManagerNotificationsPageState extends State<ManagerNotificationsPage> {
   final titleController = TextEditingController();
   final contentController = TextEditingController();
@@ -25,6 +31,7 @@ class _ManagerNotificationsPageState extends State<ManagerNotificationsPage> {
   String? selectedProductId;
   bool isLoading = false;
 
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
@@ -37,6 +44,7 @@ class _ManagerNotificationsPageState extends State<ManagerNotificationsPage> {
     });
   }
 
+  // Giải phóng tài nguyên (dispose): hủy controller/listener khi widget bị loại khỏi cây giao diện.
   @override
   void dispose() {
     titleController.dispose();
@@ -44,6 +52,7 @@ class _ManagerNotificationsPageState extends State<ManagerNotificationsPage> {
     super.dispose();
   }
 
+  // Hiển thị tin nhắn (_showMessage): mở thông báo/dialog hoặc thành phần hỗ trợ trên giao diện.
   void _showMessage(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(
@@ -51,6 +60,7 @@ class _ManagerNotificationsPageState extends State<ManagerNotificationsPage> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  // Xử lý _findSelectedProduct: thực hiện phần nghiệp vụ tương ứng trong màn hình quản lý thông báo.
   ProductModel? _findSelectedProduct(List<ProductModel> products) {
     if (selectedProductId == null || selectedProductId!.isEmpty) return null;
 
@@ -61,6 +71,7 @@ class _ManagerNotificationsPageState extends State<ManagerNotificationsPage> {
     }
   }
 
+  // Xử lý _onTypeChanged: thực hiện phần nghiệp vụ tương ứng trong màn hình quản lý thông báo.
   void _onTypeChanged(String? value) {
     if (value == null) return;
 
@@ -73,6 +84,7 @@ class _ManagerNotificationsPageState extends State<ManagerNotificationsPage> {
     });
   }
 
+  // Xử lý _onProductChanged: thực hiện phần nghiệp vụ tương ứng trong màn hình quản lý thông báo.
   void _onProductChanged(String? productId, List<ProductModel> products) {
     setState(() {
       selectedProductId = productId;
@@ -93,6 +105,7 @@ class _ManagerNotificationsPageState extends State<ManagerNotificationsPage> {
     }
   }
 
+  // Xử lý submit: thực hiện phần nghiệp vụ tương ứng trong màn hình quản lý thông báo.
   Future<void> submit() async {
     final title = titleController.text.trim();
     final body = contentController.text.trim();
@@ -145,6 +158,7 @@ class _ManagerNotificationsPageState extends State<ManagerNotificationsPage> {
     }
   }
 
+  // Xử lý _decoration: thực hiện phần nghiệp vụ tương ứng trong màn hình quản lý thông báo.
   InputDecoration _decoration({
     required String label,
     String? hint,
@@ -169,6 +183,7 @@ class _ManagerNotificationsPageState extends State<ManagerNotificationsPage> {
     );
   }
 
+  // Xử lý _typeLabel: thực hiện phần nghiệp vụ tương ứng trong màn hình quản lý thông báo.
   String _typeLabel(String type) {
     switch (type) {
       case 'promotion':
@@ -182,6 +197,7 @@ class _ManagerNotificationsPageState extends State<ManagerNotificationsPage> {
     }
   }
 
+  // Xử lý _typeIcon: thực hiện phần nghiệp vụ tương ứng trong màn hình quản lý thông báo.
   IconData _typeIcon(String type) {
     switch (type) {
       case 'promotion':
@@ -195,6 +211,7 @@ class _ManagerNotificationsPageState extends State<ManagerNotificationsPage> {
     }
   }
 
+  // Xử lý _typeColor: thực hiện phần nghiệp vụ tương ứng trong màn hình quản lý thông báo.
   Color _typeColor(String type) {
     switch (type) {
       case 'promotion':
@@ -208,6 +225,7 @@ class _ManagerNotificationsPageState extends State<ManagerNotificationsPage> {
     }
   }
 
+  // Định dạng tiền (_formatMoney): chuyển dữ liệu thô thành giá trị dễ đọc để hiển thị.
   String _formatMoney(double value) {
     final text = value.toStringAsFixed(0);
     final buffer = StringBuffer();
@@ -223,6 +241,7 @@ class _ManagerNotificationsPageState extends State<ManagerNotificationsPage> {
     return '${buffer.toString()}đ';
   }
 
+  // Tạo giao diện xem trước thẻ (_buildPreviewCard): dựng widget con từ dữ liệu hiện tại.
   Widget _buildPreviewCard(ProductModel? selectedProduct) {
     final title =
         titleController.text.trim().isEmpty
@@ -313,6 +332,7 @@ class _ManagerNotificationsPageState extends State<ManagerNotificationsPage> {
     );
   }
 
+  // Tạo giao diện sản phẩm picker (_buildProductPicker): dựng widget con từ dữ liệu hiện tại.
   Widget _buildProductPicker(List<ProductModel> products) {
     if (selectedType != 'new_product') return const SizedBox.shrink();
 
@@ -366,6 +386,7 @@ class _ManagerNotificationsPageState extends State<ManagerNotificationsPage> {
     );
   }
 
+  // Tạo giao diện biểu mẫu (_buildForm): dựng widget con từ dữ liệu hiện tại.
   Widget _buildForm() {
     return Consumer<ProductProvider>(
       builder: (context, productProvider, _) {
@@ -529,6 +550,7 @@ class _ManagerNotificationsPageState extends State<ManagerNotificationsPage> {
     );
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _ManagerNotificationsPageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return AppLayout(

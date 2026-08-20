@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/product/screens/home_page.dart
+// Vai trò: Màn hình trang chủ.
+// Luồng sử dụng: Phục vụ luồng mua hàng: xem món, giỏ hàng, đặt đơn, thanh toán hoặc theo dõi đơn.
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -16,44 +19,53 @@ import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/category_selector.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/nav_icon.dart';
 
+// Lớp HomePage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class HomePage extends StatefulWidget {
-
+  // Khởi tạo HomePage: nhận các tham số cần thiết để tạo đối tượng cho màn hình trang chủ.
   const HomePage({super.key});
 
+  // Tạo state (createState): liên kết HomePage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
+// Lớp AppColors: thành phần phục vụ màn hình trang chủ.
 class AppColors {
   static const pink = Color(0xffFF939B);
   static const red = Color(0xffEF2A39);
 
   static const bg = Color(0xFFF7F7F7);
 
+  // Gradient giống splash
   static const gradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xffFF8A95),
-      Color(0xffFF3D4F),
-      Color(0xffD91F2D),
+      Color(0xffFF8A95), // hồng sáng
+      Color(0xffFF3D4F), // đỏ tươi
+      Color(0xffD91F2D), // đỏ đậm
     ],
     stops: [0.0, 0.45, 1.0],
   );
 }
 
+// Lớp _HomePageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _HomePageState extends State<HomePage> {
   final List<ProductModel> favoritedItems = [];
   String searchQuery = '';
   String selectedCategory = 'all';
   int selectedIndex = 0;
 
+
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
     Future.microtask(_initData);
   }
 
+  // Tải dữ liệu trang chủ: chạy các nguồn độc lập song song để giảm thời gian chờ.
+  // Xử lý _initData: thực hiện phần nghiệp vụ tương ứng trong màn hình trang chủ.
   Future<void> _initData() async {
     final userId = pb.authStore.model?.id ?? '';
 
@@ -69,6 +81,8 @@ class _HomePageState extends State<HomePage> {
     ]);
   }
 
+  // Làm mới trang chủ: đồng bộ các dữ liệu chính một lượt, không tách category/product thành hai loading song song.
+  // Làm mới dữ liệu (_refreshData): tải dữ liệu mới nhất và đồng bộ state hiện tại.
   Future<void> _refreshData() async {
     final userId = pb.authStore.model?.id ?? '';
 
@@ -84,6 +98,8 @@ class _HomePageState extends State<HomePage> {
     ]);
   }
 
+  // Tải thông báo: lỗi notification không được chặn việc mở hoặc làm mới Home.
+  // Tải khách hàng thông báo an toàn (_loadCustomerNotificationsSafely): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> _loadCustomerNotificationsSafely() async {
     try {
       await context.read<NotificationProvider>().loadCustomerNotifications();
@@ -92,6 +108,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Bật/tắt yêu thích (toggleFavorite): đảo trạng thái hiện tại theo thao tác người dùng.
   void toggleFavorite(ProductModel item) {
     setState(() {
       final exists = favoritedItems.any((product) => product.id == item.id);
@@ -101,6 +118,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // Xử lý tap (_handleTap): chuẩn hóa điều kiện đầu vào và thực hiện nhánh nghiệp vụ phù hợp.
   Future<void> _handleTap(int index) async {
     setState(() => selectedIndex = index);
 
@@ -131,6 +149,7 @@ class _HomePageState extends State<HomePage> {
 
       if (!mounted) return;
 
+      // Chỉ load lại sau khi quay về, KHÔNG tự markAllAsRead ở đây.
       try {
         await context.read<NotificationProvider>().loadCustomerNotifications();
       } catch (e) {
@@ -141,6 +160,7 @@ class _HomePageState extends State<HomePage> {
     if (mounted) setState(() => selectedIndex = 0);
   }
 
+  // Mở trò chuyện (_openChat): điều hướng hoặc hiển thị thành phần tương ứng từ thao tác người dùng.
   Future<void> _openChat() async {
     final chatProvider = context.read<ChatProvider>();
 
@@ -193,6 +213,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _HomePageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>();
@@ -265,11 +286,14 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
+// Lớp _BodyContainer: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _BodyContainer extends StatelessWidget {
   final Widget child;
 
+  // Khởi tạo _BodyContainer: nhận các tham số cần thiết để tạo đối tượng cho màn hình trang chủ.
   const _BodyContainer({required this.child});
 
+  // Xây dựng giao diện (build): dựng cây widget của _BodyContainer từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -283,6 +307,7 @@ class _BodyContainer extends StatelessWidget {
   }
 }
 
+// Lớp _ProductContent: thành phần phục vụ màn hình trang chủ.
 class _ProductContent extends StatelessWidget {
   final ProductProvider provider;
   final List<ProductModel> favoritedItems;
@@ -290,6 +315,7 @@ class _ProductContent extends StatelessWidget {
   final String selectedCategory;
   final ValueChanged<ProductModel> onFavoriteToggle;
 
+  // Khởi tạo _ProductContent: nhận các tham số cần thiết để tạo đối tượng cho màn hình trang chủ.
   const _ProductContent({
     required this.provider,
     required this.favoritedItems,
@@ -298,6 +324,7 @@ class _ProductContent extends StatelessWidget {
     required this.onFavoriteToggle,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _ProductContent từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     if (provider.isLoading) {
@@ -317,17 +344,20 @@ class _ProductContent extends StatelessWidget {
   }
 }
 
+// Lớp _CurvedBottomNavBar: thành phần phục vụ màn hình trang chủ.
 class _CurvedBottomNavBar extends StatelessWidget {
   final int selectedIndex;
   final Future<void> Function(int index) onTap;
   final List<int> counts;
 
+  // Khởi tạo _CurvedBottomNavBar: nhận các tham số cần thiết để tạo đối tượng cho màn hình trang chủ.
   const _CurvedBottomNavBar({
     required this.selectedIndex,
     required this.onTap,
     required this.counts,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _CurvedBottomNavBar từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -344,8 +374,8 @@ class _CurvedBottomNavBar extends StatelessWidget {
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                     colors: [
-                      Color(0xffFF3D4F),
-                      Color(0xffD91F2D),
+                      Color(0xffFF3D4F), // đỏ tươi
+                      Color(0xffD91F2D), // đỏ đậm
                     ],
                     stops: [0.0, 1.0],
                   ),
@@ -378,8 +408,9 @@ class _CurvedBottomNavBar extends StatelessWidget {
   }
 }
 
+// Lớp _BottomSoftCurveClipper: thành phần phục vụ màn hình trang chủ.
 class _BottomSoftCurveClipper extends CustomClipper<Path> {
-
+  // Lấy clip (getClip): truy xuất và trả kết quả cho lớp gọi.
   @override
   Path getClip(Size size) {
     const curveHeight = 18.0;
@@ -395,15 +426,19 @@ class _BottomSoftCurveClipper extends CustomClipper<Path> {
       ..close();
   }
 
+  // Xử lý shouldReclip: thực hiện phần nghiệp vụ tương ứng trong màn hình trang chủ.
   @override
   bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
 
+// Lớp _HeaderSection: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _HeaderSection extends StatelessWidget {
   final String? avatarUrl;
 
+  // Khởi tạo _HeaderSection: nhận các tham số cần thiết để tạo đối tượng cho màn hình trang chủ.
   const _HeaderSection({required this.avatarUrl});
 
+  // Xây dựng giao diện (build): dựng cây widget của _HeaderSection từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final isSmall = MediaQuery.sizeOf(context).width < 380;
@@ -440,11 +475,14 @@ class _HeaderSection extends StatelessWidget {
   }
 }
 
+// Lớp _HeaderTitle: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _HeaderTitle extends StatelessWidget {
   final bool isSmall;
 
+  // Khởi tạo _HeaderTitle: nhận các tham số cần thiết để tạo đối tượng cho màn hình trang chủ.
   const _HeaderTitle({required this.isSmall});
 
+  // Xây dựng giao diện (build): dựng cây widget của _HeaderTitle từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return FittedBox(
@@ -475,17 +513,20 @@ class _HeaderTitle extends StatelessWidget {
   }
 }
 
+// Lớp _AvatarButton: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _AvatarButton extends StatelessWidget {
   final String? avatarUrl;
   final double size;
   final VoidCallback onTap;
 
+  // Khởi tạo _AvatarButton: nhận các tham số cần thiết để tạo đối tượng cho màn hình trang chủ.
   const _AvatarButton({
     required this.avatarUrl,
     required this.size,
     required this.onTap,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _AvatarButton từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final radius = size / 3;
@@ -518,25 +559,30 @@ class _AvatarButton extends StatelessWidget {
   }
 }
 
+// Lớp _PersonIcon: thành phần phục vụ màn hình trang chủ.
 class _PersonIcon extends StatelessWidget {
-
+  // Khởi tạo _PersonIcon: nhận các tham số cần thiết để tạo đối tượng cho màn hình trang chủ.
   const _PersonIcon();
 
+  // Xây dựng giao diện (build): dựng cây widget của _PersonIcon từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return const Icon(Icons.person_outline, color: Colors.grey);
   }
 }
 
+// Lớp _SearchAndFavoriteSection: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _SearchAndFavoriteSection extends StatelessWidget {
   final ValueChanged<String> onSearchChanged;
   final List<ProductModel> favoritedItems;
 
+  // Khởi tạo _SearchAndFavoriteSection: nhận các tham số cần thiết để tạo đối tượng cho màn hình trang chủ.
   const _SearchAndFavoriteSection({
     required this.onSearchChanged,
     required this.favoritedItems,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _SearchAndFavoriteSection từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -549,11 +595,14 @@ class _SearchAndFavoriteSection extends StatelessWidget {
   }
 }
 
+// Lớp _SearchBox: thành phần phục vụ màn hình trang chủ.
 class _SearchBox extends StatelessWidget {
   final ValueChanged<String> onChanged;
 
+  // Khởi tạo _SearchBox: nhận các tham số cần thiết để tạo đối tượng cho màn hình trang chủ.
   const _SearchBox({required this.onChanged});
 
+  // Xây dựng giao diện (build): dựng cây widget của _SearchBox từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -586,11 +635,14 @@ class _SearchBox extends StatelessWidget {
   }
 }
 
+// Lớp _FavoriteButton: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _FavoriteButton extends StatelessWidget {
   final List<ProductModel> favoritedItems;
 
+  // Khởi tạo _FavoriteButton: nhận các tham số cần thiết để tạo đối tượng cho màn hình trang chủ.
   const _FavoriteButton({required this.favoritedItems});
 
+  // Xây dựng giao diện (build): dựng cây widget của _FavoriteButton từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -617,6 +669,7 @@ class _FavoriteButton extends StatelessWidget {
   }
 }
 
+// Xử lý _boxDecoration: thực hiện phần nghiệp vụ tương ứng trong màn hình trang chủ.
 BoxDecoration _boxDecoration({
   required double radius,
   required Color color,

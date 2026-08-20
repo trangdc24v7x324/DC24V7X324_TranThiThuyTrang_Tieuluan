@@ -1,17 +1,23 @@
+// FILE HỌC TẬP: lib/features/auth/screens/forgot_password_page.dart
+// Vai trò: Màn hình quên mật khẩu.
+// Luồng sử dụng: Nhận dữ liệu người dùng, gọi AuthService và điều hướng theo kết quả xác thực.
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:project_trangdc24v7x324/services/auth_service.dart';
 
+// Lớp ForgotPasswordPage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class ForgotPasswordPage extends StatefulWidget {
-
+  // Khởi tạo ForgotPasswordPage: nhận các tham số cần thiết để tạo đối tượng cho màn hình quên mật khẩu.
   const ForgotPasswordPage({super.key});
 
+  // Tạo state (createState): liên kết ForgotPasswordPage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
 }
 
+// Lớp _ForgotPasswordPageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final TextEditingController _emailController = TextEditingController();
 
@@ -22,12 +28,22 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   String? _error;
 
+  // =========================================================
+  // EMAIL VALIDATION
+  // =========================================================
+
+  // Kiểm tra điều kiện (_isValidEmail): đánh giá trạng thái hợp lệ email và trả kết quả cho lớp gọi.
   bool _isValidEmail(String email) {
     final RegExp emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
     return emailRegex.hasMatch(email);
   }
 
+  // =========================================================
+  // SEND RESET EMAIL
+  // =========================================================
+
+  // Đặt lại mật khẩu (_sendResetEmail): kiểm tra email và yêu cầu PocketBase gửi liên kết khôi phục.
   Future<void> _sendResetEmail() async {
     if (_isLoading) return;
 
@@ -77,6 +93,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     }
   }
 
+  // =========================================================
+  // INPUT DECORATION
+  // =========================================================
+
+  // Xử lý _inputDecoration: thực hiện phần nghiệp vụ tương ứng trong màn hình quên mật khẩu.
   InputDecoration _inputDecoration({
     required String label,
     required IconData icon,
@@ -103,6 +124,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     );
   }
 
+  // =========================================================
+  // DISPOSE
+  // =========================================================
+
+  // Giải phóng tài nguyên (dispose): hủy controller/listener khi widget bị loại khỏi cây giao diện.
   @override
   void dispose() {
     _emailController.dispose();
@@ -110,6 +136,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     super.dispose();
   }
 
+  // =========================================================
+  // UI
+  // =========================================================
+
+  // Xây dựng giao diện (build): dựng cây widget của _ForgotPasswordPageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
@@ -138,7 +169,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
+                  // ===========================================
+                  // BACK BUTTON
+                  // ===========================================
                   IconButton(
                     onPressed:
                         _isLoading
@@ -154,6 +187,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                   const SizedBox(height: 30),
 
+                  // ===========================================
+                  // LOGO
+                  // ===========================================
                   Center(
                     child: Column(
                       children: [
@@ -181,6 +217,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                   const SizedBox(height: 32),
 
+                  // ===========================================
+                  // FORM
+                  // ===========================================
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
@@ -222,6 +261,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                         const SizedBox(height: 20),
 
+                        // =====================================
+                        // EMAIL
+                        // =====================================
                         TextField(
                           controller: _emailController,
                           enabled: !_isLoading,
@@ -239,6 +281,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           ),
                         ),
 
+                        // =====================================
+                        // ERROR
+                        // =====================================
                         if (_error != null) ...[
                           const SizedBox(height: 14),
 
@@ -264,6 +309,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           ),
                         ],
 
+                        // =====================================
+                        // SUCCESS
+                        // =====================================
                         if (_isSuccess) ...[
                           const SizedBox(height: 14),
 
@@ -308,6 +356,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                         const SizedBox(height: 20),
 
+                        // =====================================
+                        // SEND BUTTON
+                        // =====================================
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
@@ -343,6 +394,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                         const SizedBox(height: 12),
 
+                        // =====================================
+                        // BACK LOGIN
+                        // =====================================
                         SizedBox(
                           width: double.infinity,
                           child: TextButton(

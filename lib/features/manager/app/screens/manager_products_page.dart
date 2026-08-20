@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/manager/app/screens/manager_products_page.dart
+// Vai trò: Màn hình Manager App quản lý sản phẩm.
+// Luồng sử dụng: Hiển thị nghiệp vụ quản lý trên ứng dụng và gọi Provider/Service tương ứng.
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -8,16 +11,19 @@ import 'package:project_trangdc24v7x324/providers/product_provider.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
 
+// Lớp ManagerProductsPage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class ManagerProductsPage extends StatefulWidget {
-
+  // Khởi tạo ManagerProductsPage: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager app quản lý sản phẩm.
   const ManagerProductsPage({super.key});
 
+  // Tạo state (createState): liên kết ManagerProductsPage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<ManagerProductsPage> createState() => _ManagerProductsPageState();
 }
 
+// Lớp _ManagerProductsPageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _ManagerProductsPageState extends State<ManagerProductsPage> {
-
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
@@ -28,10 +34,20 @@ class _ManagerProductsPageState extends State<ManagerProductsPage> {
     });
   }
 
+  // =========================================================
+  // REFRESH
+  // =========================================================
+
+  // Làm mới dữ liệu (_refreshData): tải dữ liệu mới nhất và đồng bộ state hiện tại.
   Future<void> _refreshData() async {
     await context.read<ProductProvider>().loadInitialData();
   }
 
+  // =========================================================
+  // CREATE PRODUCT
+  // =========================================================
+
+  // Mở create trang (_openCreatePage): điều hướng hoặc hiển thị thành phần tương ứng từ thao tác người dùng.
   Future<void> _openCreatePage() async {
     final bool? result = await Navigator.push<bool>(
       context,
@@ -42,6 +58,11 @@ class _ManagerProductsPageState extends State<ManagerProductsPage> {
     await context.read<ProductProvider>().loadProducts();
   }
 
+  // =========================================================
+  // EDIT PRODUCT
+  // =========================================================
+
+  // Mở chỉnh sửa trang (_openEditPage): điều hướng hoặc hiển thị thành phần tương ứng từ thao tác người dùng.
   Future<void> _openEditPage(ProductModel product) async {
     final bool? result = await Navigator.push<bool>(
       context,
@@ -52,6 +73,11 @@ class _ManagerProductsPageState extends State<ManagerProductsPage> {
     await context.read<ProductProvider>().loadProducts();
   }
 
+  // =========================================================
+  // DELETE PRODUCT
+  // =========================================================
+
+  // Xác nhận xóa (_confirmDelete): hiển thị cảnh báo trước khi xóa dữ liệu.
   Future<void> _confirmDelete(ProductModel product) async {
     final bool? confirm = await showDialog<bool>(
       context: context,
@@ -100,6 +126,11 @@ class _ManagerProductsPageState extends State<ManagerProductsPage> {
     );
   }
 
+  // =========================================================
+  // BODY
+  // =========================================================
+
+  // Tạo giao diện nội dung (_buildBody): dựng widget con từ dữ liệu hiện tại.
   Widget _buildBody(ProductProvider provider) {
     if (provider.isLoading && provider.products.isEmpty) {
       return const Center(
@@ -142,6 +173,11 @@ class _ManagerProductsPageState extends State<ManagerProductsPage> {
     );
   }
 
+  // =========================================================
+  // BUILD
+  // =========================================================
+
+  // Xây dựng giao diện (build): dựng cây widget của _ManagerProductsPageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final ProductProvider provider = context.watch<ProductProvider>();
@@ -159,6 +195,11 @@ class _ManagerProductsPageState extends State<ManagerProductsPage> {
   }
 }
 
+// ===========================================================
+// PRODUCT CARD
+// ===========================================================
+
+// Lớp _ProductCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _ProductCard extends StatelessWidget {
   final ProductModel product;
 
@@ -167,6 +208,7 @@ class _ProductCard extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
+  // Khởi tạo _ProductCard: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager app quản lý sản phẩm.
   const _ProductCard({
     required this.product,
     required this.categoryTitle,
@@ -174,6 +216,11 @@ class _ProductCard extends StatelessWidget {
     required this.onDelete,
   });
 
+  // =========================================================
+  // FORMAT PRICE
+  // =========================================================
+
+  // Định dạng price (_formatPrice): chuyển dữ liệu thô thành giá trị dễ đọc để hiển thị.
   String _formatPrice(double price) {
     final String value = price.round().toString();
 
@@ -192,6 +239,11 @@ class _ProductCard extends StatelessWidget {
     return '$bufferđ';
   }
 
+  // =========================================================
+  // PRICE UI
+  // =========================================================
+
+  // Tạo giao diện price (_buildPrice): dựng widget con từ dữ liệu hiện tại.
   Widget _buildPrice() {
     if (!product.hasActiveSale) {
       return Text(
@@ -254,6 +306,11 @@ class _ProductCard extends StatelessWidget {
     );
   }
 
+  // =========================================================
+  // BUILD
+  // =========================================================
+
+  // Xây dựng giao diện (build): dựng cây widget của _ProductCard từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final bool isSmall = MediaQuery.sizeOf(context).width < 380;
@@ -274,7 +331,9 @@ class _ProductCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-
+          // ===============================================
+          // IMAGE
+          // ===============================================
           _ProductImage(
             imageUrl: product.image,
             size: isSmall ? 72 : 84,
@@ -284,6 +343,9 @@ class _ProductCard extends StatelessWidget {
 
           const SizedBox(width: 12),
 
+          // ===============================================
+          // INFORMATION
+          // ===============================================
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -301,16 +363,25 @@ class _ProductCard extends StatelessWidget {
 
                 const SizedBox(height: 6),
 
+                // =========================
+                // PRICE
+                // =========================
                 _buildPrice(),
 
                 const SizedBox(height: 7),
 
+                // =========================
+                // SALE STATUS
+                // =========================
                 if (product.hasActiveSale) ...[
                   const _SaleChip(),
 
                   const SizedBox(height: 6),
                 ],
 
+                // =========================
+                // AVAILABILITY
+                // =========================
                 _StatusChip(isAvailable: product.isAvailable),
               ],
             ),
@@ -318,6 +389,9 @@ class _ProductCard extends StatelessWidget {
 
           const SizedBox(width: 8),
 
+          // ===============================================
+          // ACTION
+          // ===============================================
           Column(
             children: [
               _CircleIconButton(
@@ -341,6 +415,11 @@ class _ProductCard extends StatelessWidget {
   }
 }
 
+// ===========================================================
+// PRODUCT IMAGE
+// ===========================================================
+
+// Lớp _ProductImage: thành phần phục vụ màn hình manager app quản lý sản phẩm.
 class _ProductImage extends StatelessWidget {
   final String imageUrl;
 
@@ -348,12 +427,14 @@ class _ProductImage extends StatelessWidget {
 
   final int? discountPercent;
 
+  // Khởi tạo _ProductImage: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager app quản lý sản phẩm.
   const _ProductImage({
     required this.imageUrl,
     required this.size,
     this.discountPercent,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _ProductImage từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -409,10 +490,16 @@ class _ProductImage extends StatelessWidget {
   }
 }
 
-class _SaleChip extends StatelessWidget {
+// ===========================================================
+// SALE CHIP
+// ===========================================================
 
+// Lớp _SaleChip: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
+class _SaleChip extends StatelessWidget {
+  // Khởi tạo _SaleChip: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager app quản lý sản phẩm.
   const _SaleChip();
 
+  // Xây dựng giao diện (build): dựng cây widget của _SaleChip từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -442,11 +529,18 @@ class _SaleChip extends StatelessWidget {
   }
 }
 
+// ===========================================================
+// AVAILABILITY STATUS
+// ===========================================================
+
+// Lớp _StatusChip: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _StatusChip extends StatelessWidget {
   final bool isAvailable;
 
+  // Khởi tạo _StatusChip: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager app quản lý sản phẩm.
   const _StatusChip({required this.isAvailable});
 
+  // Xây dựng giao diện (build): dựng cây widget của _StatusChip từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final Color color = isAvailable ? Colors.green : Colors.red;
@@ -465,17 +559,24 @@ class _StatusChip extends StatelessWidget {
   }
 }
 
+// ===========================================================
+// ACTION BUTTON
+// ===========================================================
+
+// Lớp _CircleIconButton: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _CircleIconButton extends StatelessWidget {
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
 
+  // Khởi tạo _CircleIconButton: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager app quản lý sản phẩm.
   const _CircleIconButton({
     required this.icon,
     required this.color,
     required this.onTap,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _CircleIconButton từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return InkWell(

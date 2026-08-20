@@ -1,8 +1,12 @@
+// FILE HỌC TẬP: lib/features/manager/web/widgets/manager_stat_card.dart
+// Vai trò: Widget Web dùng cho thống kê thẻ.
+// Luồng sử dụng: Đóng gói thành phần giao diện hoặc tiện ích dùng lại trong khu vực Manager Web.
 
 import 'package:flutter/material.dart';
 
 import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 
+// Lớp ManagerStatCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class ManagerStatCard extends StatelessWidget {
   final String title;
   final String value;
@@ -11,6 +15,7 @@ class ManagerStatCard extends StatelessWidget {
   final Color accentColor;
   final VoidCallback? onTap;
 
+  // Khởi tạo ManagerStatCard: nhận các tham số cần thiết để tạo đối tượng cho widget web dùng cho thống kê thẻ.
   const ManagerStatCard({
     super.key,
     required this.title,
@@ -21,6 +26,7 @@ class ManagerStatCard extends StatelessWidget {
     this.onTap,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của ManagerStatCard từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final content = Container(

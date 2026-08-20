@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/services/review_service.dart
+// Vai trò: Service nghiệp vụ đánh giá.
+// Luồng sử dụng: Thực hiện truy vấn PocketBase hoặc tác vụ hệ thống và trả kết quả cho Provider/UI.
 
 import 'package:flutter/foundation.dart';
 import 'package:pocketbase/pocketbase.dart';
@@ -6,12 +9,18 @@ import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
 import 'package:project_trangdc24v7x324/models/product_review_model.dart';
 import 'package:project_trangdc24v7x324/services/order_service.dart';
 
+// Lớp ReviewService: tập trung nghiệp vụ và thao tác dữ liệu/backend cho chức năng tương ứng.
 class ReviewService {
-
+  // Đọc pb (_pb): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   PocketBase get _pb => getPocketBase();
 
   final OrderService _orderService = OrderService();
 
+  // =========================================================
+  // GET PRODUCT REVIEWS
+  // =========================================================
+
+  // Lấy đánh giá (getReviews): truy xuất từ PocketBase và trả kết quả cho lớp gọi.
   Future<List<ProductReviewModel>> getReviews(String productId) async {
     try {
       final records = await _pb
@@ -54,6 +63,11 @@ class ReviewService {
     }
   }
 
+  // =========================================================
+  // CURRENT USER REVIEW
+  // =========================================================
+
+  // Lấy của tôi đánh giá (getMyReview): truy xuất từ PocketBase và trả kết quả cho lớp gọi.
   Future<ProductReviewModel?> getMyReview(String productId) async {
     final userId = _pb.authStore.model?.id;
 
@@ -101,6 +115,11 @@ class ReviewService {
     }
   }
 
+  // =========================================================
+  // REVIEW ELIGIBILITY
+  // =========================================================
+
+  // Kiểm tra điều kiện (canCurrentUserReview): đánh giá khả năng hiện tại người dùng đánh giá và trả kết quả cho lớp gọi.
   Future<bool> canCurrentUserReview(String productId) async {
     if (!_pb.authStore.isValid) {
       return false;
@@ -115,6 +134,11 @@ class ReviewService {
     return _orderService.hasCompletedPurchase(safeProductId);
   }
 
+  // =========================================================
+  // CREATE / UPDATE REVIEW
+  // =========================================================
+
+  // Lưu đánh giá (saveReview): kiểm tra dữ liệu, ghi thay đổi và đồng bộ state sau khi thành công.
   Future<void> saveReview({
     required String productId,
     required int rating,
@@ -169,6 +193,11 @@ class ReviewService {
         );
   }
 
+  // =========================================================
+  // DELETE REVIEW
+  // =========================================================
+
+  // Xóa của tôi đánh giá (deleteMyReview): loại bỏ dữ liệu được chọn và đồng bộ state liên quan.
   Future<void> deleteMyReview(String productId) async {
     final existing = await getMyReview(productId);
 
@@ -179,6 +208,11 @@ class ReviewService {
     await _pb.collection('product_reviews').delete(existing.id);
   }
 
+  // =========================================================
+  // PRODUCT RATING
+  // =========================================================
+
+  // Lấy điểm đánh giá thống kê for sản phẩm (getRatingStatsForProduct): truy xuất và trả kết quả cho lớp gọi.
   Future<ProductRatingStats> getRatingStatsForProduct(String productId) async {
     final reviews = await getReviews(productId);
 
@@ -197,6 +231,11 @@ class ReviewService {
     );
   }
 
+  // =========================================================
+  // ALL PRODUCT RATING STATS
+  // =========================================================
+
+  // Lấy tất cả điểm đánh giá thống kê (getAllRatingStats): truy xuất từ PocketBase và trả kết quả cho lớp gọi.
   Future<Map<String, ProductRatingStats>> getAllRatingStats() async {
     try {
       List<dynamic> records;
@@ -206,7 +245,7 @@ class ReviewService {
             .collection('product_reviews')
             .getFullList(filter: 'isVisible = true');
       } catch (_) {
-
+        // Tương thích collection cũ chưa có trường isVisible.
         records = await _pb.collection('product_reviews').getFullList();
       }
 

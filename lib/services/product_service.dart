@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/services/product_service.dart
+// Vai trò: Service nghiệp vụ sản phẩm.
+// Luồng sử dụng: Thực hiện truy vấn PocketBase hoặc tác vụ hệ thống và trả kết quả cho Provider/UI.
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -6,8 +9,9 @@ import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
 import 'package:project_trangdc24v7x324/models/category_model.dart';
 import 'package:project_trangdc24v7x324/models/product_model.dart';
 
+// Lớp ProductService: tập trung nghiệp vụ và thao tác dữ liệu/backend cho chức năng tương ứng.
 class ProductService {
-
+  // Lấy danh mục (getCategories): truy xuất từ PocketBase và trả kết quả cho lớp gọi.
   Future<List<CategoryModel>> getCategories() async {
     try {
       final records = await pb
@@ -28,6 +32,7 @@ class ProductService {
     }
   }
 
+  // Lấy sản phẩm (getProducts): truy xuất từ PocketBase và trả kết quả cho lớp gọi.
   Future<List<ProductModel>> getProducts() async {
     try {
       final records = await pb
@@ -41,6 +46,7 @@ class ProductService {
     }
   }
 
+  // Lấy sản phẩm by mã (getProductById): truy xuất từ PocketBase và trả kết quả cho lớp gọi.
   Future<ProductModel> getProductById(String id) async {
     try {
       final record = await pb
@@ -54,6 +60,7 @@ class ProductService {
     }
   }
 
+  // Thêm sản phẩm (addProduct): đưa mục mới vào state/backend và cập nhật giao diện.
   Future<void> addProduct(
     ProductModel product, {
     Uint8List? imageBytes,
@@ -78,6 +85,7 @@ class ProductService {
     }
   }
 
+  // Cập nhật sản phẩm (updateProduct): gửi thay đổi tới service/backend và đồng bộ state hiện tại.
   Future<void> updateProduct(
     String id,
     ProductModel product, {
@@ -104,12 +112,14 @@ class ProductService {
     }
   }
 
+  // Xóa sản phẩm (deleteProduct): loại bỏ dữ liệu được chọn và đồng bộ state liên quan.
   Future<void> deleteProduct(String productId) async {
     await pb
         .collection('products')
         .update(productId, body: {'isAvailable': false});
   }
 
+  // Tạo giao diện nội dung (_buildBody): dựng widget con từ dữ liệu hiện tại.
   Map<String, dynamic> _buildBody(ProductModel product, String? categoryId) {
     return {
       'title': product.title.trim(),
@@ -127,6 +137,7 @@ class ProductService {
     };
   }
 
+  // Tạo giao diện hình ảnh files (_buildImageFiles): dựng widget con từ dữ liệu hiện tại.
   List<http.MultipartFile> _buildImageFiles({
     required Uint8List? imageBytes,
     required String? imageName,
@@ -142,6 +153,7 @@ class ProductService {
     ];
   }
 
+  // Xử lý _safeImageName: thực hiện phần nghiệp vụ tương ứng trong service nghiệp vụ sản phẩm.
   String _safeImageName(String? imageName) {
     final raw = imageName?.trim() ?? '';
 
@@ -158,11 +170,13 @@ class ProductService {
     return '$normalized.jpg';
   }
 
+  // Xử lý _dateValue: thực hiện phần nghiệp vụ tương ứng trong service nghiệp vụ sản phẩm.
   String? _dateValue(DateTime? value) {
     if (value == null) return null;
     return value.toUtc().toIso8601String();
   }
 
+  // Ánh xạ sản phẩm bản ghi (_mapProductRecord): chuyển dữ liệu thô thành cấu trúc ứng dụng sử dụng.
   ProductModel _mapProductRecord(dynamic record) {
     final categoryData = _getCategoryData(record);
 
@@ -178,6 +192,7 @@ class ProductService {
     });
   }
 
+  // Lấy danh mục dữ liệu (_getCategoryData): truy xuất và trả kết quả cho lớp gọi.
   Map<String, String> _getCategoryData(dynamic record) {
     try {
       final expand = record.expand;
@@ -198,6 +213,7 @@ class ProductService {
     return {'id': rawCategory, 'title': 'Khác', 'slug': 'khac'};
   }
 
+  // Tạo giao diện sản phẩm hình ảnh url (_buildProductImageUrl): dựng widget con từ dữ liệu hiện tại.
   String _buildProductImageUrl(dynamic record) {
     final fileName = record.getStringValue('image');
 
@@ -206,6 +222,7 @@ class ProductService {
     return '${pb.baseUrl}/api/files/products/${record.id}/$fileName';
   }
 
+  // Xử lý danh mục mã (_resolveCategoryId): chuẩn hóa điều kiện đầu vào và thực hiện nhánh nghiệp vụ phù hợp.
   Future<String?> _resolveCategoryId(ProductModel product) async {
     if (product.categoryId.trim().isNotEmpty) {
       return product.categoryId.trim();

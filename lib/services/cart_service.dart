@@ -1,11 +1,16 @@
+// FILE HỌC TẬP: lib/services/cart_service.dart
+// Vai trò: Service nghiệp vụ giỏ hàng.
+// Luồng sử dụng: Thực hiện truy vấn PocketBase hoặc tác vụ hệ thống và trả kết quả cho Provider/UI.
 
 import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
 import 'package:project_trangdc24v7x324/models/cart_item_model.dart';
 
+// Lớp CartService: tập trung nghiệp vụ và thao tác dữ liệu/backend cho chức năng tương ứng.
 class CartService {
   String? _cachedActiveCartId;
   String? _cachedUserId;
 
+  // Xử lý _requireUserId: thực hiện phần nghiệp vụ tương ứng trong service nghiệp vụ giỏ hàng.
   String _requireUserId() {
     final authUser = pb.authStore.model;
 
@@ -23,6 +28,7 @@ class CartService {
     return userId;
   }
 
+  // Lấy đang hoạt động giỏ hàng mã (getActiveCartId): truy xuất từ PocketBase và trả kết quả cho lớp gọi.
   Future<String?> getActiveCartId({bool createIfMissing = false}) async {
     final userId = _requireUserId();
 
@@ -69,6 +75,7 @@ class CartService {
     return created.id;
   }
 
+  // Lấy or create đang hoạt động giỏ hàng mã (getOrCreateActiveCartId): truy xuất từ PocketBase và trả kết quả cho lớp gọi.
   Future<String> getOrCreateActiveCartId() async {
     final cartId = await getActiveCartId(createIfMissing: true);
 
@@ -79,6 +86,7 @@ class CartService {
     return cartId;
   }
 
+  // Lấy đang hoạt động giỏ hàng các mục (fetchActiveCartItems): truy xuất từ PocketBase và trả kết quả cho lớp gọi.
   Future<List<CartItemModel>> fetchActiveCartItems() async {
     final cartId = await getActiveCartId();
 
@@ -95,7 +103,7 @@ class CartService {
         expand: 'product,product.category',
       );
     } catch (_) {
-
+      // Tương thích PocketBase cũ nếu nested expand chưa được hỗ trợ.
       itemRecords = await pb
           .collection('cart_items')
           .getFullList(filter: 'cart = "$cartId"', sort: 'created');
@@ -131,6 +139,8 @@ class CartService {
 
         final productData = productRecord.data;
 
+        // Nếu field isAvailable chưa tồn tại ở dữ liệu cũ thì mặc định
+        // vẫn coi sản phẩm đang bán để tránh xóa nhầm cart item.
         final dynamic rawAvailability = productData['isAvailable'];
 
         final bool isAvailable =
@@ -138,6 +148,9 @@ class CartService {
 
         final double originalPrice = _toDouble(productData['price']);
 
+        // Trước checkout/cart refresh:
+        // món đã ngừng bán hoặc có giá không hợp lệ sẽ bị loại khỏi
+        // active cart trên PocketBase, không cho đi tiếp sang Payment.
         if (!isAvailable || originalPrice <= 0) {
           try {
             await pb.collection('cart_items').delete(itemRecord.id);
@@ -154,7 +167,8 @@ class CartService {
 
         result.add(item);
       } catch (_) {
-
+        // Product đã bị xóa thật khỏi database:
+        // dọn luôn cart_item mồ côi để active cart sạch.
         try {
           await pb.collection('cart_items').delete(itemRecord.id);
         } catch (_) {}
@@ -164,6 +178,7 @@ class CartService {
     return result;
   }
 
+  // Thêm mục (addItem): đưa mục mới vào state/backend và cập nhật giao diện.
   Future<void> addItem(CartItemModel item) async {
     if (item.productId.trim().isEmpty) {
       throw Exception('Sản phẩm không hợp lệ');
@@ -209,6 +224,7 @@ class CartService {
         );
   }
 
+  // Cập nhật số lượng (updateQuantity): gửi thay đổi tới service/backend và đồng bộ state hiện tại.
   Future<void> updateQuantity({
     required CartItemModel item,
     required int quantity,
@@ -253,6 +269,7 @@ class CartService {
         );
   }
 
+  // Xóa mục (removeItem): loại bỏ dữ liệu được chọn và đồng bộ state liên quan.
   Future<void> removeItem(CartItemModel item) async {
     final cartId = await getActiveCartId();
 
@@ -273,6 +290,7 @@ class CartService {
     await pb.collection('cart_items').delete(record.id);
   }
 
+  // Xóa by sản phẩm mã (removeByProductId): loại bỏ dữ liệu được chọn và đồng bộ state liên quan.
   Future<void> removeByProductId(String productId) async {
     final cartId = await getActiveCartId();
 
@@ -289,6 +307,11 @@ class CartService {
     }
   }
 
+  // =========================================================
+  // REMOVE PURCHASED ITEMS AFTER PARTIAL CHECKOUT
+  // =========================================================
+
+  // Xóa đã mua các mục (removePurchasedItems): loại bỏ dữ liệu được chọn và đồng bộ state liên quan.
   Future<void> removePurchasedItems(List<CartItemModel> purchasedItems) async {
     if (purchasedItems.isEmpty) return;
 
@@ -296,6 +319,7 @@ class CartService {
 
     if (cartId == null || cartId.isEmpty) return;
 
+    // Đọc giỏ một lần, sau đó xóa đúng các line đã thanh toán.
     final records = await pb
         .collection('cart_items')
         .getFullList(filter: 'cart = "$cartId"');
@@ -327,6 +351,7 @@ class CartService {
     }
   }
 
+  // Xóa đang hoạt động giỏ hàng các mục (clearActiveCartItems): loại bỏ dữ liệu được chọn và đồng bộ state liên quan.
   Future<void> clearActiveCartItems() async {
     final cartId = await getActiveCartId();
 
@@ -343,6 +368,7 @@ class CartService {
     }
   }
 
+  // Nghiệp vụ convertActiveCart: truy vấn/cập nhật PocketBase và trả dữ liệu cho service nghiệp vụ giỏ hàng.
   Future<void> convertActiveCart() async {
     final cartId = await getActiveCartId();
 
@@ -355,11 +381,13 @@ class CartService {
     _cachedActiveCartId = null;
   }
 
+  // Nghiệp vụ resetCache: truy vấn/cập nhật PocketBase và trả dữ liệu cho service nghiệp vụ giỏ hàng.
   void resetCache() {
     _cachedActiveCartId = null;
     _cachedUserId = null;
   }
 
+  // Nghiệp vụ _findCartItemRecord: truy vấn/cập nhật PocketBase và trả dữ liệu cho service nghiệp vụ giỏ hàng.
   Future<dynamic> _findCartItemRecord({
     required String cartId,
     required String productId,
@@ -386,6 +414,7 @@ class CartService {
     return null;
   }
 
+  // Nghiệp vụ _mergeCartInto: truy vấn/cập nhật PocketBase và trả dữ liệu cho service nghiệp vụ giỏ hàng.
   Future<void> _mergeCartInto({
     required String sourceCartId,
     required String targetCartId,
@@ -441,6 +470,7 @@ class CartService {
     }
   }
 
+  // Ánh xạ giỏ hàng mục (_mapCartItem): chuyển dữ liệu thô thành cấu trúc ứng dụng sử dụng.
   Future<CartItemModel> _mapCartItem({
     required dynamic cartItemRecord,
     required dynamic productRecord,
@@ -531,6 +561,7 @@ class CartService {
     );
   }
 
+  // Kiểm tra điều kiện (_hasActiveSale): đánh giá trạng thái có đang hoạt động khuyến mãi và trả kết quả cho lớp gọi.
   bool _hasActiveSale({
     required double originalPrice,
     required double salePrice,
@@ -559,6 +590,7 @@ class CartService {
     return true;
   }
 
+  // Xử lý _toInt: thực hiện phần nghiệp vụ tương ứng trong service nghiệp vụ giỏ hàng.
   int _toInt(dynamic value) {
     if (value is int) {
       return value;
@@ -571,6 +603,7 @@ class CartService {
     return int.tryParse(value?.toString() ?? '') ?? 0;
   }
 
+  // Xử lý _toDouble: thực hiện phần nghiệp vụ tương ứng trong service nghiệp vụ giỏ hàng.
   double _toDouble(dynamic value) {
     if (value is num) {
       return value.toDouble();
@@ -579,6 +612,7 @@ class CartService {
     return double.tryParse(value?.toString() ?? '') ?? 0;
   }
 
+  // Xử lý _toBool: thực hiện phần nghiệp vụ tương ứng trong service nghiệp vụ giỏ hàng.
   bool _toBool(dynamic value) {
     if (value is bool) {
       return value;
@@ -593,6 +627,7 @@ class CartService {
     return text == 'true' || text == '1' || text == 'yes';
   }
 
+  // Xử lý _toDateTime: thực hiện phần nghiệp vụ tương ứng trong service nghiệp vụ giỏ hàng.
   DateTime? _toDateTime(dynamic value) {
     final text = value?.toString().trim() ?? '';
 

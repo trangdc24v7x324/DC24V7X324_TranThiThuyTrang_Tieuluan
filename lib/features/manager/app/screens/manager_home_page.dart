@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/manager/app/screens/manager_home_page.dart
+// Vai trò: Màn hình Manager App quản lý trang chủ.
+// Luồng sử dụng: Hiển thị nghiệp vụ quản lý trên ứng dụng và gọi Provider/Service tương ứng.
 
 import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
 import 'package:project_trangdc24v7x324/providers/chat_provider.dart';
@@ -8,27 +11,32 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+// Lớp ManagerHomePage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class ManagerHomePage extends StatefulWidget {
-
+  // Khởi tạo ManagerHomePage: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager app quản lý trang chủ.
   const ManagerHomePage({super.key});
 
+  // Tạo state (createState): liên kết ManagerHomePage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<ManagerHomePage> createState() => _ManagerHomePageState();
 }
 
+// Lớp _ManagerHomePageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _ManagerHomePageState extends State<ManagerHomePage> {
-
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
     Future.microtask(_loadData);
   }
 
+  // Tải dữ liệu (_loadData): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> _loadData() async {
     if (!mounted) return;
 
     final managerId = pb.authStore.model?.id ?? '';
 
+    // Không để một API lỗi làm toàn bộ ManagerHome bị crash trên Flutter Web.
     try {
       await context.read<OrderProvider>().loadAllOrders();
     } catch (e, st) {
@@ -57,6 +65,7 @@ class _ManagerHomePageState extends State<ManagerHomePage> {
     }
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _ManagerHomePageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final order = context.watch<OrderProvider>();
@@ -192,11 +201,14 @@ class _ManagerHomePageState extends State<ManagerHomePage> {
   }
 }
 
+// Lớp _HeaderSection: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _HeaderSection extends StatelessWidget {
   final String avatarUrl;
 
+  // Khởi tạo _HeaderSection: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager app quản lý trang chủ.
   const _HeaderSection({required this.avatarUrl});
 
+  // Xây dựng giao diện (build): dựng cây widget của _HeaderSection từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final isSmall = MediaQuery.sizeOf(context).width < 380;
@@ -274,12 +286,14 @@ class _HeaderSection extends StatelessWidget {
   }
 }
 
+// Lớp _DashboardGrid: thành phần phục vụ màn hình manager app quản lý trang chủ.
 class _DashboardGrid extends StatelessWidget {
   final int pending;
   final int completed;
   final int unread;
   final int totalRooms;
 
+  // Khởi tạo _DashboardGrid: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager app quản lý trang chủ.
   const _DashboardGrid({
     required this.pending,
     required this.completed,
@@ -287,6 +301,7 @@ class _DashboardGrid extends StatelessWidget {
     required this.totalRooms,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _DashboardGrid từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final items = [
@@ -330,12 +345,14 @@ class _DashboardGrid extends StatelessWidget {
   }
 }
 
+// Lớp _DashboardItem: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _DashboardItem extends StatelessWidget {
   final String title;
   final int value;
   final Color color;
   final IconData icon;
 
+  // Khởi tạo _DashboardItem: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager app quản lý trang chủ.
   const _DashboardItem({
     required this.title,
     required this.value,
@@ -343,6 +360,7 @@ class _DashboardItem extends StatelessWidget {
     required this.icon,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _DashboardItem từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -391,6 +409,7 @@ class _DashboardItem extends StatelessWidget {
   }
 }
 
+// Lớp _ActionCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _ActionCard extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -399,6 +418,7 @@ class _ActionCard extends StatelessWidget {
   final int badge;
   final VoidCallback onTap;
 
+  // Khởi tạo _ActionCard: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager app quản lý trang chủ.
   const _ActionCard({
     required this.icon,
     required this.title,
@@ -408,6 +428,7 @@ class _ActionCard extends StatelessWidget {
     this.badge = 0,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _ActionCard từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -482,10 +503,12 @@ class _ActionCard extends StatelessWidget {
   }
 }
 
+// Lớp _BottomRedDecor: thành phần phục vụ màn hình manager app quản lý trang chủ.
 class _BottomRedDecor extends StatelessWidget {
-
+  // Khởi tạo _BottomRedDecor: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager app quản lý trang chủ.
   const _BottomRedDecor();
 
+  // Xây dựng giao diện (build): dựng cây widget của _BottomRedDecor từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(height: 0, color: const Color(0xFFEF2A39));

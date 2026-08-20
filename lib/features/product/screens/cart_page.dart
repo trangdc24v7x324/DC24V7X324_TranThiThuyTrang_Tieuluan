@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/product/screens/cart_page.dart
+// Vai trò: Màn hình giỏ hàng.
+// Luồng sử dụng: Phục vụ luồng mua hàng: xem món, giỏ hàng, đặt đơn, thanh toán hoặc theo dõi đơn.
 
 import 'package:project_trangdc24v7x324/models/cart_item_model.dart';
 import 'package:project_trangdc24v7x324/providers/cart_provider.dart';
@@ -10,24 +13,29 @@ import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+// Lớp CartPage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class CartPage extends StatefulWidget {
-
+  // Khởi tạo CartPage: nhận các tham số cần thiết để tạo đối tượng cho màn hình giỏ hàng.
   const CartPage({super.key});
 
+  // Tạo state (createState): liên kết CartPage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<CartPage> createState() => _CartPageState();
 }
 
+// Lớp _CartPageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _CartPageState extends State<CartPage> {
   final Set<String> _selectedKeys = <String>{};
 
   bool _selectionInitialized = false;
   bool _isCheckingCart = false;
 
+  // Xử lý _lineKey: thực hiện phần nghiệp vụ tương ứng trong màn hình giỏ hàng.
   String _lineKey(CartItemModel item) {
     return '${item.productId}|${item.normalizedNote}';
   }
 
+  // Định dạng giá (formatPrice): chuyển số tiền thành chuỗi dễ đọc để hiển thị.
   String formatPrice(double price) {
     final String text = price.round().toString();
     final StringBuffer result = StringBuffer();
@@ -45,23 +53,27 @@ class _CartPageState extends State<CartPage> {
     return '$resultđ';
   }
 
+  // Xử lý _syncSelectionWithCart: thực hiện phần nghiệp vụ tương ứng trong màn hình giỏ hàng.
   void _syncSelectionWithCart(List<CartItemModel> items) {
     final currentKeys = items.map(_lineKey).toSet();
 
     _selectedKeys.removeWhere((key) => !currentKeys.contains(key));
 
+    // Lần đầu vào Cart: mặc định chọn tất cả để giữ trải nghiệm cũ.
     if (!_selectionInitialized) {
       _selectedKeys.addAll(currentKeys);
       _selectionInitialized = true;
     }
   }
 
+  // Chọn ed các mục (_selectedItems): lưu lựa chọn để dùng cho lọc, biểu mẫu hoặc nghiệp vụ tiếp theo.
   List<CartItemModel> _selectedItems(List<CartItemModel> items) {
     return items.where((item) {
       return _selectedKeys.contains(_lineKey(item));
     }).toList();
   }
 
+  // Bật/tắt mục (_toggleItem): đảo trạng thái hiện tại theo thao tác người dùng.
   void _toggleItem(CartItemModel item, bool selected) {
     final key = _lineKey(item);
 
@@ -74,6 +86,7 @@ class _CartPageState extends State<CartPage> {
     });
   }
 
+  // Bật/tắt tất cả (_toggleAll): đảo trạng thái hiện tại theo thao tác người dùng.
   void _toggleAll(List<CartItemModel> items, bool selected) {
     setState(() {
       if (selected) {
@@ -84,6 +97,7 @@ class _CartPageState extends State<CartPage> {
     });
   }
 
+  // Xác nhận remove (_confirmRemove): kiểm tra điều kiện và thực hiện nghiệp vụ sau khi người dùng xác nhận.
   Future<void> _confirmRemove(
     BuildContext context,
     CartProvider cart,
@@ -140,6 +154,7 @@ class _CartPageState extends State<CartPage> {
     });
   }
 
+  // Xử lý _takeSnapshot: thực hiện phần nghiệp vụ tương ứng trong màn hình giỏ hàng.
   Map<String, _CartSnapshot> _takeSnapshot(List<CartItemModel> items) {
     return {
       for (final item in items)
@@ -151,6 +166,7 @@ class _CartPageState extends State<CartPage> {
     };
   }
 
+  // Xử lý checkout (_handleCheckout): chuẩn hóa điều kiện đầu vào và thực hiện nhánh nghiệp vụ phù hợp.
   Future<void> _handleCheckout(BuildContext context, CartProvider cart) async {
     if (_isCheckingCart) {
       return;
@@ -273,6 +289,7 @@ class _CartPageState extends State<CartPage> {
     );
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _CartPageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final CartProvider cart = context.watch<CartProvider>();
@@ -407,6 +424,7 @@ class _CartPageState extends State<CartPage> {
   }
 }
 
+// Lớp _SelectAllBar: thành phần phục vụ màn hình giỏ hàng.
 class _SelectAllBar extends StatelessWidget {
   final bool value;
   final int selectedCount;
@@ -414,6 +432,7 @@ class _SelectAllBar extends StatelessWidget {
   final bool enabled;
   final ValueChanged<bool> onChanged;
 
+  // Khởi tạo _SelectAllBar: nhận các tham số cần thiết để tạo đối tượng cho màn hình giỏ hàng.
   const _SelectAllBar({
     required this.value,
     required this.selectedCount,
@@ -422,6 +441,7 @@ class _SelectAllBar extends StatelessWidget {
     required this.onChanged,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _SelectAllBar từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -460,10 +480,12 @@ class _SelectAllBar extends StatelessWidget {
   }
 }
 
+// Lớp _EmptyCart: thành phần phục vụ màn hình giỏ hàng.
 class _EmptyCart extends StatelessWidget {
-
+  // Khởi tạo _EmptyCart: nhận các tham số cần thiết để tạo đối tượng cho màn hình giỏ hàng.
   const _EmptyCart();
 
+  // Xây dựng giao diện (build): dựng cây widget của _EmptyCart từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -488,6 +510,7 @@ class _EmptyCart extends StatelessWidget {
   }
 }
 
+// Lớp _CartItemCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _CartItemCard extends StatelessWidget {
   final CartItemModel item;
   final bool selected;
@@ -504,6 +527,7 @@ class _CartItemCard extends StatelessWidget {
   final VoidCallback? onIncrease;
   final VoidCallback? onRemove;
 
+  // Khởi tạo _CartItemCard: nhận các tham số cần thiết để tạo đối tượng cho màn hình giỏ hàng.
   const _CartItemCard({
     required this.item,
     required this.selected,
@@ -518,6 +542,7 @@ class _CartItemCard extends StatelessWidget {
     required this.onRemove,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _CartItemCard từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return AppCard(
@@ -698,11 +723,14 @@ class _CartItemCard extends StatelessWidget {
   }
 }
 
+// Lớp _CartImage: thành phần phục vụ màn hình giỏ hàng.
 class _CartImage extends StatelessWidget {
   final String image;
 
+  // Khởi tạo _CartImage: nhận các tham số cần thiết để tạo đối tượng cho màn hình giỏ hàng.
   const _CartImage({required this.image});
 
+  // Xây dựng giao diện (build): dựng cây widget của _CartImage từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -718,11 +746,14 @@ class _CartImage extends StatelessWidget {
   }
 }
 
+// Lớp _FoodImage: thành phần phục vụ màn hình giỏ hàng.
 class _FoodImage extends StatelessWidget {
   final String image;
 
+  // Khởi tạo _FoodImage: nhận các tham số cần thiết để tạo đối tượng cho màn hình giỏ hàng.
   const _FoodImage({required this.image});
 
+  // Xây dựng giao diện (build): dựng cây widget của _FoodImage từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     if (image.isEmpty) {
@@ -750,17 +781,20 @@ class _FoodImage extends StatelessWidget {
   }
 }
 
+// Lớp _QuantityControl: thành phần phục vụ màn hình giỏ hàng.
 class _QuantityControl extends StatelessWidget {
   final int quantity;
   final VoidCallback? onDecrease;
   final VoidCallback? onIncrease;
 
+  // Khởi tạo _QuantityControl: nhận các tham số cần thiết để tạo đối tượng cho màn hình giỏ hàng.
   const _QuantityControl({
     required this.quantity,
     required this.onDecrease,
     required this.onIncrease,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _QuantityControl từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -781,6 +815,7 @@ class _QuantityControl extends StatelessWidget {
   }
 }
 
+// Lớp _CheckoutBox: thành phần phục vụ màn hình giỏ hàng.
 class _CheckoutBox extends StatelessWidget {
   final String originalTotal;
   final String discount;
@@ -792,6 +827,7 @@ class _CheckoutBox extends StatelessWidget {
 
   final VoidCallback? onCheckout;
 
+  // Khởi tạo _CheckoutBox: nhận các tham số cần thiết để tạo đối tượng cho màn hình giỏ hàng.
   const _CheckoutBox({
     required this.originalTotal,
     required this.discount,
@@ -802,6 +838,7 @@ class _CheckoutBox extends StatelessWidget {
     required this.onCheckout,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _CheckoutBox từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -926,12 +963,15 @@ class _CheckoutBox extends StatelessWidget {
   }
 }
 
+// Lớp _QtyButton: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _QtyButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
 
+  // Khởi tạo _QtyButton: nhận các tham số cần thiết để tạo đối tượng cho màn hình giỏ hàng.
   const _QtyButton({required this.icon, required this.onTap});
 
+  // Xây dựng giao diện (build): dựng cây widget của _QtyButton từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -954,11 +994,13 @@ class _QtyButton extends StatelessWidget {
   }
 }
 
+// Lớp _CartSnapshot: thành phần phục vụ màn hình giỏ hàng.
 class _CartSnapshot {
   final double price;
   final double originalPrice;
   final int quantity;
 
+  // Khởi tạo _CartSnapshot: nhận các tham số cần thiết để tạo đối tượng cho màn hình giỏ hàng.
   const _CartSnapshot({
     required this.price,
     required this.originalPrice,

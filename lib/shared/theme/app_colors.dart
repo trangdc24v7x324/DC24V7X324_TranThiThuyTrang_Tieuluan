@@ -1,15 +1,22 @@
+// FILE HỌC TẬP: lib/shared/theme/app_colors.dart
+// Vai trò: Cấu hình giao diện dùng chung cho ứng dụng màu sắc.
+// Luồng sử dụng: Tập trung hằng số giao diện để các màn hình sử dụng thống nhất.
 
 import 'package:flutter/material.dart';
 
+// Lớp AppColors: thành phần phục vụ cấu hình giao diện dùng chung cho ứng dụng màu sắc.
 class AppColors {
   static const primary = Color(0xffFF3D4F);
 
+  // thêm màu nhạt của primary
   static const primaryLight = Color(
     0xFFFFCDD2,
-  );
+  ); // đỏ nhạt, bạn chọn mã hex phù hợp
 
-  static const backgroundSecondary = Color(0xFFF1F5F9);
+  // thêm màu nền phụ
+  static const backgroundSecondary = Color(0xFFF1F5F9); // nền xám nhạt
 
+  // các màu khác giữ nguyên...
   static const textDark = Color(0xFF3C2F2F);
   static const textGrey = Color(0xFF9E9E9E);
   static const textPrimary = Color(0xFF1F2937);

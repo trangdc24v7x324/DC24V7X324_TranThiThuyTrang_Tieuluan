@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/manager/app/screens/manager_categories_page.dart
+// Vai trò: Màn hình Manager App quản lý danh mục.
+// Luồng sử dụng: Hiển thị nghiệp vụ quản lý trên ứng dụng và gọi Provider/Service tương ứng.
 
 import 'package:flutter/material.dart';
 
@@ -6,24 +9,29 @@ import 'package:project_trangdc24v7x324/models/category_model.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
 
+// Lớp ManagerCategoriesPage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class ManagerCategoriesPage extends StatefulWidget {
-
+  // Khởi tạo ManagerCategoriesPage: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager app quản lý danh mục.
   const ManagerCategoriesPage({super.key});
 
+  // Tạo state (createState): liên kết ManagerCategoriesPage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<ManagerCategoriesPage> createState() => _ManagerCategoriesPageState();
 }
 
+// Lớp _ManagerCategoriesPageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _ManagerCategoriesPageState extends State<ManagerCategoriesPage> {
   final List<CategoryModel> _categories = [];
   bool _isLoading = false;
 
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
     _loadCategories();
   }
 
+  // Tải danh mục (_loadCategories): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> _loadCategories() async {
     setState(() => _isLoading = true);
 
@@ -51,6 +59,7 @@ class _ManagerCategoriesPageState extends State<ManagerCategoriesPage> {
     }
   }
 
+  // Lấy biểu tượng (_getIcon): truy xuất và trả kết quả cho lớp gọi.
   IconData _getIcon(String icon) {
     switch (icon) {
       case 'restaurant':
@@ -70,6 +79,7 @@ class _ManagerCategoriesPageState extends State<ManagerCategoriesPage> {
     }
   }
 
+  // Xử lý _makeSlug: thực hiện phần nghiệp vụ tương ứng trong màn hình manager app quản lý danh mục.
   String _makeSlug(String value) {
     return value
         .toLowerCase()
@@ -79,6 +89,7 @@ class _ManagerCategoriesPageState extends State<ManagerCategoriesPage> {
         .replaceAll(RegExp(r'[^a-z0-9-]'), '');
   }
 
+  // Hiển thị tin nhắn (_showMessage): mở thông báo/dialog hoặc thành phần hỗ trợ trên giao diện.
   void _showMessage(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(
@@ -86,6 +97,7 @@ class _ManagerCategoriesPageState extends State<ManagerCategoriesPage> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  // Mở biểu mẫu (_openForm): điều hướng hoặc hiển thị thành phần tương ứng từ thao tác người dùng.
   Future<void> _openForm({CategoryModel? category}) async {
     final titleController = TextEditingController(text: category?.title ?? '');
     final slugController = TextEditingController(text: category?.slug ?? '');
@@ -262,6 +274,7 @@ class _ManagerCategoriesPageState extends State<ManagerCategoriesPage> {
     }
   }
 
+  // Xác nhận xóa (_confirmDelete): hiển thị cảnh báo trước khi xóa dữ liệu.
   Future<void> _confirmDelete(CategoryModel category) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -303,6 +316,7 @@ class _ManagerCategoriesPageState extends State<ManagerCategoriesPage> {
     }
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _ManagerCategoriesPageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return AppLayout(
@@ -350,12 +364,14 @@ class _ManagerCategoriesPageState extends State<ManagerCategoriesPage> {
   }
 }
 
+// Lớp _CategoryCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _CategoryCard extends StatelessWidget {
   final CategoryModel category;
   final IconData icon;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
+  // Khởi tạo _CategoryCard: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager app quản lý danh mục.
   const _CategoryCard({
     required this.category,
     required this.icon,
@@ -363,6 +379,7 @@ class _CategoryCard extends StatelessWidget {
     required this.onDelete,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _CategoryCard từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final color = category.isActive ? Colors.green : Colors.grey;

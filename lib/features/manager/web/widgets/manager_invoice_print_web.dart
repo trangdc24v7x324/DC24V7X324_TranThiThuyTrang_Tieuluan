@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/manager/web/widgets/manager_invoice_print_web.dart
+// Vai trò: Widget Web dùng cho hóa đơn in web.
+// Luồng sử dụng: Đóng gói thành phần giao diện hoặc tiện ích dùng lại trong khu vực Manager Web.
 
 import 'dart:convert';
 import 'dart:js_interop';
@@ -7,6 +10,7 @@ import 'package:project_trangdc24v7x324/models/order_model.dart';
 @JS('window.open')
 external JSAny? _openBrowserWindow(String url, String target);
 
+// In hóa đơn (printManagerInvoice): dựng nội dung hóa đơn và gọi cơ chế in phù hợp nền tảng.
 void printManagerInvoice({required OrderModel order}) {
   final htmlContent = _buildInvoiceHtml(order);
 
@@ -16,9 +20,11 @@ void printManagerInvoice({required OrderModel order}) {
     encoding: utf8,
   );
 
+  // Mở hóa đơn ở cửa sổ riêng. Script trong trang sẽ tự mở hộp thoại in.
   _openBrowserWindow(uri.toString(), '_blank');
 }
 
+// Tạo giao diện hóa đơn html (_buildInvoiceHtml): dựng widget con từ dữ liệu hiện tại.
 String _buildInvoiceHtml(OrderModel order) {
   final rows =
       order.items.map((item) {
@@ -230,21 +236,25 @@ String _buildInvoiceHtml(OrderModel order) {
 ''';
 }
 
+// Xử lý _escape: thực hiện phần nghiệp vụ tương ứng trong widget web dùng cho hóa đơn in web.
 String _escape(String value) {
   return const HtmlEscape().convert(value);
 }
 
+// Xử lý _shortId: thực hiện phần nghiệp vụ tương ứng trong widget web dùng cho hóa đơn in web.
 String _shortId(String id) {
   final value = id.trim().toUpperCase();
   return value.length <= 10 ? value : value.substring(0, 10);
 }
 
+// Xử lý _date: thực hiện phần nghiệp vụ tương ứng trong widget web dùng cho hóa đơn in web.
 String _date(DateTime value) {
   String two(int number) => number.toString().padLeft(2, '0');
   return '${two(value.day)}/${two(value.month)}/${value.year} '
       '${two(value.hour)}:${two(value.minute)}';
 }
 
+// Xử lý _money: thực hiện phần nghiệp vụ tương ứng trong widget web dùng cho hóa đơn in web.
 String _money(double value) {
   final digits = value.round().toString();
   final buffer = StringBuffer();
@@ -260,6 +270,7 @@ String _money(double value) {
   return '$bufferđ';
 }
 
+// Xử lý _statusLabel: thực hiện phần nghiệp vụ tương ứng trong widget web dùng cho hóa đơn in web.
 String _statusLabel(String status) {
   switch (status) {
     case 'placed':
@@ -279,6 +290,7 @@ String _statusLabel(String status) {
   }
 }
 
+// Xử lý _paymentLabel: thực hiện phần nghiệp vụ tương ứng trong widget web dùng cho hóa đơn in web.
 String _paymentLabel(String status) {
   switch (status) {
     case 'paid':

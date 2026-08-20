@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/providers/profile_provider.dart
+// Vai trò: Provider quản lý trạng thái hồ sơ.
+// Luồng sử dụng: Làm cầu nối UI-Service, giữ state/loading/error và thông báo thay đổi bằng notifyListeners().
 
 import 'dart:io';
 
@@ -16,6 +19,7 @@ import 'package:project_trangdc24v7x324/providers/order_provider.dart';
 import 'package:project_trangdc24v7x324/providers/notification_provider.dart';
 import 'package:project_trangdc24v7x324/providers/chat_provider.dart';
 
+// Lớp ProfileProvider: giữ state và điều phối dữ liệu giữa giao diện với service.
 class ProfileProvider extends ChangeNotifier {
   final ProfileService _profileService = ProfileService();
 
@@ -41,20 +45,25 @@ class ProfileProvider extends ChangeNotifier {
 
   String? _errorMessage;
 
+  // Đọc hồ sơ (profile): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   UserProfileModel? get profile => _profile;
 
+  // Đọc trạng thái đang tải (isLoading): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   bool get isLoading => _isLoading;
 
+  // Đọc trạng thái đang đổi mật khẩu (isChangingPassword): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   bool get isChangingPassword => _isChangingPassword;
-
+  // Đọc trạng thái đang lưu thông tin cá nhân (isSavingGeneralInfo): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi
+  // state.
   bool get isSavingGeneralInfo => _isSavingGeneralInfo;
-
+  // Đọc trạng thái đang lưu địa chỉ (isSavingAddresses): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   bool get isSavingAddresses => _isSavingAddresses;
-
+  // Đọc trạng thái đang lưu phương thức thanh toán (isSavingPaymentMethods): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay
+  // đổi state.
   bool get isSavingPaymentMethods => _isSavingPaymentMethods;
-
+  // Đọc trạng thái đang tải ảnh đại diện lên (isUploadingAvatar): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   bool get isUploadingAvatar => _isUploadingAvatar;
-
+  // Đọc trạng thái đang xử lý (isBusy): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   bool get isBusy =>
       _isLoading ||
       _isChangingPassword ||
@@ -63,23 +72,33 @@ class ProfileProvider extends ChangeNotifier {
       _isSavingPaymentMethods ||
       _isUploadingAvatar;
 
+  // Đọc trạng thái đang chỉnh sửa thông tin cá nhân (isEditingGeneralInfo): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay
+  // đổi state.
   bool get isEditingGeneralInfo => _isEditingGeneralInfo;
 
+  // Đọc trạng thái đang chỉnh sửa địa chỉ (isEditingAddress): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   bool get isEditingAddress => _isEditingAddress;
 
+  // Đọc trạng thái đang chỉnh sửa phương thức thanh toán (isEditingPaymentMethods): trả giá trị hiện tại cho UI/nghiệp vụ mà
+  // không thay đổi state.
   bool get isEditingPaymentMethods => _isEditingPaymentMethods;
 
+  // Đọc thông báo lỗi (errorMessage): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   String? get errorMessage => _errorMessage;
 
+  // Đọc trạng thái đã có hồ sơ (hasProfile): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   bool get hasProfile => _profile != null;
 
+  // Đọc địa chỉ (addresses): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   List<AddressModel> get addresses =>
       _profile?.addresses ?? const <AddressModel>[];
 
+  // Đọc phương thức thanh toán (paymentMethods): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   List<PaymentMethodModel> get paymentMethods {
     return _profile?.paymentMethods ?? const <PaymentMethodModel>[];
   }
 
+  // Đọc địa chỉ mặc định (defaultAddress): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   AddressModel? get defaultAddress {
     try {
       return addresses.firstWhere((address) => address.isDefault);
@@ -88,6 +107,7 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
+  // Đọc phương thức thanh toán mặc định (defaultPaymentMethod): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   PaymentMethodModel? get defaultPaymentMethod {
     try {
       return paymentMethods.firstWhere((method) => method.isDefault);
@@ -96,24 +116,36 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
+  // =========================================================
+  // EDIT STATE
+  // =========================================================
+
+  // Bật/tắt địa chỉ chỉnh sửa (toggleAddressEdit): đảo trạng thái hiện tại theo thao tác người dùng.
   void toggleAddressEdit() {
     _isEditingAddress = !_isEditingAddress;
 
     notifyListeners();
   }
 
+  // Bật/tắt chung thông tin chỉnh sửa (toggleGeneralInfoEdit): đảo trạng thái hiện tại theo thao tác người dùng.
   void toggleGeneralInfoEdit() {
     _isEditingGeneralInfo = !_isEditingGeneralInfo;
 
     notifyListeners();
   }
 
+  // Bật/tắt thanh toán phương thức chỉnh sửa (togglePaymentMethodsEdit): đảo trạng thái hiện tại theo thao tác người dùng.
   void togglePaymentMethodsEdit() {
     _isEditingPaymentMethods = !_isEditingPaymentMethods;
 
     notifyListeners();
   }
 
+  // =========================================================
+  // LOAD
+  // =========================================================
+
+  // Tải hồ sơ (loadProfile): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<bool> loadProfile({bool forceReload = false}) {
     if (_profile != null && !forceReload) {
       return Future<bool>.value(true);
@@ -134,6 +166,8 @@ class ProfileProvider extends ChangeNotifier {
     });
   }
 
+  // Tải hồ sơ: chống gọi chồng nhiều request cùng thời điểm.
+  // Tải hồ sơ internal (_loadProfileInternal): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<bool> _loadProfileInternal() async {
     if (!_authService.isLoggedIn) {
       _profile = null;
@@ -158,10 +192,16 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
+  // Làm mới hồ sơ (refreshProfile): tải dữ liệu mới nhất và đồng bộ state hiện tại.
   Future<bool> refreshProfile() {
     return loadProfile(forceReload: true);
   }
 
+  // =========================================================
+  // GENERAL INFO
+  // =========================================================
+
+  // Cập nhật thông tin cá nhân (updateGeneralInfo): gửi thay đổi tới service/backend và đồng bộ state hiện tại.
   Future<bool> updateGeneralInfo({
     required String fullName,
     required String email,
@@ -185,6 +225,7 @@ class ProfileProvider extends ChangeNotifier {
         dateOfBirth: dateOfBirth,
       );
 
+      // Cập nhật local state trực tiếp, không fetch lại avatar/address/payment.
       _profile = current.copyWith(
         fullName: fullName.trim(),
         email: email.trim(),
@@ -206,6 +247,7 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
+  // Cập nhật địa chỉ (updateAddresses): gửi thay đổi tới service/backend và đồng bộ state hiện tại.
   Future<bool> updateAddresses(List<AddressModel> newAddresses) async {
     if (_profile == null || _isSavingAddresses) return false;
 
@@ -231,6 +273,7 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
+  // Cập nhật phương thức thanh toán (updatePaymentMethods): gửi thay đổi tới service/backend và đồng bộ state hiện tại.
   Future<bool> updatePaymentMethods(
     List<PaymentMethodModel> updatedMethods,
   ) async {
@@ -260,6 +303,7 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
+  // Cập nhật ảnh đại diện (updateAvatar): gửi thay đổi tới service/backend và đồng bộ state hiện tại.
   Future<bool> updateAvatar(File file) async {
     if (_isUploadingAvatar) return false;
 
@@ -284,6 +328,7 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
+  // Chọn and update ảnh đại diện (pickAndUpdateAvatar): mở công cụ chọn phù hợp và ghi kết quả vào state.
   Future<bool> pickAndUpdateAvatar() async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
@@ -305,6 +350,11 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
+  // =========================================================
+  // PASSWORD
+  // =========================================================
+
+  // Xử lý changePassword: thực hiện phần nghiệp vụ tương ứng trong provider quản lý trạng thái hồ sơ.
   Future<void> changePassword({
     required String oldPassword,
     required String newPassword,
@@ -344,9 +394,15 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
+  // =========================================================
+  // LOGOUT
+  // =========================================================
+
+  // Xử lý logout: thực hiện phần nghiệp vụ tương ứng trong provider quản lý trạng thái hồ sơ.
   Future<void> logout(BuildContext context) async {
     if (!context.mounted) return;
 
+    // Lấy reference trước khi await để không truy cập context sau khi route đổi.
     final cartProvider = context.read<CartProvider>();
     final orderProvider = context.read<OrderProvider>();
     final notificationProvider = context.read<NotificationProvider>();
@@ -356,9 +412,11 @@ class ProfileProvider extends ChangeNotifier {
     _clearError();
 
     try {
-
+      // Chờ các thao tác giỏ hàng đang ghi PocketBase hoàn tất.
+      // Sau đó mới xóa phiên đăng nhập để tránh request cũ thất bại giữa chừng.
       await cartProvider.waitForPendingOperations();
 
+      // Hủy realtime trước khi xóa authStore.
       try {
         await chatProvider.unsubscribe();
       } catch (e) {
@@ -367,6 +425,7 @@ class ProfileProvider extends ChangeNotifier {
 
       await _authService.logout();
 
+      // Chỉ xóa state/cache local, không xóa dữ liệu thật trên server.
       cartProvider.resetCart();
       orderProvider.clearOrders();
       notificationProvider.clearNotifications();
@@ -401,6 +460,7 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
+  // Cập nhật state (_resetProfileState): thay đổi dữ liệu nội bộ rồi gọi notifyListeners() để UI nhận state mới.
   void _resetProfileState() {
     _profile = null;
     _isLoading = false;
@@ -416,21 +476,29 @@ class ProfileProvider extends ChangeNotifier {
     _errorMessage = null;
   }
 
+  // Xóa hồ sơ (clearProfile): loại bỏ dữ liệu được chọn và đồng bộ state liên quan.
   void clearProfile() {
     _resetProfileState();
     notifyListeners();
   }
 
+  // =========================================================
+  // INTERNAL
+  // =========================================================
+
+  // Cập nhật đang tải (_setLoading): gán state nội bộ và thông báo lại cho UI khi cần.
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
   }
 
+  // Cập nhật error (_setError): gán state nội bộ và thông báo lại cho UI khi cần.
   void _setError(String message) {
     _errorMessage = message;
     notifyListeners();
   }
 
+  // Xóa error (_clearError): loại bỏ dữ liệu được chọn và đồng bộ state liên quan.
   void _clearError() {
     _errorMessage = null;
   }

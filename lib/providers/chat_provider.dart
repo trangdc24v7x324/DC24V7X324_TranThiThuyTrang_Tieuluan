@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/providers/chat_provider.dart
+// Vai trò: Provider quản lý trạng thái trò chuyện.
+// Luồng sử dụng: Làm cầu nối UI-Service, giữ state/loading/error và thông báo thay đổi bằng notifyListeners().
 
 import 'package:flutter/material.dart';
 import 'package:pocketbase/pocketbase.dart';
@@ -6,6 +9,7 @@ import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
 import 'package:project_trangdc24v7x324/models/chat_message_model.dart';
 import 'package:project_trangdc24v7x324/services/chat_service.dart';
 
+// Lớp ChatRoomSummary: thành phần phục vụ provider quản lý trạng thái trò chuyện.
 class ChatRoomSummary {
   final String userId;
   final String fullName;
@@ -14,6 +18,7 @@ class ChatRoomSummary {
   final DateTime? lastTime;
   final int unreadCount;
 
+  // Khởi tạo ChatRoomSummary: nhận các tham số cần thiết để tạo đối tượng cho provider quản lý trạng thái trò chuyện.
   const ChatRoomSummary({
     required this.userId,
     required this.fullName,
@@ -23,6 +28,7 @@ class ChatRoomSummary {
     this.unreadCount = 0,
   });
 
+  // Sao chép model (copyWith): tạo bản mới từ dữ liệu hiện tại và thay các trường được truyền vào.
   ChatRoomSummary copyWith({
     String? userId,
     String? fullName,
@@ -42,6 +48,7 @@ class ChatRoomSummary {
   }
 }
 
+// Lớp ChatProvider: giữ state và điều phối dữ liệu giữa giao diện với service.
 class ChatProvider with ChangeNotifier {
   final ChatService _chatService = ChatService();
 
@@ -56,22 +63,29 @@ class ChatProvider with ChangeNotifier {
 
   String? _errorMessage;
 
+  // Đọc tin nhắn (messages): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   List<ChatMessageModel> get messages => List.unmodifiable(_messages);
 
+  // Đọc phòng chat (rooms): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   List<ChatRoomSummary> get rooms => List.unmodifiable(_rooms);
 
+  // Đọc trạng thái đang tải (isLoading): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   bool get isLoading => _isLoading;
-
+  // Đọc trạng thái sending (isSending): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   bool get isSending => _isSending;
 
+  // Đọc số thông báo chưa đọc (unreadCount): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   int get unreadCount => _unreadCount;
-
+  // Đọc tổng phòng chat (totalRooms): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   int get totalRooms => _totalRooms;
 
+  // Đọc thông báo lỗi (errorMessage): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   String? get errorMessage => _errorMessage;
 
+  // Đọc trạng thái có chưa đọc (hasUnread): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   bool get hasUnread => _unreadCount > 0;
 
+  // Tải tin nhắn (loadMessages): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> loadMessages({
     required String currentUserId,
     required String otherUserId,
@@ -115,6 +129,7 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
+  // Gửi tin nhắn (sendMessage): kiểm tra nội dung rồi chuyển tới service/backend và xử lý kết quả.
   Future<bool> sendMessage({
     required String senderId,
     required String receiverId,
@@ -165,6 +180,7 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
+  // Xử lý subscribeMessages: thực hiện phần nghiệp vụ tương ứng trong provider quản lý trạng thái trò chuyện.
   Future<void> subscribeMessages({
     required String currentUserId,
     required String otherUserId,
@@ -223,10 +239,12 @@ class ChatProvider with ChangeNotifier {
     );
   }
 
+  // Cập nhật state (unsubscribe): thay đổi dữ liệu nội bộ rồi gọi notifyListeners() để UI nhận state mới.
   Future<void> unsubscribe() async {
     await _chatService.unsubscribeMessages();
   }
 
+  // Đánh dấu đã đọc (markAsRead): cập nhật một thông báo thành đã đọc và đồng bộ state.
   Future<void> markAsRead(String messageId) async {
     try {
       await _chatService.markAsRead(messageId);
@@ -242,6 +260,7 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
+  // Đánh dấu tất cả đã đọc (markAllAsRead): cập nhật toàn bộ thông báo chưa đọc của người dùng.
   Future<void> markAllAsRead({
     required String currentUserId,
     required String otherUserId,
@@ -253,6 +272,7 @@ class ChatProvider with ChangeNotifier {
     );
   }
 
+  // Đánh dấu hội thoại as đã đọc (_markConversationAsRead): cập nhật cờ trạng thái của dữ liệu và đồng bộ giao diện.
   Future<void> _markConversationAsRead({
     required String currentUserId,
     required String otherUserId,
@@ -284,14 +304,17 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
+  // Tải khách hàng trò chuyện tổng hợp (loadCustomerChatSummary): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> loadCustomerChatSummary({required String customerId}) async {
     await loadChatSummary(userId: customerId);
   }
 
+  // Tải quản lý trò chuyện tổng hợp (loadManagerChatSummary): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> loadManagerChatSummary({required String managerId}) async {
     await loadChatSummary(userId: managerId);
   }
 
+  // Tải trò chuyện tổng hợp (loadChatSummary): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> loadChatSummary({required String userId}) async {
     if (userId.trim().isEmpty) {
       clearRooms();
@@ -390,6 +413,7 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
+  // Lấy quản lý mã (getManagerId): truy xuất và trả kết quả cho lớp gọi.
   Future<String?> getManagerId() async {
     try {
       _errorMessage = null;
@@ -409,6 +433,7 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
+  // Lấy tin nhắn trạng thái văn bản (getMessageStatusText): truy xuất và trả kết quả cho lớp gọi.
   String getMessageStatusText({
     required ChatMessageModel message,
     required String currentUserId,
@@ -420,6 +445,7 @@ class ChatProvider with ChangeNotifier {
     return message.isRead ? 'Đã xem' : 'Đã gửi';
   }
 
+  // Kiểm tra điều kiện (isMessageMine): đánh giá trạng thái tin nhắn mine và trả kết quả cho lớp gọi.
   bool isMessageMine({
     required ChatMessageModel message,
     required String currentUserId,
@@ -427,6 +453,7 @@ class ChatProvider with ChangeNotifier {
     return message.senderId == currentUserId;
   }
 
+  // Kiểm tra điều kiện (isMessageUnreadForMe): đánh giá trạng thái tin nhắn chưa đọc for me và trả kết quả cho lớp gọi.
   bool isMessageUnreadForMe({
     required ChatMessageModel message,
     required String currentUserId,
@@ -434,11 +461,13 @@ class ChatProvider with ChangeNotifier {
     return message.receiverId == currentUserId && !message.isRead;
   }
 
+  // Xóa tin nhắn (clearMessages): loại bỏ dữ liệu được chọn và đồng bộ state liên quan.
   void clearMessages() {
     _messages.clear();
     notifyListeners();
   }
 
+  // Xóa phòng chat (clearRooms): loại bỏ dữ liệu được chọn và đồng bộ state liên quan.
   void clearRooms() {
     _rooms.clear();
     _unreadCount = 0;
@@ -446,6 +475,7 @@ class ChatProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // Xóa tất cả (clearAll): loại bỏ dữ liệu được chọn và đồng bộ state liên quan.
   void clearAll() {
     _messages.clear();
     _rooms.clear();
@@ -455,10 +485,12 @@ class ChatProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // Lọc/tìm tin nhắn (_sortMessages): tạo tập dữ liệu phù hợp theo điều kiện đang chọn.
   void _sortMessages() {
     _messages.sort((a, b) => a.created.compareTo(b.created));
   }
 
+  // Xử lý _extractOtherUserInfo: thực hiện phần nghiệp vụ tương ứng trong provider quản lý trạng thái trò chuyện.
   Map<String, String> _extractOtherUserInfo({
     required RecordModel record,
     required String otherUserId,

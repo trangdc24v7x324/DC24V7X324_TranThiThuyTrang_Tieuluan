@@ -1,7 +1,11 @@
+// FILE HỌC TẬP: lib/models/order_model.dart
+// Vai trò: Mô hình dữ liệu đơn hàng.
+// Luồng sử dụng: Chuẩn hóa dữ liệu giữa PocketBase và Dart, cung cấp ánh xạ và bản sao model.
 
 import 'order_item_model.dart';
 import '../utils/delivery_location_helper.dart';
 
+// Lớp OrderModel: biểu diễn dữ liệu nghiệp vụ và hỗ trợ ánh xạ dữ liệu vào/ra.
 class OrderModel {
   final String id;
   final String userId;
@@ -30,6 +34,7 @@ class OrderModel {
   final DateTime? created;
   final DateTime? updated;
 
+  // Khởi tạo OrderModel: nhận các tham số cần thiết để tạo đối tượng cho mô hình dữ liệu đơn hàng.
   const OrderModel({
     required this.id,
     required this.userId,
@@ -53,24 +58,32 @@ class OrderModel {
     this.updated,
   });
 
+  // Trạng thái đơn: cung cấp alias để tương thích giao diện cũ.
+  // Đọc trạng thái (status): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   String get status => orderStatus;
 
+  // Địa chỉ giao hàng: cung cấp alias để tương thích giao diện cũ.
+  // Đọc địa chỉ (address): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   String get address => deliveryAddress;
 
+  // Ngày đặt hàng: dùng created hoặc thời điểm hiện tại nếu dữ liệu cũ bị thiếu.
+  // Đọc đơn hàng ngày (orderDate): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   DateTime get orderDate => created ?? updated ?? DateTime.now();
 
+  // Đọc trạng thái placed (isPlaced): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   bool get isPlaced => orderStatus == 'placed';
-
+  // Đọc trạng thái confirmed (isConfirmed): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   bool get isConfirmed => orderStatus == 'confirmed';
-
+  // Đọc trạng thái preparing (isPreparing): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   bool get isPreparing => orderStatus == 'preparing';
-
+  // Đọc trạng thái delivering (isDelivering): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   bool get isDelivering => orderStatus == 'delivering';
-
+  // Đọc trạng thái hoàn thành (isCompleted): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   bool get isCompleted => orderStatus == 'completed';
-
+  // Đọc trạng thái cancelled (isCancelled): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   bool get isCancelled => orderStatus == 'cancelled';
 
+  // Đọc trạng thái có giao hàng tọa độ (hasDeliveryCoordinates): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   bool get hasDeliveryCoordinates {
     return deliveryLatitude >= -90 &&
         deliveryLatitude <= 90 &&
@@ -79,6 +92,7 @@ class OrderModel {
         !(deliveryLatitude == 0 && deliveryLongitude == 0);
   }
 
+  // Đọc trạng thái đang hoạt động (isActive): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   bool get isActive {
     return orderStatus == 'placed' ||
         orderStatus == 'confirmed' ||
@@ -86,6 +100,8 @@ class OrderModel {
         orderStatus == 'delivering';
   }
 
+  // Đọc đơn hàng: tách địa chỉ hiển thị khỏi metadata GPS dùng để chỉ đường.
+  // Khởi tạo OrderModel.fromJson: tạo đối tượng OrderModel bằng constructor fromJson từ dữ liệu đầu vào.
   factory OrderModel.fromJson(
     Map<String, dynamic> json, {
     List<OrderItemModel> items = const [],
@@ -136,6 +152,8 @@ class OrderModel {
     );
   }
 
+  // Xuất đơn hàng: giữ metadata GPS trong delivery_address để tương thích PocketBase hiện tại.
+  // Chuyển sang JSON (toJson): đóng gói model thành Map để lưu hoặc truyền sang service.
   Map<String, dynamic> toJson() {
     return {
       'user': userId,
@@ -159,6 +177,8 @@ class OrderModel {
     };
   }
 
+  // Sao chép đơn hàng: cập nhật cục bộ mà không làm mất dữ liệu hiện có.
+  // Sao chép model (copyWith): tạo bản mới từ dữ liệu hiện tại và thay các trường được truyền vào.
   OrderModel copyWith({
     String? id,
     String? userId,
@@ -205,6 +225,7 @@ class OrderModel {
     );
   }
 
+  // Xử lý _validCoordinates: thực hiện phần nghiệp vụ tương ứng trong mô hình dữ liệu đơn hàng.
   static bool _validCoordinates(double latitude, double longitude) {
     return latitude >= -90 &&
         latitude <= 90 &&
@@ -213,6 +234,7 @@ class OrderModel {
         !(latitude == 0 && longitude == 0);
   }
 
+  // Xử lý _toDouble: thực hiện phần nghiệp vụ tương ứng trong mô hình dữ liệu đơn hàng.
   static double _toDouble(dynamic value) {
     if (value == null) return 0;
     if (value is num) return value.toDouble();

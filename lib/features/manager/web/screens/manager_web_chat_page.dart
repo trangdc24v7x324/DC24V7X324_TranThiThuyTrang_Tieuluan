@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/manager/web/screens/manager_web_chat_page.dart
+// Vai trò: Màn hình Manager Web quản lý trò chuyện.
+// Luồng sử dụng: Hiển thị nghiệp vụ quản lý trên trình duyệt và điều phối dữ liệu qua Provider/Service.
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -10,14 +13,17 @@ import 'package:project_trangdc24v7x324/providers/profile_provider.dart';
 import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 
+// Lớp ManagerWebChatPage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class ManagerWebChatPage extends StatefulWidget {
-
+  // Khởi tạo ManagerWebChatPage: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý trò chuyện.
   const ManagerWebChatPage({super.key});
 
+  // Tạo state (createState): liên kết ManagerWebChatPage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<ManagerWebChatPage> createState() => _ManagerWebChatPageState();
 }
 
+// Lớp _ManagerWebChatPageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _ManagerWebChatPageState extends State<ManagerWebChatPage> {
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _messageController = TextEditingController();
@@ -32,6 +38,7 @@ class _ManagerWebChatPageState extends State<ManagerWebChatPage> {
   bool _loadingConversation = false;
   String? _localError;
 
+  // Cập nhật phụ thuộc (didChangeDependencies): xử lý lại khi Provider/InheritedWidget liên quan thay đổi.
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -44,6 +51,7 @@ class _ManagerWebChatPageState extends State<ManagerWebChatPage> {
     }
   }
 
+  // Giải phóng tài nguyên (dispose): hủy controller/listener khi widget bị loại khỏi cây giao diện.
   @override
   void dispose() {
     if (_providerReady) {
@@ -56,6 +64,7 @@ class _ManagerWebChatPageState extends State<ManagerWebChatPage> {
     super.dispose();
   }
 
+  // Xử lý _initialize: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý trò chuyện.
   Future<void> _initialize() async {
     _managerId = pb.authStore.model?.id ?? '';
 
@@ -65,6 +74,7 @@ class _ManagerWebChatPageState extends State<ManagerWebChatPage> {
     ]);
   }
 
+  // Tải phòng chat (_loadRooms): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> _loadRooms({bool autoSelect = false}) async {
     if (_managerId.isEmpty) {
       if (mounted) {
@@ -125,6 +135,7 @@ class _ManagerWebChatPageState extends State<ManagerWebChatPage> {
     }
   }
 
+  // Chọn phòng chat (_selectRoom): lưu lựa chọn để dùng cho lọc, biểu mẫu hoặc nghiệp vụ tiếp theo.
   Future<void> _selectRoom(ChatRoomSummary room) async {
     if (_managerId.isEmpty || room.userId.isEmpty) {
       return;
@@ -169,6 +180,7 @@ class _ManagerWebChatPageState extends State<ManagerWebChatPage> {
     }
   }
 
+  // Xử lý _syncSelectedRoom: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý trò chuyện.
   void _syncSelectedRoom() {
     if (_selectedRoom == null) {
       return;
@@ -186,6 +198,7 @@ class _ManagerWebChatPageState extends State<ManagerWebChatPage> {
     }
   }
 
+  // Gửi tin nhắn (_sendMessage): kiểm tra nội dung, gọi ChatProvider/Service và cập nhật hội thoại.
   Future<void> _sendMessage() async {
     final room = _selectedRoom;
     final text = _messageController.text.trim();
@@ -222,6 +235,7 @@ class _ManagerWebChatPageState extends State<ManagerWebChatPage> {
     _scrollToBottom();
   }
 
+  // Cuộn hội thoại (_scrollToBottom): đưa danh sách về tin nhắn mới nhất sau khi tải hoặc gửi.
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_scrollController.hasClients) {
@@ -236,6 +250,7 @@ class _ManagerWebChatPageState extends State<ManagerWebChatPage> {
     });
   }
 
+  // Điều hướng (_backToRooms): xử lý dữ liệu cần thiết rồi chuyển sang màn hình/route phù hợp.
   void _backToRooms() {
     setState(() {
       _selectedRoom = null;
@@ -246,6 +261,7 @@ class _ManagerWebChatPageState extends State<ManagerWebChatPage> {
     _chatProvider.unsubscribe();
   }
 
+  // Đăng xuất (_logout): kết thúc phiên, làm sạch state liên quan và đưa người dùng về trang đăng nhập.
   void _logout() {
     _chatProvider.unsubscribe();
     pb.authStore.clear();
@@ -257,6 +273,7 @@ class _ManagerWebChatPageState extends State<ManagerWebChatPage> {
     );
   }
 
+  // Lọc/tìm ed phòng chat (_filteredRooms): tạo tập dữ liệu phù hợp theo điều kiện đang chọn.
   List<ChatRoomSummary> _filteredRooms(List<ChatRoomSummary> rooms) {
     final query = _searchController.text.trim().toLowerCase();
 
@@ -270,6 +287,7 @@ class _ManagerWebChatPageState extends State<ManagerWebChatPage> {
     }).toList();
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _ManagerWebChatPageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final chatProvider = context.watch<ChatProvider>();
@@ -356,6 +374,7 @@ class _ManagerWebChatPageState extends State<ManagerWebChatPage> {
     );
   }
 
+  // Tạo giao diện phòng chat bảng phụ (_buildRoomPanel): dựng widget con từ dữ liệu hiện tại.
   Widget _buildRoomPanel(
     List<ChatRoomSummary> rooms, {
     required bool showHeader,
@@ -480,6 +499,7 @@ class _ManagerWebChatPageState extends State<ManagerWebChatPage> {
     );
   }
 
+  // Tạo giao diện hội thoại bảng phụ (_buildConversationPanel): dựng widget con từ dữ liệu hiện tại.
   Widget _buildConversationPanel({required bool compact}) {
     final room = _selectedRoom;
 
@@ -591,17 +611,20 @@ class _ManagerWebChatPageState extends State<ManagerWebChatPage> {
   }
 }
 
+// Lớp _RoomTile: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _RoomTile extends StatelessWidget {
   final ChatRoomSummary room;
   final bool selected;
   final VoidCallback onTap;
 
+  // Khởi tạo _RoomTile: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý trò chuyện.
   const _RoomTile({
     required this.room,
     required this.selected,
     required this.onTap,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _RoomTile từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final unread = room.unreadCount > 0;
@@ -725,12 +748,14 @@ class _RoomTile extends StatelessWidget {
   }
 }
 
+// Lớp _ConversationHeader: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _ConversationHeader extends StatelessWidget {
   final ChatRoomSummary room;
   final bool showBack;
   final VoidCallback onBack;
   final VoidCallback onRefresh;
 
+  // Khởi tạo _ConversationHeader: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý trò chuyện.
   const _ConversationHeader({
     required this.room,
     required this.showBack,
@@ -738,6 +763,7 @@ class _ConversationHeader extends StatelessWidget {
     required this.onRefresh,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _ConversationHeader từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -803,17 +829,20 @@ class _ConversationHeader extends StatelessWidget {
   }
 }
 
+// Lớp _MessageBubble: thành phần phục vụ màn hình manager web quản lý trò chuyện.
 class _MessageBubble extends StatelessWidget {
   final ChatMessageModel message;
   final bool isMine;
   final String statusText;
 
+  // Khởi tạo _MessageBubble: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý trò chuyện.
   const _MessageBubble({
     required this.message,
     required this.isMine,
     required this.statusText,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _MessageBubble từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final time = _formatMessageTime(message.created);
@@ -865,17 +894,20 @@ class _MessageBubble extends StatelessWidget {
   }
 }
 
+// Lớp _MessageComposer: thành phần phục vụ màn hình manager web quản lý trò chuyện.
 class _MessageComposer extends StatelessWidget {
   final TextEditingController controller;
   final bool isSending;
   final VoidCallback onSend;
 
+  // Khởi tạo _MessageComposer: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý trò chuyện.
   const _MessageComposer({
     required this.controller,
     required this.isSending,
     required this.onSend,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _MessageComposer từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -947,13 +979,16 @@ class _MessageComposer extends StatelessWidget {
   }
 }
 
+// Lớp _Avatar: thành phần phục vụ màn hình manager web quản lý trò chuyện.
 class _Avatar extends StatelessWidget {
   final String url;
   final String name;
   final double radius;
 
+  // Khởi tạo _Avatar: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý trò chuyện.
   const _Avatar({required this.url, required this.name, required this.radius});
 
+  // Xây dựng giao diện (build): dựng cây widget của _Avatar từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final initial = name.trim().isEmpty ? '?' : name.trim()[0].toUpperCase();
@@ -976,10 +1011,12 @@ class _Avatar extends StatelessWidget {
   }
 }
 
+// Lớp _NoConversationSelected: thành phần phục vụ màn hình manager web quản lý trò chuyện.
 class _NoConversationSelected extends StatelessWidget {
-
+  // Khởi tạo _NoConversationSelected: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý trò chuyện.
   const _NoConversationSelected();
 
+  // Xây dựng giao diện (build): dựng cây widget của _NoConversationSelected từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return const Center(
@@ -1011,10 +1048,12 @@ class _NoConversationSelected extends StatelessWidget {
   }
 }
 
+// Lớp _EmptyConversation: thành phần phục vụ màn hình manager web quản lý trò chuyện.
 class _EmptyConversation extends StatelessWidget {
-
+  // Khởi tạo _EmptyConversation: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý trò chuyện.
   const _EmptyConversation();
 
+  // Xây dựng giao diện (build): dựng cây widget của _EmptyConversation từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return const Center(
@@ -1049,12 +1088,15 @@ class _EmptyConversation extends StatelessWidget {
   }
 }
 
+// Lớp _EmptyRooms: thành phần phục vụ màn hình manager web quản lý trò chuyện.
 class _EmptyRooms extends StatelessWidget {
   final bool hasSearch;
   final VoidCallback onRefresh;
 
+  // Khởi tạo _EmptyRooms: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý trò chuyện.
   const _EmptyRooms({required this.hasSearch, required this.onRefresh});
 
+  // Xây dựng giao diện (build): dựng cây widget của _EmptyRooms từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return ListView(
@@ -1111,6 +1153,7 @@ class _EmptyRooms extends StatelessWidget {
   }
 }
 
+// Định dạng phòng chat thời gian (_formatRoomTime): chuyển dữ liệu thô thành giá trị dễ đọc để hiển thị.
 String _formatRoomTime(DateTime time) {
   final now = DateTime.now();
 
@@ -1126,6 +1169,7 @@ String _formatRoomTime(DateTime time) {
   return '${two(time.day)}/${two(time.month)}';
 }
 
+// Định dạng tin nhắn thời gian (_formatMessageTime): chuyển dữ liệu thô thành giá trị dễ đọc để hiển thị.
 String _formatMessageTime(DateTime time) {
   final now = DateTime.now();
 

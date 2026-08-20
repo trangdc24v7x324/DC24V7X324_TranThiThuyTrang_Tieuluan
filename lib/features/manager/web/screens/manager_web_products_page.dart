@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/manager/web/screens/manager_web_products_page.dart
+// Vai trò: Màn hình Manager Web quản lý sản phẩm.
+// Luồng sử dụng: Hiển thị nghiệp vụ quản lý trên trình duyệt và điều phối dữ liệu qua Provider/Service.
 
 import 'dart:math' as math;
 
@@ -13,6 +16,7 @@ import 'package:project_trangdc24v7x324/providers/profile_provider.dart';
 import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 
+// Kiểm tra điều kiện (_hasActivePromotion): đánh giá trạng thái có đang hoạt động promotion và trả kết quả cho lớp gọi.
 bool _hasActivePromotion(ProductModel product) {
   if (!product.isOnSale) return false;
 
@@ -32,19 +36,23 @@ bool _hasActivePromotion(ProductModel product) {
   return true;
 }
 
+// Xử lý _discountPercent: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý sản phẩm.
 int _discountPercent(ProductModel product) {
   if (!_hasActivePromotion(product) || product.price <= 0) return 0;
   return (((product.price - product.salePrice) / product.price) * 100).round();
 }
 
+// Lớp ManagerWebProductsPage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class ManagerWebProductsPage extends StatefulWidget {
-
+  // Khởi tạo ManagerWebProductsPage: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý sản phẩm.
   const ManagerWebProductsPage({super.key});
 
+  // Tạo state (createState): liên kết ManagerWebProductsPage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<ManagerWebProductsPage> createState() => _ManagerWebProductsPageState();
 }
 
+// Lớp _ManagerWebProductsPageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
   final TextEditingController _searchController = TextEditingController();
 
@@ -53,18 +61,21 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
   int _currentPage = 1;
   int _rowsPerPage = 8;
 
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
     Future.microtask(_loadData);
   }
 
+  // Giải phóng tài nguyên (dispose): hủy controller/listener khi widget bị loại khỏi cây giao diện.
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
 
+  // Tải dữ liệu (_loadData): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> _loadData() async {
     await Future.wait([
       context.read<ProductProvider>().loadInitialData(),
@@ -72,6 +83,7 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
     ]);
   }
 
+  // Định dạng price (_formatPrice): chuyển dữ liệu thô thành giá trị dễ đọc để hiển thị.
   String _formatPrice(double price) {
     final value = price.round().toString();
     final buffer = StringBuffer();
@@ -88,6 +100,7 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
     return '$bufferđ';
   }
 
+  // Lấy danh mục (_getCategories): truy xuất và trả kết quả cho lớp gọi.
   List<String> _getCategories(List<ProductModel> products) {
     final categories =
         products
@@ -103,6 +116,7 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
     return ['Tất cả', ...categories];
   }
 
+  // Lọc/tìm sản phẩm (_filterProducts): tạo tập dữ liệu phù hợp theo điều kiện đang chọn.
   List<ProductModel> _filterProducts(List<ProductModel> products) {
     final query = _searchController.text.trim().toLowerCase();
 
@@ -131,6 +145,7 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
     }).toList();
   }
 
+  // Mở create trang (_openCreatePage): điều hướng hoặc hiển thị thành phần tương ứng từ thao tác người dùng.
   Future<void> _openCreatePage() async {
     final result = await Navigator.push<bool>(
       context,
@@ -141,6 +156,7 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
     await context.read<ProductProvider>().loadProducts();
   }
 
+  // Mở chỉnh sửa trang (_openEditPage): điều hướng hoặc hiển thị thành phần tương ứng từ thao tác người dùng.
   Future<void> _openEditPage(ProductModel product) async {
     final result = await Navigator.push<bool>(
       context,
@@ -153,6 +169,7 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
     await context.read<ProductProvider>().loadProducts();
   }
 
+  // Xác nhận xóa (_confirmDelete): hiển thị cảnh báo trước khi xóa dữ liệu.
   Future<void> _confirmDelete(ProductModel product) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -211,6 +228,7 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
     );
   }
 
+  // Đăng xuất (_logout): kết thúc phiên, làm sạch state liên quan và đưa người dùng về trang đăng nhập.
   void _logout() {
     pb.authStore.clear();
 
@@ -221,6 +239,7 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
     );
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _ManagerWebProductsPageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<ProductProvider>();
@@ -396,12 +415,14 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
   }
 }
 
+// Lớp _ProductsSummary: thành phần phục vụ màn hình manager web quản lý sản phẩm.
 class _ProductsSummary extends StatelessWidget {
   final int totalProducts;
   final int availableProducts;
   final int promotionProducts;
   final int unavailableProducts;
 
+  // Khởi tạo _ProductsSummary: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý sản phẩm.
   const _ProductsSummary({
     required this.totalProducts,
     required this.availableProducts,
@@ -409,6 +430,7 @@ class _ProductsSummary extends StatelessWidget {
     required this.unavailableProducts,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _ProductsSummary từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -468,12 +490,14 @@ class _ProductsSummary extends StatelessWidget {
   }
 }
 
+// Lớp _SummaryItem: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _SummaryItem extends StatelessWidget {
   final String title;
   final String value;
   final IconData icon;
   final Color color;
 
+  // Khởi tạo _SummaryItem: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý sản phẩm.
   const _SummaryItem({
     required this.title,
     required this.value,
@@ -481,6 +505,7 @@ class _SummaryItem extends StatelessWidget {
     required this.color,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _SummaryItem từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -534,6 +559,7 @@ class _SummaryItem extends StatelessWidget {
   }
 }
 
+// Lớp _Toolbar: thành phần phục vụ màn hình manager web quản lý sản phẩm.
 class _Toolbar extends StatelessWidget {
   final TextEditingController searchController;
   final List<String> categories;
@@ -545,6 +571,7 @@ class _Toolbar extends StatelessWidget {
   final VoidCallback onReset;
   final VoidCallback onCreate;
 
+  // Khởi tạo _Toolbar: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý sản phẩm.
   const _Toolbar({
     required this.searchController,
     required this.categories,
@@ -557,6 +584,7 @@ class _Toolbar extends StatelessWidget {
     required this.onCreate,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _Toolbar từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -706,6 +734,7 @@ class _Toolbar extends StatelessWidget {
     );
   }
 
+  // Lọc/tìm trang trí ô nhập (_filterDecoration): tạo tập dữ liệu phù hợp theo điều kiện đang chọn.
   InputDecoration _filterDecoration({
     required String label,
     required IconData icon,
@@ -724,6 +753,7 @@ class _Toolbar extends StatelessWidget {
   }
 }
 
+// Lớp _ProductsPanel: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _ProductsPanel extends StatelessWidget {
   final bool isLoading;
   final List<ProductModel> products;
@@ -733,6 +763,7 @@ class _ProductsPanel extends StatelessWidget {
   final ValueChanged<ProductModel> onEdit;
   final ValueChanged<ProductModel> onDelete;
 
+  // Khởi tạo _ProductsPanel: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý sản phẩm.
   const _ProductsPanel({
     required this.isLoading,
     required this.products,
@@ -743,6 +774,7 @@ class _ProductsPanel extends StatelessWidget {
     required this.onDelete,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _ProductsPanel từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -817,6 +849,7 @@ class _ProductsPanel extends StatelessWidget {
   }
 }
 
+// Lớp _ProductTable: thành phần phục vụ màn hình manager web quản lý sản phẩm.
 class _ProductTable extends StatelessWidget {
   final List<ProductModel> products;
   final int startIndex;
@@ -824,6 +857,7 @@ class _ProductTable extends StatelessWidget {
   final ValueChanged<ProductModel> onEdit;
   final ValueChanged<ProductModel> onDelete;
 
+  // Khởi tạo _ProductTable: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý sản phẩm.
   const _ProductTable({
     required this.products,
     required this.startIndex,
@@ -832,6 +866,7 @@ class _ProductTable extends StatelessWidget {
     required this.onDelete,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _ProductTable từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
@@ -942,12 +977,14 @@ class _ProductTable extends StatelessWidget {
   }
 }
 
+// Lớp _ProductCards: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _ProductCards extends StatelessWidget {
   final List<ProductModel> products;
   final String Function(double) formatPrice;
   final ValueChanged<ProductModel> onEdit;
   final ValueChanged<ProductModel> onDelete;
 
+  // Khởi tạo _ProductCards: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý sản phẩm.
   const _ProductCards({
     required this.products,
     required this.formatPrice,
@@ -955,6 +992,7 @@ class _ProductCards extends StatelessWidget {
     required this.onDelete,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _ProductCards từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
@@ -1038,12 +1076,15 @@ class _ProductCards extends StatelessWidget {
   }
 }
 
+// Lớp _ProductImage: thành phần phục vụ màn hình manager web quản lý sản phẩm.
 class _ProductImage extends StatelessWidget {
   final String imageUrl;
   final double size;
 
+  // Khởi tạo _ProductImage: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý sản phẩm.
   const _ProductImage({required this.imageUrl, required this.size});
 
+  // Xây dựng giao diện (build): dựng cây widget của _ProductImage từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final placeholder = Container(
@@ -1069,12 +1110,15 @@ class _ProductImage extends StatelessWidget {
   }
 }
 
+// Lớp _ProductPrice: thành phần phục vụ màn hình manager web quản lý sản phẩm.
 class _ProductPrice extends StatelessWidget {
   final ProductModel product;
   final String Function(double) formatPrice;
 
+  // Khởi tạo _ProductPrice: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý sản phẩm.
   const _ProductPrice({required this.product, required this.formatPrice});
 
+  // Xây dựng giao diện (build): dựng cây widget của _ProductPrice từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final activeSale = _hasActivePromotion(product);
@@ -1140,11 +1184,14 @@ class _ProductPrice extends StatelessWidget {
   }
 }
 
+// Lớp _ProductStatus: thành phần phục vụ màn hình manager web quản lý sản phẩm.
 class _ProductStatus extends StatelessWidget {
   final ProductModel product;
 
+  // Khởi tạo _ProductStatus: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý sản phẩm.
   const _ProductStatus({required this.product});
 
+  // Xây dựng giao diện (build): dựng cây widget của _ProductStatus từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Wrap(
@@ -1159,10 +1206,12 @@ class _ProductStatus extends StatelessWidget {
   }
 }
 
+// Lớp _SaleChip: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _SaleChip extends StatelessWidget {
-
+  // Khởi tạo _SaleChip: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý sản phẩm.
   const _SaleChip();
 
+  // Xây dựng giao diện (build): dựng cây widget của _SaleChip từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     const color = Color(0xFFEF4444);
@@ -1185,11 +1234,14 @@ class _SaleChip extends StatelessWidget {
   }
 }
 
+// Lớp _StatusChip: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _StatusChip extends StatelessWidget {
   final bool isAvailable;
 
+  // Khởi tạo _StatusChip: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý sản phẩm.
   const _StatusChip({required this.isAvailable});
 
+  // Xây dựng giao diện (build): dựng cây widget của _StatusChip từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final color = isAvailable ? AppColors.success : const Color(0xFFEF4444);
@@ -1212,12 +1264,14 @@ class _StatusChip extends StatelessWidget {
   }
 }
 
+// Lớp _ActionButton: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _ActionButton extends StatelessWidget {
   final String tooltip;
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
 
+  // Khởi tạo _ActionButton: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý sản phẩm.
   const _ActionButton({
     required this.tooltip,
     required this.icon,
@@ -1225,6 +1279,7 @@ class _ActionButton extends StatelessWidget {
     required this.onTap,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _ActionButton từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Tooltip(
@@ -1246,10 +1301,12 @@ class _ActionButton extends StatelessWidget {
   }
 }
 
+// Lớp _EmptyProducts: thành phần phục vụ màn hình manager web quản lý sản phẩm.
 class _EmptyProducts extends StatelessWidget {
-
+  // Khởi tạo _EmptyProducts: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý sản phẩm.
   const _EmptyProducts();
 
+  // Xây dựng giao diện (build): dựng cây widget của _EmptyProducts từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return const Center(
@@ -1277,6 +1334,7 @@ class _EmptyProducts extends StatelessWidget {
   }
 }
 
+// Lớp _PaginationBar: thành phần phục vụ màn hình manager web quản lý sản phẩm.
 class _PaginationBar extends StatelessWidget {
   final int currentPage;
   final int totalPages;
@@ -1288,6 +1346,7 @@ class _PaginationBar extends StatelessWidget {
   final VoidCallback? onPrevious;
   final VoidCallback? onNext;
 
+  // Khởi tạo _PaginationBar: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý sản phẩm.
   const _PaginationBar({
     required this.currentPage,
     required this.totalPages,
@@ -1300,6 +1359,7 @@ class _PaginationBar extends StatelessWidget {
     required this.onNext,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _PaginationBar từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(

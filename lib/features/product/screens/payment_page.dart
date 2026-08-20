@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/product/screens/payment_page.dart
+// Vai trò: Màn hình thanh toán.
+// Luồng sử dụng: Phục vụ luồng mua hàng: xem món, giỏ hàng, đặt đơn, thanh toán hoặc theo dõi đơn.
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -19,14 +22,17 @@ import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_card.dart';
 
+// Lớp PaymentPage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class PaymentPage extends StatefulWidget {
-
+  // Khởi tạo PaymentPage: nhận các tham số cần thiết để tạo đối tượng cho màn hình thanh toán.
   const PaymentPage({super.key});
 
+  // Tạo state (createState): liên kết PaymentPage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<PaymentPage> createState() => _PaymentPageState();
 }
 
+// Lớp _PaymentPageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _PaymentPageState extends State<PaymentPage> {
   String? selectedMethod;
 
@@ -47,14 +53,19 @@ class _PaymentPageState extends State<PaymentPage> {
   String? _deliveryError;
   String? _lastAddressId;
 
+  // Address checkout state.
+  // PaymentPage luôn load lại ProfileProvider từ backend,
+  // nhưng người dùng có thể chọn một address cụ thể hoặc GPS hiện tại.
   String? _selectedProfileAddressId;
   String? _checkoutAddressText;
   String _deliveryAddressSource = 'profile';
 
+  // Xử lý _lineKey: thực hiện phần nghiệp vụ tương ứng trong màn hình thanh toán.
   String _lineKey(CartItemModel item) {
     return '${item.productId}|${item.normalizedNote}';
   }
 
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
@@ -64,9 +75,12 @@ class _PaymentPageState extends State<PaymentPage> {
     });
   }
 
+  // Xử lý _initializePaymentData: thực hiện phần nghiệp vụ tương ứng trong màn hình thanh toán.
   Future<void> _initializePaymentData() async {
     final profileProvider = context.read<ProfileProvider>();
 
+    // Luôn gọi lại backend khi mở Payment để tránh dùng
+    // address cũ đang cache trong ProfileProvider.
     await profileProvider.loadProfile();
 
     if (!mounted) {
@@ -99,6 +113,7 @@ class _PaymentPageState extends State<PaymentPage> {
     });
   }
 
+  // Cập nhật phụ thuộc (didChangeDependencies): xử lý lại khi Provider/InheritedWidget liên quan thay đổi.
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -114,25 +129,30 @@ class _PaymentPageState extends State<PaymentPage> {
     if (args is List<CartItemModel>) {
       _checkoutKeys.addAll(args.map(_lineKey));
     } else {
-
+      // Tương thích route cũ:
+      // nếu PaymentPage được mở không kèm arguments thì
+      // dùng toàn bộ cart hiện tại.
       _checkoutKeys.addAll(cart.items.map(_lineKey));
     }
 
     _routeArgsLoaded = true;
   }
 
+  // Giải phóng tài nguyên (dispose): hủy controller/listener khi widget bị loại khỏi cây giao diện.
   @override
   void dispose() {
     noteController.dispose();
     super.dispose();
   }
 
+  // Kiểm tra out các mục (_checkoutItems): xác minh điều kiện/định dạng và trả kết quả cho lớp gọi.
   List<CartItemModel> _checkoutItems(CartProvider cart) {
     return cart.items.where((item) {
       return _checkoutKeys.contains(_lineKey(item));
     }).toList();
   }
 
+  // Định dạng giá (formatPrice): chuyển số tiền thành chuỗi dễ đọc để hiển thị.
   String formatPrice(double price) {
     final text = price.round().toString();
 
@@ -151,6 +171,11 @@ class _PaymentPageState extends State<PaymentPage> {
     return '$resultđ';
   }
 
+  // =========================================================
+  // PROFILE ADDRESS SYNC
+  // =========================================================
+
+  // Xử lý _profileAddresses: thực hiện phần nghiệp vụ tương ứng trong màn hình thanh toán.
   List<dynamic> _profileAddresses(dynamic profile) {
     try {
       return List<dynamic>.from(profile?.addresses ?? const []);
@@ -159,6 +184,7 @@ class _PaymentPageState extends State<PaymentPage> {
     }
   }
 
+  // Xử lý _findDefaultOrFirstAddress: thực hiện phần nghiệp vụ tương ứng trong màn hình thanh toán.
   dynamic _findDefaultOrFirstAddress(dynamic profile) {
     final addresses = _profileAddresses(profile);
 
@@ -177,6 +203,8 @@ class _PaymentPageState extends State<PaymentPage> {
     return addresses.first;
   }
 
+  // Xử lý đã chọn hồ sơ địa chỉ (_resolveSelectedProfileAddress): chuẩn hóa điều kiện đầu vào và thực hiện nhánh nghiệp vụ phù
+  // hợp.
   dynamic _resolveSelectedProfileAddress(dynamic profile) {
     final addresses = _profileAddresses(profile);
 
@@ -197,6 +225,7 @@ class _PaymentPageState extends State<PaymentPage> {
     return _findDefaultOrFirstAddress(profile);
   }
 
+  // Xử lý _receiverName: thực hiện phần nghiệp vụ tương ứng trong màn hình thanh toán.
   String _receiverName(dynamic address) {
     try {
       return address.receiverName.toString().trim();
@@ -205,6 +234,7 @@ class _PaymentPageState extends State<PaymentPage> {
     }
   }
 
+  // Xử lý _phoneNumber: thực hiện phần nghiệp vụ tương ứng trong màn hình thanh toán.
   String _phoneNumber(dynamic address) {
     try {
       return address.phoneNumber.toString().trim();
@@ -213,6 +243,7 @@ class _PaymentPageState extends State<PaymentPage> {
     }
   }
 
+  // Thêm ress nhãn (_addressLabel): đưa mục mới vào state/backend và cập nhật giao diện.
   String _addressLabel(dynamic address) {
     try {
       final label = address.label.toString().trim();
@@ -231,6 +262,7 @@ class _PaymentPageState extends State<PaymentPage> {
     return 'Địa chỉ đã lưu';
   }
 
+  // Xử lý _effectiveDeliveryAddress: thực hiện phần nghiệp vụ tương ứng trong màn hình thanh toán.
   String _effectiveDeliveryAddress(dynamic profileAddress) {
     final checkoutText = _checkoutAddressText?.trim();
 
@@ -241,6 +273,7 @@ class _PaymentPageState extends State<PaymentPage> {
     return _addressLine(profileAddress);
   }
 
+  // Chọn hồ sơ địa chỉ (_selectProfileAddress): lưu lựa chọn để dùng cho lọc, biểu mẫu hoặc nghiệp vụ tiếp theo.
   void _selectProfileAddress(dynamic address) {
     setState(() {
       _selectedProfileAddressId = _addressId(address);
@@ -255,6 +288,7 @@ class _PaymentPageState extends State<PaymentPage> {
     });
   }
 
+  // Tải hồ sơ địa chỉ (_reloadProfileAddresses): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> _reloadProfileAddresses({
     bool keepCurrentSelection = true,
   }) async {
@@ -300,6 +334,7 @@ class _PaymentPageState extends State<PaymentPage> {
     });
   }
 
+  // Hiển thị địa chỉ picker (_showAddressPicker): mở thông báo/dialog hoặc thành phần hỗ trợ trên giao diện.
   Future<void> _showAddressPicker(dynamic profile) async {
     final addresses = _profileAddresses(profile);
 
@@ -408,6 +443,7 @@ class _PaymentPageState extends State<PaymentPage> {
     _selectProfileAddress(selected);
   }
 
+  // Kiểm tra điều kiện (_isDefaultAddress): đánh giá trạng thái mặc định địa chỉ và trả kết quả cho lớp gọi.
   bool _isDefaultAddress(dynamic address) {
     try {
       return address.isDefault == true;
@@ -416,6 +452,11 @@ class _PaymentPageState extends State<PaymentPage> {
     }
   }
 
+  // =========================================================
+  // DELIVERY
+  // =========================================================
+
+  // Thêm ress mã (_addressId): đưa mục mới vào state/backend và cập nhật giao diện.
   String _addressId(dynamic address) {
     try {
       final value = address.id?.toString() ?? '';
@@ -426,6 +467,7 @@ class _PaymentPageState extends State<PaymentPage> {
     }
   }
 
+  // Thêm ress dòng (_addressLine): đưa mục mới vào state/backend và cập nhật giao diện.
   String _addressLine(dynamic address) {
     try {
       return address.addressLine.toString().trim();
@@ -434,6 +476,7 @@ class _PaymentPageState extends State<PaymentPage> {
     }
   }
 
+  // Thêm ress vĩ độ (_addressLatitude): đưa mục mới vào state/backend và cập nhật giao diện.
   double _addressLatitude(dynamic address) {
     try {
       final value = address.latitude;
@@ -444,6 +487,7 @@ class _PaymentPageState extends State<PaymentPage> {
     }
   }
 
+  // Thêm ress kinh độ (_addressLongitude): đưa mục mới vào state/backend và cập nhật giao diện.
   double _addressLongitude(dynamic address) {
     try {
       final value = address.longitude;
@@ -454,6 +498,7 @@ class _PaymentPageState extends State<PaymentPage> {
     }
   }
 
+  // Thêm ress has tọa độ (_addressHasCoordinates): đưa mục mới vào state/backend và cập nhật giao diện.
   bool _addressHasCoordinates(dynamic address) {
     final latitude = _addressLatitude(address);
     final longitude = _addressLongitude(address);
@@ -465,6 +510,7 @@ class _PaymentPageState extends State<PaymentPage> {
         !(latitude == 0 && longitude == 0);
   }
 
+  // Trì hoãn tính phí (_scheduleSavedDeliveryQuote): chống gọi tính phí lặp khi địa chỉ thay đổi liên tục.
   void _scheduleSavedDeliveryQuote(dynamic address) {
     if (address == null ||
         _isLoadingDelivery ||
@@ -490,6 +536,8 @@ class _PaymentPageState extends State<PaymentPage> {
     });
   }
 
+  // Dùng GPS hiện tại: tính phí trước, reverse geocode chạy sau để không giữ màn hình loading lâu.
+  // Dùng GPS hiện tại (_useCurrentLocation): xin quyền vị trí, lấy tọa độ và tính phí giao hàng.
   Future<void> _useCurrentLocation(dynamic address) async {
     if (address == null || _isLoadingDelivery || _isSubmitting) {
       return;
@@ -510,6 +558,7 @@ class _PaymentPageState extends State<PaymentPage> {
 
       if (!mounted) return;
 
+      // Có quote là cho UI sử dụng ngay; không chờ reverse geocoding.
       setState(() {
         _checkoutAddressText = 'Vị trí giao hàng đã chọn bằng GPS';
         _deliveryAddressSource = 'gps';
@@ -535,7 +584,7 @@ class _PaymentPageState extends State<PaymentPage> {
           });
         }
       } catch (_) {
-
+        // Tọa độ vẫn đủ để giao hàng/chỉ đường; địa chỉ đọc được chỉ là dữ liệu bổ sung.
       }
     } catch (error) {
       if (!mounted) return;
@@ -547,6 +596,7 @@ class _PaymentPageState extends State<PaymentPage> {
     }
   }
 
+  // Dùng địa chỉ đã chọn (_useTypedAddress): ưu tiên tọa độ lưu sẵn và tính báo giá giao hàng.
   Future<void> _useTypedAddress(dynamic address) async {
     if (address == null || _isLoadingDelivery || _isSubmitting) {
       return;
@@ -570,6 +620,7 @@ class _PaymentPageState extends State<PaymentPage> {
       double latitude = _addressLatitude(address);
       double longitude = _addressLongitude(address);
 
+      // Ưu tiên tọa độ đã lưu; chỉ geocode khi địa chỉ chưa có tọa độ hợp lệ.
       if (!_addressHasCoordinates(address)) {
         final coordinates = await _deliveryService.resolveAddressText(text);
         latitude = coordinates.latitude;
@@ -585,7 +636,7 @@ class _PaymentPageState extends State<PaymentPage> {
               longitude: longitude,
             );
           } catch (_) {
-
+            // Lỗi lưu cache tọa độ không được chặn checkout.
           }
         }
       }
@@ -619,6 +670,7 @@ class _PaymentPageState extends State<PaymentPage> {
     }
   }
 
+  // Làm mới giao hàng báo giá (_refreshDeliveryQuote): tải dữ liệu mới nhất và đồng bộ state hiện tại.
   Future<DeliveryQuote?> _refreshDeliveryQuote() async {
     final current = _deliveryQuote;
 
@@ -632,6 +684,7 @@ class _PaymentPageState extends State<PaymentPage> {
     );
   }
 
+  // Hiển thị thanh toán picker (_showPaymentPicker): mở thông báo/dialog hoặc thành phần hỗ trợ trên giao diện.
   void _showPaymentPicker(List<PaymentMethodModel> methods) {
     showModalBottomSheet(
       context: context,
@@ -683,6 +736,7 @@ class _PaymentPageState extends State<PaymentPage> {
     );
   }
 
+  // Xác nhận thanh toán (_confirmPayment): kiểm tra điều kiện và thực hiện nghiệp vụ sau khi người dùng xác nhận.
   Future<void> _confirmPayment({
     required BuildContext context,
     required CartProvider cart,
@@ -736,7 +790,8 @@ class _PaymentPageState extends State<PaymentPage> {
     });
 
     try {
-
+      // Chỉ xác nhận lại phí giao hàng. Giá và trạng thái sản phẩm được
+      // OrderService kiểm tra trực tiếp trên PocketBase trước khi tạo đơn.
       final latestDeliveryQuote = await _refreshDeliveryQuote();
 
       if (!context.mounted) return;
@@ -782,7 +837,7 @@ class _PaymentPageState extends State<PaymentPage> {
       if (!context.mounted) return;
 
       if (!success) {
-
+        // Chỉ tải lại giỏ khi backend phát hiện giá/trạng thái sản phẩm thay đổi.
         await cart.refreshCart();
 
         if (!context.mounted) return;
@@ -898,6 +953,7 @@ class _PaymentPageState extends State<PaymentPage> {
     }
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _PaymentPageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>();
@@ -972,6 +1028,7 @@ class _PaymentPageState extends State<PaymentPage> {
     );
   }
 
+  // Xử lý _itemsSection: thực hiện phần nghiệp vụ tương ứng trong màn hình thanh toán.
   Widget _itemsSection(List<CartItemModel> items) {
     return AppCard(
       child: Column(
@@ -1038,6 +1095,7 @@ class _PaymentPageState extends State<PaymentPage> {
     );
   }
 
+  // Thêm ress khu vực (_addressSection): đưa mục mới vào state/backend và cập nhật giao diện.
   Widget _addressSection(
     BuildContext context,
     dynamic profile,
@@ -1305,6 +1363,7 @@ class _PaymentPageState extends State<PaymentPage> {
     );
   }
 
+  // Xử lý _paymentSection: thực hiện phần nghiệp vụ tương ứng trong màn hình thanh toán.
   Widget _paymentSection(List<PaymentMethodModel> methods) {
     if (methods.isEmpty) {
       return AppCard(
@@ -1356,6 +1415,7 @@ class _PaymentPageState extends State<PaymentPage> {
     );
   }
 
+  // Xử lý _noteSection: thực hiện phần nghiệp vụ tương ứng trong màn hình thanh toán.
   Widget _noteSection() {
     return AppCard(
       child: TextField(
@@ -1370,6 +1430,7 @@ class _PaymentPageState extends State<PaymentPage> {
     );
   }
 
+  // Xử lý _totalSection: thực hiện phần nghiệp vụ tương ứng trong màn hình thanh toán.
   Widget _totalSection(
     BuildContext context,
     CartProvider cart,

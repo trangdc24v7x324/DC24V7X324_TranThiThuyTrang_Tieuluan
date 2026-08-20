@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/product/widgets/food_card.dart
+// Vai trò: Widget sản phẩm cho món ăn thẻ.
+// Luồng sử dụng: Tách giao diện sản phẩm thành thành phần tái sử dụng và nhận dữ liệu từ màn hình cha.
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -5,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:project_trangdc24v7x324/models/product_model.dart';
 import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 
+// Lớp FoodCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class FoodCard extends StatefulWidget {
   final ProductModel product;
   final bool isFavorited;
@@ -14,6 +18,7 @@ class FoodCard extends StatefulWidget {
   final double rating;
   final int reviewCount;
 
+  // Khởi tạo FoodCard: nhận các tham số cần thiết để tạo đối tượng cho widget sản phẩm cho món ăn thẻ.
   const FoodCard({
     super.key,
     required this.product,
@@ -24,13 +29,16 @@ class FoodCard extends StatefulWidget {
     this.reviewCount = 0,
   });
 
+  // Tạo state (createState): liên kết FoodCard với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<FoodCard> createState() => _FoodCardState();
 }
 
+// Lớp _FoodCardState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _FoodCardState extends State<FoodCard> {
   bool _isCartAnimating = false;
 
+  // Đọc has đang hoạt động khuyến mãi (_hasActiveSale): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   bool get _hasActiveSale {
     final product = widget.product;
 
@@ -52,6 +60,7 @@ class _FoodCardState extends State<FoodCard> {
     return true;
   }
 
+  // Đọc giảm giá phần trăm (_discountPercent): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   int get _discountPercent {
     if (!_hasActiveSale || widget.product.price <= 0) return 0;
 
@@ -61,6 +70,7 @@ class _FoodCardState extends State<FoodCard> {
         .round();
   }
 
+  // Xử lý add to giỏ hàng (_handleAddToCart): chuẩn hóa điều kiện đầu vào và thực hiện nhánh nghiệp vụ phù hợp.
   Future<void> _handleAddToCart() async {
     setState(() => _isCartAnimating = true);
 
@@ -72,6 +82,7 @@ class _FoodCardState extends State<FoodCard> {
     setState(() => _isCartAnimating = false);
   }
 
+  // Định dạng giá (formatPrice): chuyển số tiền thành chuỗi dễ đọc để hiển thị.
   String formatPrice(double price) {
     final value = price.round().toString();
     final buffer = StringBuffer();
@@ -88,6 +99,7 @@ class _FoodCardState extends State<FoodCard> {
     return '$bufferđ';
   }
 
+  // Tạo giao diện hình ảnh (_buildImage): dựng widget con từ dữ liệu hiện tại.
   Widget _buildImage() {
     if (widget.product.image.isEmpty) {
       return const Icon(Icons.fastfood_rounded, size: 44, color: Colors.grey);
@@ -120,6 +132,7 @@ class _FoodCardState extends State<FoodCard> {
     );
   }
 
+  // Tạo giao diện price (_buildPrice): dựng widget con từ dữ liệu hiện tại.
   Widget _buildPrice() {
     if (!_hasActiveSale) {
       return Text(
@@ -184,6 +197,7 @@ class _FoodCardState extends State<FoodCard> {
     );
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _FoodCardState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -202,6 +216,7 @@ class _FoodCardState extends State<FoodCard> {
 
           if (!mounted) return;
 
+          // ProductPage cập nhật rating qua ProductProvider; FoodCard chỉ đọc cache chung.
         },
         child: Padding(
           padding: const EdgeInsets.fromLTRB(10, 10, 10, 9),
@@ -309,12 +324,14 @@ class _FoodCardState extends State<FoodCard> {
   }
 }
 
+// Lớp _ActionIcon: thành phần phục vụ widget sản phẩm cho món ăn thẻ.
 class _ActionIcon extends StatelessWidget {
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
   final bool isAnimating;
 
+  // Khởi tạo _ActionIcon: nhận các tham số cần thiết để tạo đối tượng cho widget sản phẩm cho món ăn thẻ.
   const _ActionIcon({
     required this.icon,
     required this.color,
@@ -322,6 +339,7 @@ class _ActionIcon extends StatelessWidget {
     this.isAnimating = false,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _ActionIcon từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return AnimatedScale(

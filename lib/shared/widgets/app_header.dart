@@ -1,6 +1,10 @@
+// FILE HỌC TẬP: lib/shared/widgets/app_header.dart
+// Vai trò: Widget dùng chung cho ứng dụng phần đầu.
+// Luồng sử dụng: Đóng gói bố cục/giao diện lặp lại để tái sử dụng trong nhiều màn hình.
 
 import 'package:flutter/material.dart';
 
+// Lớp AppHeader: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class AppHeader extends StatelessWidget {
   final String title;
   final bool showBack;
@@ -8,6 +12,7 @@ class AppHeader extends StatelessWidget {
 
   final List<Widget>? actions;
 
+  // Khởi tạo AppHeader: nhận các tham số cần thiết để tạo đối tượng cho widget dùng chung cho ứng dụng phần đầu.
   const AppHeader({
     super.key,
     required this.title,
@@ -23,6 +28,7 @@ class AppHeader extends StatelessWidget {
     stops: [0.0, 0.45, 1.0],
   );
 
+  // Xây dựng giao diện (build): dựng cây widget của AppHeader từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final isSmall = MediaQuery.sizeOf(context).width < 380;
@@ -65,11 +71,14 @@ class AppHeader extends StatelessWidget {
   }
 }
 
+// Lớp _BackButton: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _BackButton extends StatelessWidget {
   final VoidCallback onTap;
 
+  // Khởi tạo _BackButton: nhận các tham số cần thiết để tạo đối tượng cho widget dùng chung cho ứng dụng phần đầu.
   const _BackButton({required this.onTap});
 
+  // Xây dựng giao diện (build): dựng cây widget của _BackButton từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Material(

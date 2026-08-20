@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/services/order_service.dart
+// Vai trò: Service nghiệp vụ đơn hàng.
+// Luồng sử dụng: Thực hiện truy vấn PocketBase hoặc tác vụ hệ thống và trả kết quả cho Provider/UI.
 
 import 'package:flutter/foundation.dart';
 
@@ -9,10 +12,18 @@ import 'package:project_trangdc24v7x324/services/notification_service.dart';
 import 'package:project_trangdc24v7x324/services/delivery_service.dart';
 import 'package:project_trangdc24v7x324/utils/delivery_location_helper.dart';
 
+// Lớp OrderService: tập trung nghiệp vụ và thao tác dữ liệu/backend cho chức năng tương ứng.
 class OrderService {
   final NotificationService _notificationService = NotificationService();
   final DeliveryService _deliveryService = DeliveryService();
 
+  // =========================================================
+  // CREATE ORDER
+  // =========================================================
+  //
+  // Tạo đơn hàng: tự xác thực lại giá/phí trên backend data và trả về snapshot đơn vừa tạo.
+  //
+  // Tạo đơn hàng (createOrder): kiểm tra sản phẩm, tính phí giao hàng, ghi order/order_items và phát thông báo.
   Future<OrderModel> createOrder({
     required List<CartItemModel> items,
     required String receiverName,
@@ -33,6 +44,7 @@ class OrderService {
       throw Exception('Giỏ hàng đang trống');
     }
 
+    // Kiểm tra sản phẩm song song: giảm thời gian chờ khi đơn có nhiều món.
     final resolvedItems = await Future.wait(
       items.map((item) async {
         if (item.productId.trim().isEmpty) {
@@ -56,6 +68,7 @@ class OrderService {
     final discountAmount =
         originalSubtotal > subtotal ? originalSubtotal - subtotal : 0;
 
+    // Tính lại phí ngay trước khi ghi đơn để không tin số tiền từ UI.
     final deliveryQuote = await _deliveryService.quoteForCoordinates(
       latitude: deliveryLatitude,
       longitude: deliveryLongitude,
@@ -69,6 +82,8 @@ class OrderService {
     final distanceKm = deliveryQuote.distanceKm;
     final totalAmount = subtotal + deliveryFee;
 
+    // Giữ địa chỉ dễ đọc và tọa độ chỉ đường trong cùng field hiện có.
+    // Cách này không yêu cầu đổi schema PocketBase ở bản V1.
     final storedDeliveryAddress = DeliveryLocationHelper.encode(
       address: deliveryAddress,
       latitude: deliveryLatitude,
@@ -129,7 +144,7 @@ class OrderService {
         );
       }
     } catch (error) {
-
+      // Rollback các dòng đã tạo trước khi xóa đơn cha.
       for (final item in createdItems) {
         try {
           await pb.collection('order_items').delete(item.id);
@@ -147,6 +162,7 @@ class OrderService {
       throw Exception('Không thể tạo chi tiết đơn hàng: $error');
     }
 
+    // Thông báo chạy song song và không được làm thất bại đơn hàng.
     try {
       await Future.wait([
         _notificationService.createOrderCreatedNotificationForCustomer(
@@ -164,6 +180,7 @@ class OrderService {
       debugPrint('Tạo đơn thành công nhưng tạo thông báo lỗi: $error');
     }
 
+    // Trả thẳng order vừa tạo để Provider không reload toàn bộ lịch sử đơn.
     return OrderModel.fromJson(
       {
         'id': orderRecord.id,
@@ -175,6 +192,11 @@ class OrderService {
     );
   }
 
+  // =========================================================
+  // RE-CHECK PRODUCT PRICE
+  // =========================================================
+
+  // Xử lý đơn hàng mục (_resolveOrderItem): chuẩn hóa điều kiện đầu vào và thực hiện nhánh nghiệp vụ phù hợp.
   Future<_ResolvedOrderItem> _resolveOrderItem(CartItemModel item) async {
     final record = await pb.collection('products').getOne(item.productId);
 
@@ -208,6 +230,9 @@ class OrderService {
 
     final double unitPrice = hasActiveSale ? salePrice : originalPrice;
 
+    // Chặn race-condition:
+    // nếu giá thay đổi sau lúc Cart/Payment vừa refresh nhưng trước khi
+    // OrderService tạo đơn thì KHÔNG âm thầm tạo đơn theo giá mới.
     final bool effectivePriceChanged = (unitPrice - item.price).abs() > 0.001;
 
     final bool originalPriceChanged =
@@ -227,6 +252,7 @@ class OrderService {
     );
   }
 
+  // Kiểm tra điều kiện (_hasActiveSale): đánh giá trạng thái có đang hoạt động khuyến mãi và trả kết quả cho lớp gọi.
   bool _hasActiveSale({
     required double originalPrice,
     required double salePrice,
@@ -253,6 +279,11 @@ class OrderService {
     return true;
   }
 
+  // =========================================================
+  // FETCH ORDERS
+  // =========================================================
+
+  // Lấy của tôi đơn hàng (fetchMyOrders): truy xuất từ PocketBase và trả kết quả cho lớp gọi.
   Future<List<OrderModel>> fetchMyOrders() async {
     final authUser = pb.authStore.model;
 
@@ -267,6 +298,7 @@ class OrderService {
     return _mapOrderRecords(orderRecords);
   }
 
+  // Lấy tất cả đơn hàng (fetchAllOrders): truy xuất từ PocketBase và trả kết quả cho lớp gọi.
   Future<List<OrderModel>> fetchAllOrders() async {
     final orderRecords = await pb
         .collection('orders')
@@ -275,6 +307,7 @@ class OrderService {
     return _mapOrderRecords(orderRecords);
   }
 
+  // Lấy chi tiết đơn hàng (fetchOrderDetail): truy xuất từ PocketBase và trả kết quả cho lớp gọi.
   Future<OrderModel> fetchOrderDetail(String orderId) async {
     final orderRecord = await pb.collection('orders').getOne(orderId);
 
@@ -288,6 +321,11 @@ class OrderService {
     }, items: items);
   }
 
+  // =========================================================
+  // PURCHASE CHECK FOR REVIEW
+  // =========================================================
+
+  // Kiểm tra điều kiện (hasCompletedPurchase): đánh giá trạng thái có hoàn thành purchase và trả kết quả cho lớp gọi.
   Future<bool> hasCompletedPurchase(String productId) async {
     final safeProductId = productId.trim();
 
@@ -300,6 +338,9 @@ class OrderService {
     return purchasedIds.contains(safeProductId);
   }
 
+  // Kiểm tra sản phẩm đã mua: chỉ nhận đơn completed + paid và tải item song song.
+  // Lấy hoàn thành đã mua sản phẩm các mã (fetchCompletedPurchasedProductIds): truy xuất từ PocketBase và trả kết quả cho lớp
+  // gọi.
   Future<Set<String>> fetchCompletedPurchasedProductIds() async {
     final authUser = pb.authStore.model;
 
@@ -381,6 +422,11 @@ class OrderService {
     return productIds;
   }
 
+  // =========================================================
+  // UPDATE STATUS
+  // =========================================================
+
+  // Cập nhật trạng thái đơn hàng (updateOrderStatus): gửi thay đổi tới service/backend và đồng bộ state hiện tại.
   Future<void> updateOrderStatus({
     required String orderId,
     required String status,
@@ -452,11 +498,12 @@ class OrderService {
         cancelReason: safeCancelReason,
       );
     } catch (e) {
-
+      // Đơn đã cập nhật thành công nên notification không được rollback đơn.
       debugPrint('Cập nhật đơn thành công nhưng tạo thông báo lỗi: $e');
     }
   }
 
+  // Kiểm tra điều kiện (_isValidStatusTransition): đánh giá trạng thái hợp lệ trạng thái transition và trả kết quả cho lớp gọi.
   bool _isValidStatusTransition({
     required String currentStatus,
     required String nextStatus,
@@ -475,6 +522,7 @@ class OrderService {
     return transitions[currentStatus] == nextStatus;
   }
 
+  // Cập nhật thanh toán trạng thái (updatePaymentStatus): gửi thay đổi tới service/backend và đồng bộ state hiện tại.
   Future<void> updatePaymentStatus({
     required String orderId,
     required String paymentStatus,
@@ -484,6 +532,12 @@ class OrderService {
         .update(orderId, body: {'payment_status': paymentStatus});
   }
 
+  // =========================================================
+  // PRIVATE FETCH HELPERS
+  // =========================================================
+
+  // Ánh xạ danh sách đơn: tải chi tiết các đơn song song để giảm thời gian chờ N đơn liên tiếp.
+  // Ánh xạ đơn hàng bản ghi (_mapOrderRecords): chuyển dữ liệu thô thành cấu trúc ứng dụng sử dụng.
   Future<List<OrderModel>> _mapOrderRecords(List<dynamic> orderRecords) async {
     return Future.wait(
       orderRecords.map((orderRecord) async {
@@ -502,6 +556,7 @@ class OrderService {
     );
   }
 
+  // Lấy đơn hàng các mục (_fetchOrderItems): truy xuất từ PocketBase và trả kết quả cho lớp gọi.
   Future<List<OrderItemModel>> _fetchOrderItems(String orderId) async {
     final itemRecords = await pb
         .collection('order_items')
@@ -517,11 +572,27 @@ class OrderService {
     }).toList();
   }
 
-  String _getInitialPaymentStatus(String paymentMethod) {
+  // =========================================================
+  // PAYMENT
+  // =========================================================
 
+  // Lấy ban đầu thanh toán trạng thái (_getInitialPaymentStatus): truy xuất và trả kết quả cho lớp gọi.
+  String _getInitialPaymentStatus(String paymentMethod) {
+    // Database orders.payment_status hiện tại không nhận "pending".
+    //
+    // Order chỉ phản ánh trạng thái thanh toán tổng quát:
+    // - unpaid: chưa xác nhận đã thu tiền
+    // - paid: đã xác nhận thanh toán
+    //
+    // Trạng thái chi tiết pending / failed được lưu ở collection payments.
     return 'unpaid';
   }
 
+  // =========================================================
+  // PARSE HELPERS
+  // =========================================================
+
+  // Xử lý _toDouble: thực hiện phần nghiệp vụ tương ứng trong service nghiệp vụ đơn hàng.
   double _toDouble(dynamic value) {
     if (value == null) return 0;
 
@@ -532,6 +603,7 @@ class OrderService {
     return double.tryParse(value.toString()) ?? 0;
   }
 
+  // Xử lý _toBool: thực hiện phần nghiệp vụ tương ứng trong service nghiệp vụ đơn hàng.
   bool _toBool(dynamic value, {bool defaultValue = false}) {
     if (value == null) return defaultValue;
 
@@ -554,6 +626,7 @@ class OrderService {
     return defaultValue;
   }
 
+  // Xử lý _toDateTime: thực hiện phần nghiệp vụ tương ứng trong service nghiệp vụ đơn hàng.
   DateTime? _toDateTime(dynamic value) {
     final text = value?.toString().trim() ?? '';
 
@@ -565,18 +638,26 @@ class OrderService {
   }
 }
 
+// ===========================================================
+// INTERNAL SNAPSHOT MODEL
+// ===========================================================
+
+// Lớp _ResolvedOrderItem: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _ResolvedOrderItem {
   final CartItemModel cartItem;
   final double originalPrice;
   final double unitPrice;
 
+  // Khởi tạo _ResolvedOrderItem: nhận các tham số cần thiết để tạo đối tượng cho service nghiệp vụ đơn hàng.
   const _ResolvedOrderItem({
     required this.cartItem,
     required this.originalPrice,
     required this.unitPrice,
   });
 
+  // Đọc tạm tính (subtotal): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   double get subtotal => unitPrice * cartItem.quantity;
 
+  // Đọc gốc tạm tính (originalSubtotal): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   double get originalSubtotal => originalPrice * cartItem.quantity;
 }

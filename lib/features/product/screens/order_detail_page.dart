@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/product/screens/order_detail_page.dart
+// Vai trò: Màn hình chi tiết đơn hàng.
+// Luồng sử dụng: Phục vụ luồng mua hàng: xem món, giỏ hàng, đặt đơn, thanh toán hoặc theo dõi đơn.
 
 import 'package:project_trangdc24v7x324/models/order_item_model.dart';
 import 'package:project_trangdc24v7x324/models/order_model.dart';
@@ -10,21 +13,26 @@ import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+// Lớp OrderDetailPage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class OrderDetailPage extends StatefulWidget {
   final String orderId;
 
+  // Khởi tạo OrderDetailPage: nhận các tham số cần thiết để tạo đối tượng cho màn hình chi tiết đơn hàng.
   const OrderDetailPage({super.key, required this.orderId});
 
+  // Tạo state (createState): liên kết OrderDetailPage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<OrderDetailPage> createState() => _OrderDetailPageState();
 }
 
+// Lớp _OrderDetailPageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _OrderDetailPageState extends State<OrderDetailPage> {
   final PaymentService _paymentService = PaymentService();
 
   PaymentRecordModel? _paymentRecord;
   bool _isLoadingPayment = false;
 
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
@@ -32,12 +40,14 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     Future.microtask(_loadDetail);
   }
 
+  // Tải chi tiết (_loadDetail): lấy các bản ghi liên quan và cập nhật state màn hình.
   Future<void> _loadDetail() async {
     await context.read<OrderProvider>().loadOrderDetail(widget.orderId);
 
     await _loadPaymentRecord();
   }
 
+  // Tải thanh toán bản ghi (_loadPaymentRecord): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> _loadPaymentRecord() async {
     if (!mounted) {
       return;
@@ -58,7 +68,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         _paymentRecord = payment;
       });
     } catch (_) {
-
+      // Không chặn OrderDetail nếu payment chưa tồn tại
+      // hoặc API payment tạm thời lỗi.
       if (mounted) {
         setState(() {
           _paymentRecord = null;
@@ -73,6 +84,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     }
   }
 
+  // Xem vị trí giao hàng: mở Google Maps bằng tọa độ snapshot của đơn.
+  // Mở vị trí giao hàng (_openDeliveryLocation): điều hướng hoặc hiển thị thành phần tương ứng từ thao tác người dùng.
   Future<void> _openDeliveryLocation(OrderModel order) async {
     if (!order.hasDeliveryCoordinates) return;
 
@@ -93,6 +106,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     }
   }
 
+  // Mở thanh toán mô phỏng (_openPaymentTest): điều hướng hoặc hiển thị thành phần tương ứng từ thao tác người dùng.
   Future<void> _openPaymentTest() async {
     await Navigator.pushNamed(
       context,
@@ -107,6 +121,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     await _loadDetail();
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _OrderDetailPageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -258,6 +273,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     );
   }
 
+  // Xử lý _section: thực hiện phần nghiệp vụ tương ứng trong màn hình chi tiết đơn hàng.
   Widget _section({required String title, required Widget child}) {
     return Container(
       padding: const EdgeInsets.all(14),
@@ -286,6 +302,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     );
   }
 
+  // Xử lý _infoRow: thực hiện phần nghiệp vụ tương ứng trong màn hình chi tiết đơn hàng.
   Widget _infoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -311,6 +328,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     );
   }
 
+  // Xử lý _moneyRow: thực hiện phần nghiệp vụ tương ứng trong màn hình chi tiết đơn hàng.
   Widget _moneyRow(String label, double value, {bool isTotal = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -338,6 +356,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     );
   }
 
+  // Xử lý _orderItem: thực hiện phần nghiệp vụ tương ứng trong màn hình chi tiết đơn hàng.
   Widget _orderItem(OrderItemModel item) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -393,6 +412,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     );
   }
 
+  // Xử lý _itemImage: thực hiện phần nghiệp vụ tương ứng trong màn hình chi tiết đơn hàng.
   Widget _itemImage(String imageUrl) {
     if (imageUrl.trim().isEmpty) {
       return Container(
@@ -425,6 +445,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     );
   }
 
+  // Xử lý _statusText: thực hiện phần nghiệp vụ tương ứng trong màn hình chi tiết đơn hàng.
   String _statusText(String status) {
     switch (status) {
       case 'placed':
@@ -444,6 +465,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     }
   }
 
+  // Xử lý _paymentText: thực hiện phần nghiệp vụ tương ứng trong màn hình chi tiết đơn hàng.
   String _paymentText(String status) {
     switch (status) {
       case 'paid':
@@ -459,6 +481,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     }
   }
 
+  // Định dạng ngày (_formatDate): chuyển dữ liệu thô thành giá trị dễ đọc để hiển thị.
   String _formatDate(DateTime date) {
     final day = date.day.toString().padLeft(2, '0');
 
@@ -474,6 +497,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         '$hour:$minute';
   }
 
+  // Định dạng tiền (_formatMoney): chuyển dữ liệu thô thành giá trị dễ đọc để hiển thị.
   String _formatMoney(double value) {
     final text = value.toStringAsFixed(0);
 

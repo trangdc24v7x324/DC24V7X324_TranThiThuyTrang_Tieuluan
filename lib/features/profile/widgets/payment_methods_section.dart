@@ -1,15 +1,20 @@
+// FILE HỌC TẬP: lib/features/profile/widgets/payment_methods_section.dart
+// Vai trò: Widget hồ sơ cho phần phương thức thanh toán.
+// Luồng sử dụng: Hiển thị/chỉnh sửa một phần hồ sơ và trả sự kiện về màn hình Profile.
 
 import 'package:project_trangdc24v7x324/models/payment_method_model.dart';
 import 'package:flutter/material.dart';
 
 import '../../../shared/widgets/section_card.dart';
 
+// Lớp PaymentMethodsSection: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class PaymentMethodsSection extends StatefulWidget {
   final List<PaymentMethodModel> methods;
   final bool isEditing;
   final VoidCallback onEdit;
   final Future<void> Function(List<PaymentMethodModel> updatedMethods) onSave;
 
+  // Khởi tạo PaymentMethodsSection: nhận các tham số cần thiết để tạo đối tượng cho widget hồ sơ cho phần phương thức thanh toán.
   const PaymentMethodsSection({
     super.key,
     required this.methods,
@@ -18,13 +23,16 @@ class PaymentMethodsSection extends StatefulWidget {
     required this.onSave,
   });
 
+  // Tạo state (createState): liên kết PaymentMethodsSection với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<PaymentMethodsSection> createState() => _PaymentMethodsSectionState();
 }
 
+// Lớp _PaymentMethodsSectionState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _PaymentMethodsSectionState extends State<PaymentMethodsSection> {
   bool _isSaving = false;
 
+  // Lấy biểu tượng (_getIcon): truy xuất và trả kết quả cho lớp gọi.
   IconData _getIcon(String type) {
     switch (type) {
       case 'cash':
@@ -39,6 +47,7 @@ class _PaymentMethodsSectionState extends State<PaymentMethodsSection> {
     }
   }
 
+  // Xử lý _defaultMethods: thực hiện phần nghiệp vụ tương ứng trong widget hồ sơ cho phần phương thức thanh toán.
   List<PaymentMethodModel> _defaultMethods() {
     return const [
       PaymentMethodModel(
@@ -71,6 +80,7 @@ class _PaymentMethodsSectionState extends State<PaymentMethodsSection> {
     ];
   }
 
+  // Lưu phương thức (_saveMethods): kiểm tra dữ liệu, ghi thay đổi và đồng bộ state sau khi thành công.
   Future<void> _saveMethods(List<PaymentMethodModel> updatedMethods) async {
     if (_isSaving) return;
 
@@ -85,6 +95,7 @@ class _PaymentMethodsSectionState extends State<PaymentMethodsSection> {
     }
   }
 
+  // Cập nhật mặc định (_setDefault): gán state nội bộ và thông báo lại cho UI khi cần.
   Future<void> _setDefault(PaymentMethodModel selectedMethod) async {
     final updatedMethods =
         widget.methods.map((method) {
@@ -94,6 +105,7 @@ class _PaymentMethodsSectionState extends State<PaymentMethodsSection> {
     await _saveMethods(updatedMethods);
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _PaymentMethodsSectionState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final defaultMethodId =

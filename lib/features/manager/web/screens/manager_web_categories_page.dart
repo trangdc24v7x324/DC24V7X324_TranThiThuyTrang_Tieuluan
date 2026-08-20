@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/manager/web/screens/manager_web_categories_page.dart
+// Vai trò: Màn hình Manager Web quản lý danh mục.
+// Luồng sử dụng: Hiển thị nghiệp vụ quản lý trên trình duyệt và điều phối dữ liệu qua Provider/Service.
 
 import 'dart:math' as math;
 
@@ -11,15 +14,18 @@ import 'package:project_trangdc24v7x324/providers/profile_provider.dart';
 import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 
+// Lớp ManagerWebCategoriesPage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class ManagerWebCategoriesPage extends StatefulWidget {
-
+  // Khởi tạo ManagerWebCategoriesPage: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý danh mục.
   const ManagerWebCategoriesPage({super.key});
 
+  // Tạo state (createState): liên kết ManagerWebCategoriesPage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<ManagerWebCategoriesPage> createState() =>
       _ManagerWebCategoriesPageState();
 }
 
+// Lớp _ManagerWebCategoriesPageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _ManagerWebCategoriesPageState extends State<ManagerWebCategoriesPage> {
   final TextEditingController _searchController = TextEditingController();
   final List<CategoryModel> _categories = [];
@@ -29,18 +35,21 @@ class _ManagerWebCategoriesPageState extends State<ManagerWebCategoriesPage> {
   int _currentPage = 1;
   int _rowsPerPage = 8;
 
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
     Future.microtask(_loadInitialData);
   }
 
+  // Giải phóng tài nguyên (dispose): hủy controller/listener khi widget bị loại khỏi cây giao diện.
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
 
+  // Tải ban đầu dữ liệu (_loadInitialData): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> _loadInitialData() async {
     await Future.wait([
       _loadCategories(),
@@ -48,6 +57,7 @@ class _ManagerWebCategoriesPageState extends State<ManagerWebCategoriesPage> {
     ]);
   }
 
+  // Tải danh mục (_loadCategories): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> _loadCategories() async {
     if (mounted) {
       setState(() {
@@ -102,6 +112,7 @@ class _ManagerWebCategoriesPageState extends State<ManagerWebCategoriesPage> {
     }
   }
 
+  // Đọc đã lọc danh mục (_filteredCategories): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   List<CategoryModel> get _filteredCategories {
     final query = _searchController.text.trim().toLowerCase();
 
@@ -121,6 +132,7 @@ class _ManagerWebCategoriesPageState extends State<ManagerWebCategoriesPage> {
       ..sort((first, second) => first.sortOrder.compareTo(second.sortOrder));
   }
 
+  // Lấy biểu tượng (_getIcon): truy xuất và trả kết quả cho lớp gọi.
   IconData _getIcon(String icon) {
     switch (icon) {
       case 'restaurant':
@@ -140,6 +152,7 @@ class _ManagerWebCategoriesPageState extends State<ManagerWebCategoriesPage> {
     }
   }
 
+  // Lấy biểu tượng nhãn (_getIconLabel): truy xuất và trả kết quả cho lớp gọi.
   String _getIconLabel(String icon) {
     switch (icon) {
       case 'restaurant':
@@ -159,6 +172,7 @@ class _ManagerWebCategoriesPageState extends State<ManagerWebCategoriesPage> {
     }
   }
 
+  // Xử lý _makeSlug: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý danh mục.
   String _makeSlug(String value) {
     return value
         .toLowerCase()
@@ -168,6 +182,7 @@ class _ManagerWebCategoriesPageState extends State<ManagerWebCategoriesPage> {
         .replaceAll(RegExp(r'[^a-z0-9-]'), '');
   }
 
+  // Hiển thị tin nhắn (_showMessage): mở thông báo/dialog hoặc thành phần hỗ trợ trên giao diện.
   void _showMessage(String message) {
     if (!mounted) {
       return;
@@ -178,6 +193,7 @@ class _ManagerWebCategoriesPageState extends State<ManagerWebCategoriesPage> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  // Mở biểu mẫu (_openForm): điều hướng hoặc hiển thị thành phần tương ứng từ thao tác người dùng.
   Future<void> _openForm({CategoryModel? category}) async {
     final titleController = TextEditingController(text: category?.title ?? '');
     final slugController = TextEditingController(text: category?.slug ?? '');
@@ -556,6 +572,7 @@ class _ManagerWebCategoriesPageState extends State<ManagerWebCategoriesPage> {
     }
   }
 
+  // Xử lý _inputDecoration: thực hiện phần nghiệp vụ tương ứng trong màn hình manager web quản lý danh mục.
   InputDecoration _inputDecoration({
     required String label,
     required IconData icon,
@@ -582,6 +599,7 @@ class _ManagerWebCategoriesPageState extends State<ManagerWebCategoriesPage> {
     );
   }
 
+  // Xác nhận xóa (_confirmDelete): hiển thị cảnh báo trước khi xóa dữ liệu.
   Future<void> _confirmDelete(CategoryModel category) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -636,6 +654,7 @@ class _ManagerWebCategoriesPageState extends State<ManagerWebCategoriesPage> {
     }
   }
 
+  // Đăng xuất (_logout): kết thúc phiên, làm sạch state liên quan và đưa người dùng về trang đăng nhập.
   void _logout() {
     pb.authStore.clear();
 
@@ -646,6 +665,7 @@ class _ManagerWebCategoriesPageState extends State<ManagerWebCategoriesPage> {
     );
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _ManagerWebCategoriesPageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final profile = context.watch<ProfileProvider>().profile;
@@ -825,17 +845,20 @@ class _ManagerWebCategoriesPageState extends State<ManagerWebCategoriesPage> {
   }
 }
 
+// Lớp _CategoriesSummary: thành phần phục vụ màn hình manager web quản lý danh mục.
 class _CategoriesSummary extends StatelessWidget {
   final int totalCategories;
   final int activeCategories;
   final int hiddenCategories;
 
+  // Khởi tạo _CategoriesSummary: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý danh mục.
   const _CategoriesSummary({
     required this.totalCategories,
     required this.activeCategories,
     required this.hiddenCategories,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _CategoriesSummary từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final items = [
@@ -886,12 +909,14 @@ class _CategoriesSummary extends StatelessWidget {
   }
 }
 
+// Lớp _SummaryCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _SummaryCard extends StatelessWidget {
   final String title;
   final String value;
   final IconData icon;
   final Color color;
 
+  // Khởi tạo _SummaryCard: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý danh mục.
   const _SummaryCard({
     required this.title,
     required this.value,
@@ -899,6 +924,7 @@ class _SummaryCard extends StatelessWidget {
     required this.color,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _SummaryCard từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -952,6 +978,7 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
+// Lớp _CategoryToolbar: thành phần phục vụ màn hình manager web quản lý danh mục.
 class _CategoryToolbar extends StatelessWidget {
   final TextEditingController searchController;
   final String selectedStatus;
@@ -960,6 +987,7 @@ class _CategoryToolbar extends StatelessWidget {
   final VoidCallback onReset;
   final VoidCallback onCreate;
 
+  // Khởi tạo _CategoryToolbar: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý danh mục.
   const _CategoryToolbar({
     required this.searchController,
     required this.selectedStatus,
@@ -969,6 +997,7 @@ class _CategoryToolbar extends StatelessWidget {
     required this.onCreate,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _CategoryToolbar từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1094,6 +1123,7 @@ class _CategoryToolbar extends StatelessWidget {
   }
 }
 
+// Lớp _CategoriesPanel: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _CategoriesPanel extends StatelessWidget {
   final bool isLoading;
   final List<CategoryModel> categories;
@@ -1104,6 +1134,7 @@ class _CategoriesPanel extends StatelessWidget {
   final ValueChanged<CategoryModel> onEdit;
   final ValueChanged<CategoryModel> onDelete;
 
+  // Khởi tạo _CategoriesPanel: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý danh mục.
   const _CategoriesPanel({
     required this.isLoading,
     required this.categories,
@@ -1115,6 +1146,7 @@ class _CategoriesPanel extends StatelessWidget {
     required this.onDelete,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _CategoriesPanel từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1191,6 +1223,7 @@ class _CategoriesPanel extends StatelessWidget {
   }
 }
 
+// Lớp _CategoryTable: thành phần phục vụ màn hình manager web quản lý danh mục.
 class _CategoryTable extends StatelessWidget {
   final List<CategoryModel> categories;
   final int startIndex;
@@ -1199,6 +1232,7 @@ class _CategoryTable extends StatelessWidget {
   final ValueChanged<CategoryModel> onEdit;
   final ValueChanged<CategoryModel> onDelete;
 
+  // Khởi tạo _CategoryTable: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý danh mục.
   const _CategoryTable({
     required this.categories,
     required this.startIndex,
@@ -1208,6 +1242,7 @@ class _CategoryTable extends StatelessWidget {
     required this.onDelete,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _CategoryTable từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
@@ -1332,6 +1367,7 @@ class _CategoryTable extends StatelessWidget {
   }
 }
 
+// Lớp _CategoryCards: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _CategoryCards extends StatelessWidget {
   final List<CategoryModel> categories;
   final IconData Function(String) getIcon;
@@ -1339,6 +1375,7 @@ class _CategoryCards extends StatelessWidget {
   final ValueChanged<CategoryModel> onEdit;
   final ValueChanged<CategoryModel> onDelete;
 
+  // Khởi tạo _CategoryCards: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý danh mục.
   const _CategoryCards({
     required this.categories,
     required this.getIcon,
@@ -1347,6 +1384,7 @@ class _CategoryCards extends StatelessWidget {
     required this.onDelete,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _CategoryCards từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -1448,11 +1486,14 @@ class _CategoryCards extends StatelessWidget {
   }
 }
 
+// Lớp _CategoryIcon: thành phần phục vụ màn hình manager web quản lý danh mục.
 class _CategoryIcon extends StatelessWidget {
   final IconData icon;
 
+  // Khởi tạo _CategoryIcon: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý danh mục.
   const _CategoryIcon({required this.icon});
 
+  // Xây dựng giao diện (build): dựng cây widget của _CategoryIcon từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1467,11 +1508,14 @@ class _CategoryIcon extends StatelessWidget {
   }
 }
 
+// Lớp _StatusChip: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _StatusChip extends StatelessWidget {
   final bool isActive;
 
+  // Khởi tạo _StatusChip: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý danh mục.
   const _StatusChip({required this.isActive});
 
+  // Xây dựng giao diện (build): dựng cây widget của _StatusChip từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final color = isActive ? AppColors.success : AppColors.textGrey;
@@ -1494,12 +1538,14 @@ class _StatusChip extends StatelessWidget {
   }
 }
 
+// Lớp _ActionButton: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class _ActionButton extends StatelessWidget {
   final String tooltip;
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
 
+  // Khởi tạo _ActionButton: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý danh mục.
   const _ActionButton({
     required this.tooltip,
     required this.icon,
@@ -1507,6 +1553,7 @@ class _ActionButton extends StatelessWidget {
     required this.onTap,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _ActionButton từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Tooltip(
@@ -1528,10 +1575,12 @@ class _ActionButton extends StatelessWidget {
   }
 }
 
+// Lớp _EmptyCategories: thành phần phục vụ màn hình manager web quản lý danh mục.
 class _EmptyCategories extends StatelessWidget {
-
+  // Khởi tạo _EmptyCategories: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý danh mục.
   const _EmptyCategories();
 
+  // Xây dựng giao diện (build): dựng cây widget của _EmptyCategories từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return const Center(
@@ -1559,6 +1608,7 @@ class _EmptyCategories extends StatelessWidget {
   }
 }
 
+// Lớp _PaginationBar: thành phần phục vụ màn hình manager web quản lý danh mục.
 class _PaginationBar extends StatelessWidget {
   final int currentPage;
   final int totalPages;
@@ -1570,6 +1620,7 @@ class _PaginationBar extends StatelessWidget {
   final VoidCallback? onPrevious;
   final VoidCallback? onNext;
 
+  // Khởi tạo _PaginationBar: nhận các tham số cần thiết để tạo đối tượng cho màn hình manager web quản lý danh mục.
   const _PaginationBar({
     required this.currentPage,
     required this.totalPages,
@@ -1582,6 +1633,7 @@ class _PaginationBar extends StatelessWidget {
     required this.onNext,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của _PaginationBar từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(

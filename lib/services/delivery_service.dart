@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/services/delivery_service.dart
+// Vai trò: Service nghiệp vụ giao hàng.
+// Luồng sử dụng: Thực hiện truy vấn PocketBase hoặc tác vụ hệ thống và trả kết quả cho Provider/UI.
 
 import 'dart:math' as math;
 
@@ -8,13 +11,16 @@ import 'package:flutter/widgets.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 
+// Lớp DeliveryService: tập trung nghiệp vụ và thao tác dữ liệu/backend cho chức năng tương ứng.
 class DeliveryService {
   static _StoreLocation? _cachedStore;
   static DateTime? _cachedStoreAt;
   static const Duration _storeCacheDuration = Duration(minutes: 5);
-
+  // Không khởi tạo Geocoding ngay lập tức.
+  // Package geocoding không hỗ trợ Flutter Web.
   Geocoding? _geocoding;
 
+  // Đọc native geocoding (_nativeGeocoding): trả giá trị hiện tại cho UI/nghiệp vụ mà không thay đổi state.
   Geocoding get _nativeGeocoding {
     if (kIsWeb) {
       throw UnsupportedError(
@@ -25,6 +31,11 @@ class DeliveryService {
     return _geocoding ??= Geocoding();
   }
 
+  // =========================================================
+  // CURRENT GPS
+  // =========================================================
+
+  // Lấy hiện tại position (getCurrentPosition): truy xuất và trả kết quả cho lớp gọi.
   Future<Position> getCurrentPosition() async {
     final bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
 
@@ -63,6 +74,10 @@ class DeliveryService {
 
     return Geolocator.getCurrentPosition(locationSettings: settings);
   }
+
+  // =========================================================
+  // MANUAL ADDRESS -> COORDINATES
+  // =========================================================
 
   Future<({double latitude, double longitude})> resolveAddressText(
     String addressText,
@@ -104,6 +119,7 @@ class DeliveryService {
         lastError = e;
       }
 
+      // Cho native geocoder nghỉ ngắn trước lần retry.
       await Future<void>.delayed(const Duration(milliseconds: 350));
     }
 
@@ -118,7 +134,11 @@ class DeliveryService {
       'phường/xã, quận/huyện và tỉnh/thành.',
     );
   }
+  // =========================================================
+  // COORDINATES -> HUMAN READABLE ADDRESS
+  // =========================================================
 
+  // Xử lý tọa độ to địa chỉ (resolveCoordinatesToAddress): chuẩn hóa điều kiện đầu vào và thực hiện nhánh nghiệp vụ phù hợp.
   Future<String> resolveCoordinatesToAddress({
     required double latitude,
     required double longitude,
@@ -127,6 +147,8 @@ class DeliveryService {
       throw Exception('Tọa độ không hợp lệ.');
     }
 
+    // Flutter Web:
+    // Không gọi plugin geocoding native.
     if (kIsWeb) {
       return 'Vị trí giao hàng đã chọn bằng GPS';
     }
@@ -177,6 +199,11 @@ class DeliveryService {
     return parts.join(', ');
   }
 
+  // =========================================================
+  // SAVED ADDRESS COORDINATES
+  // =========================================================
+
+  // Tính báo giá from saved địa chỉ (quoteFromSavedAddress): xác định khoảng cách/phí và trả kết quả giao hàng.
   Future<DeliveryQuote?> quoteFromSavedAddress(String addressId) async {
     if (addressId.trim().isEmpty) {
       return null;
@@ -199,6 +226,7 @@ class DeliveryService {
     }
   }
 
+  // Lưu địa chỉ tọa độ (saveAddressCoordinates): kiểm tra dữ liệu, ghi thay đổi và đồng bộ state sau khi thành công.
   Future<void> saveAddressCoordinates({
     required String addressId,
     required double latitude,
@@ -220,6 +248,11 @@ class DeliveryService {
         );
   }
 
+  // =========================================================
+  // DELIVERY QUOTE
+  // =========================================================
+
+  // Tính báo giá for tọa độ (quoteForCoordinates): xác định khoảng cách/phí và trả kết quả giao hàng.
   Future<DeliveryQuote> quoteForCoordinates({
     required double latitude,
     required double longitude,
@@ -288,6 +321,11 @@ class DeliveryService {
     );
   }
 
+  // =========================================================
+  // STORE
+  // =========================================================
+
+  // Tải đang hoạt động cửa hàng (_loadActiveStore): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<_StoreLocation> _loadActiveStore() async {
     final cached = _cachedStore;
     final cachedAt = _cachedStoreAt;
@@ -330,11 +368,14 @@ class DeliveryService {
     return store;
   }
 
+  // Làm mới cấu hình giao hàng: dùng khi Manager thay đổi tọa độ hoặc bán kính cửa hàng.
+  // Xử lý invalidateStoreCache: thực hiện phần nghiệp vụ tương ứng trong service nghiệp vụ giao hàng.
   static void invalidateStoreCache() {
     _cachedStore = null;
     _cachedStoreAt = null;
   }
 
+  // Xử lý _haversineKm: thực hiện phần nghiệp vụ tương ứng trong service nghiệp vụ giao hàng.
   double _haversineKm(double lat1, double lon1, double lat2, double lon2) {
     const earthRadiusKm = 6371.0;
 
@@ -358,10 +399,16 @@ class DeliveryService {
     return earthRadiusKm * c;
   }
 
+  // Xử lý _toRadians: thực hiện phần nghiệp vụ tương ứng trong service nghiệp vụ giao hàng.
   double _toRadians(double degree) {
     return degree * math.pi / 180;
   }
 
+  // =========================================================
+  // HELPERS
+  // =========================================================
+
+  // Xử lý _validCoordinate: thực hiện phần nghiệp vụ tương ứng trong service nghiệp vụ giao hàng.
   bool _validCoordinate(double latitude, double longitude) {
     return latitude >= -90 &&
         latitude <= 90 &&
@@ -370,6 +417,7 @@ class DeliveryService {
         !(latitude == 0 && longitude == 0);
   }
 
+  // Xử lý _toDouble: thực hiện phần nghiệp vụ tương ứng trong service nghiệp vụ giao hàng.
   double _toDouble(dynamic value) {
     if (value is num) {
       return value.toDouble();
@@ -379,6 +427,7 @@ class DeliveryService {
   }
 }
 
+// Lớp _StoreLocation: thành phần phục vụ service nghiệp vụ giao hàng.
 class _StoreLocation {
   final String id;
   final String name;
@@ -386,6 +435,7 @@ class _StoreLocation {
   final double longitude;
   final double deliveryRadiusKm;
 
+  // Khởi tạo _StoreLocation: nhận các tham số cần thiết để tạo đối tượng cho service nghiệp vụ giao hàng.
   const _StoreLocation({
     required this.id,
     required this.name,

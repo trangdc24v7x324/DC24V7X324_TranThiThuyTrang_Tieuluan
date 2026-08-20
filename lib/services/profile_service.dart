@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/services/profile_service.dart
+// Vai trò: Service nghiệp vụ hồ sơ.
+// Luồng sử dụng: Thực hiện truy vấn PocketBase hoặc tác vụ hệ thống và trả kết quả cho Provider/UI.
 
 import 'dart:io';
 
@@ -9,8 +12,13 @@ import 'package:project_trangdc24v7x324/models/address_model.dart';
 import 'package:project_trangdc24v7x324/models/payment_method_model.dart';
 import 'package:project_trangdc24v7x324/models/user_profile_model.dart';
 
+// Lớp ProfileService: tập trung nghiệp vụ và thao tác dữ liệu/backend cho chức năng tương ứng.
 class ProfileService {
+  // =========================================================
+  // PROFILE
+  // =========================================================
 
+  // Lấy hồ sơ (fetchProfile): truy xuất từ PocketBase và trả kết quả cho lớp gọi.
   Future<UserProfileModel> fetchProfile() async {
     final authUser = pb.authStore.model;
 
@@ -26,6 +34,7 @@ class ProfileService {
         fileName: userData['avatar']?.toString(),
       );
 
+      // Địa chỉ và phương thức thanh toán độc lập nên tải song song.
       final relatedData = await Future.wait([
         pb.collection('addresses').getFullList(
           filter: 'user = "${userRecord.id}"',
@@ -67,6 +76,7 @@ class ProfileService {
     }
   }
 
+  // Cập nhật thông tin cá nhân (updateGeneralInfo): gửi thay đổi tới service/backend và đồng bộ state hiện tại.
   Future<void> updateGeneralInfo({
     required String fullName,
     required String email,
@@ -87,6 +97,8 @@ class ProfileService {
       'dateOfBirth': dateOfBirth?.toIso8601String(),
     };
 
+    // Giữ logic email của auth collection riêng.
+    // Chỉ gửi email khi thực sự thay đổi.
     final currentEmail = authUser.getStringValue('email').trim();
 
     final newEmail = email.trim();
@@ -100,6 +112,11 @@ class ProfileService {
     await pb.collection('users').authRefresh();
   }
 
+  // =========================================================
+  // AVATAR
+  // =========================================================
+
+  // Cập nhật ảnh đại diện (updateAvatar): gửi thay đổi tới service/backend và đồng bộ state hiện tại.
   Future<String> updateAvatar(File file) async {
     final authUser = pb.authStore.model;
 
@@ -128,6 +145,11 @@ class ProfileService {
     );
   }
 
+  // =========================================================
+  // ADDRESSES
+  // =========================================================
+
+  // Cập nhật địa chỉ (updateAddresses): gửi thay đổi tới service/backend và đồng bộ state hiện tại.
   Future<List<AddressModel>> updateAddresses(List<AddressModel> addresses) async {
     final authUser = pb.authStore.model;
 
@@ -147,6 +169,9 @@ class ProfileService {
 
     final keptIds = <String>{};
 
+    // Tạo/cập nhật trước.
+    // Không xóa toàn bộ rồi tạo lại để ID của address
+    // được giữ ổn định cho PaymentPage.
     for (final address in normalized) {
       final body = address.toPocketBaseBody(userIdOverride: userId);
 
@@ -163,6 +188,7 @@ class ProfileService {
       }
     }
 
+    // Chỉ xóa những record user đã thực sự bỏ khỏi Profile.
     for (final record in oldRecords) {
       if (!keptIds.contains(record.id)) {
         await pb.collection('addresses').delete(record.id);
@@ -177,6 +203,7 @@ class ProfileService {
     return freshRecords.map(AddressModel.fromRecord).toList();
   }
 
+  // Chuẩn hóa địa chỉ (_normalizeAddresses): đưa dữ liệu về định dạng thống nhất trước khi kiểm tra hoặc lưu.
   List<AddressModel> _normalizeAddresses(List<AddressModel> source) {
     if (source.isEmpty) {
       return <AddressModel>[];
@@ -212,6 +239,11 @@ class ProfileService {
         .toList();
   }
 
+  // =========================================================
+  // PAYMENT METHODS
+  // =========================================================
+
+  // Cập nhật phương thức thanh toán (updatePaymentMethods): gửi thay đổi tới service/backend và đồng bộ state hiện tại.
   Future<List<PaymentMethodModel>> updatePaymentMethods(List<PaymentMethodModel> methods) async {
     final authUser = pb.authStore.model;
 
@@ -252,6 +284,7 @@ class ProfileService {
       }
     }
 
+    // Chỉ xóa phương thức người dùng đã loại bỏ, không xóa rồi tạo lại toàn bộ.
     for (final record in oldRecords) {
       if (!keptIds.contains(record.id)) {
         await pb.collection('payment_methods').delete(record.id);
@@ -273,6 +306,7 @@ class ProfileService {
     }).toList();
   }
 
+  // Tạo giao diện người dùng ảnh đại diện url (_buildUserAvatarUrl): dựng widget con từ dữ liệu hiện tại.
   String _buildUserAvatarUrl({
     required String userId,
     required String? fileName,
@@ -281,6 +315,8 @@ class ProfileService {
       return '';
     }
 
+    // PocketBase đổi tên file khi avatar thay đổi, nên không cache-bust theo thời gian.
+    // Nhờ đó lưu họ tên/số điện thoại không làm ảnh đại diện tải lại.
     return '${pb.baseUrl}/api/files/users/$userId/${fileName.trim()}';
   }
 }

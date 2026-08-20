@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/product/widgets/food_list.dart
+// Vai trò: Widget sản phẩm cho món ăn danh sách.
+// Luồng sử dụng: Tách giao diện sản phẩm thành thành phần tái sử dụng và nhận dữ liệu từ màn hình cha.
 
 import 'package:project_trangdc24v7x324/features/product/widgets/food_card.dart';
 import 'package:project_trangdc24v7x324/models/cart_item_model.dart';
@@ -7,6 +10,7 @@ import 'package:project_trangdc24v7x324/providers/product_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+// Lớp FoodAvailable: thành phần phục vụ widget sản phẩm cho món ăn danh sách.
 class FoodAvailable extends StatelessWidget {
   static const double _cardHeight = 240;
 
@@ -15,6 +19,8 @@ class FoodAvailable extends StatelessWidget {
   final String searchQuery;
   final String selectedCategory;
 
+
+  // Khởi tạo FoodAvailable: nhận các tham số cần thiết để tạo đối tượng cho widget sản phẩm cho món ăn danh sách.
   const FoodAvailable({
     super.key,
     required this.favoritedItems,
@@ -23,10 +29,12 @@ class FoodAvailable extends StatelessWidget {
     required this.selectedCategory,
   });
 
+  // Kiểm tra điều kiện (isFavorited): đánh giá trạng thái favorited và trả kết quả cho lớp gọi.
   bool isFavorited(ProductModel product) {
     return favoritedItems.any((item) => item.id == product.id);
   }
 
+  // Lấy cross axis số lượng (_getCrossAxisCount): truy xuất và trả kết quả cho lớp gọi.
   int _getCrossAxisCount(double width, int itemCount) {
     if (itemCount == 1) return 1;
     if (width >= 900) return 4;
@@ -34,6 +42,7 @@ class FoodAvailable extends StatelessWidget {
     return 2;
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của FoodAvailable từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final productProvider = context.watch<ProductProvider>();

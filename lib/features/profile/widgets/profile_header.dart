@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/profile/widgets/profile_header.dart
+// Vai trò: Widget hồ sơ cho phần đầu hồ sơ.
+// Luồng sử dụng: Hiển thị/chỉnh sửa một phần hồ sơ và trả sự kiện về màn hình Profile.
 
 import 'dart:io';
 
@@ -6,12 +9,15 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+// Lớp ProfileHeader: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class ProfileHeader extends StatelessWidget {
   final String name;
   final String avatarUrl;
 
+  // Khởi tạo ProfileHeader: nhận các tham số cần thiết để tạo đối tượng cho widget hồ sơ cho phần đầu hồ sơ.
   const ProfileHeader({super.key, required this.name, required this.avatarUrl});
 
+  // Chọn ảnh (_pickImage): mở bộ chọn ảnh, nhận file và cập nhật phần xem trước.
   Future<void> _pickImage(BuildContext context) async {
     try {
       final picker = ImagePicker();
@@ -46,6 +52,7 @@ class ProfileHeader extends StatelessWidget {
     }
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của ProfileHeader từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<ProfileProvider>();

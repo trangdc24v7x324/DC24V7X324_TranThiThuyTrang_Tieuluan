@@ -1,4 +1,8 @@
+// FILE HỌC TẬP: lib/models/category_model.dart
+// Vai trò: Mô hình dữ liệu danh mục.
+// Luồng sử dụng: Chuẩn hóa dữ liệu giữa PocketBase và Dart, cung cấp ánh xạ và bản sao model.
 
+// Lớp CategoryModel: biểu diễn dữ liệu nghiệp vụ và hỗ trợ ánh xạ dữ liệu vào/ra.
 class CategoryModel {
   final String id;
   final String title;
@@ -9,6 +13,7 @@ class CategoryModel {
   final DateTime? created;
   final DateTime? updated;
 
+  // Khởi tạo CategoryModel: nhận các tham số cần thiết để tạo đối tượng cho mô hình dữ liệu danh mục.
   const CategoryModel({
     required this.id,
     required this.title,
@@ -20,6 +25,7 @@ class CategoryModel {
     this.updated,
   });
 
+  // Khởi tạo CategoryModel.fromJson: tạo đối tượng CategoryModel bằng constructor fromJson từ dữ liệu đầu vào.
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
     return CategoryModel(
       id: json['id']?.toString() ?? '',
@@ -33,6 +39,7 @@ class CategoryModel {
     );
   }
 
+  // Chuyển sang JSON (toJson): đóng gói model thành Map để lưu hoặc truyền sang service.
   Map<String, dynamic> toJson() {
     return {
       'title': title,
@@ -43,6 +50,7 @@ class CategoryModel {
     };
   }
 
+  // Sao chép model (copyWith): tạo bản mới từ dữ liệu hiện tại và thay các trường được truyền vào.
   CategoryModel copyWith({
     String? id,
     String? title,

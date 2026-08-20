@@ -1,11 +1,16 @@
+// FILE HỌC TẬP: lib/shared/widgets/section_card.dart
+// Vai trò: Widget dùng chung cho khu vực thẻ.
+// Luồng sử dụng: Đóng gói bố cục/giao diện lặp lại để tái sử dụng trong nhiều màn hình.
 
 import 'package:flutter/material.dart';
 
+// Lớp SectionCard: widget thành phần dùng để hiển thị một phần giao diện và nhận dữ liệu từ lớp cha.
 class SectionCard extends StatelessWidget {
   final String title;
   final Widget child;
   final Widget? action;
 
+  // Khởi tạo SectionCard: nhận các tham số cần thiết để tạo đối tượng cho widget dùng chung cho khu vực thẻ.
   const SectionCard({
     super.key,
     required this.title,
@@ -13,6 +18,7 @@ class SectionCard extends StatelessWidget {
     this.action,
   });
 
+  // Xây dựng giao diện (build): dựng cây widget của SectionCard từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return Container(

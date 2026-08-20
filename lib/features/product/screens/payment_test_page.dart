@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/product/screens/payment_test_page.dart
+// Vai trò: Màn hình thanh toán mô phỏng.
+// Luồng sử dụng: Phục vụ luồng mua hàng: xem món, giỏ hàng, đặt đơn, thanh toán hoặc theo dõi đơn.
 
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -11,15 +14,19 @@ import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_card.dart';
 
+// Lớp PaymentTestPage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class PaymentTestPage extends StatefulWidget {
   final String orderId;
 
+  // Khởi tạo PaymentTestPage: nhận các tham số cần thiết để tạo đối tượng cho màn hình thanh toán mô phỏng.
   const PaymentTestPage({super.key, required this.orderId});
 
+  // Tạo state (createState): liên kết PaymentTestPage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<PaymentTestPage> createState() => _PaymentTestPageState();
 }
 
+// Lớp _PaymentTestPageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _PaymentTestPageState extends State<PaymentTestPage> {
   final PaymentService _paymentService = PaymentService();
 
@@ -30,6 +37,7 @@ class _PaymentTestPageState extends State<PaymentTestPage> {
 
   String? _errorMessage;
 
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
@@ -37,6 +45,7 @@ class _PaymentTestPageState extends State<PaymentTestPage> {
     Future.microtask(_loadPayment);
   }
 
+  // Tải thanh toán (_loadPayment): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> _loadPayment() async {
     if (!mounted) {
       return;
@@ -76,6 +85,7 @@ class _PaymentTestPageState extends State<PaymentTestPage> {
     }
   }
 
+  // Xử lý _simulateSuccess: thực hiện phần nghiệp vụ tương ứng trong màn hình thanh toán mô phỏng.
   Future<void> _simulateSuccess() async {
     final payment = _payment;
 
@@ -156,6 +166,7 @@ class _PaymentTestPageState extends State<PaymentTestPage> {
     }
   }
 
+  // Xử lý _simulateFailure: thực hiện phần nghiệp vụ tương ứng trong màn hình thanh toán mô phỏng.
   Future<void> _simulateFailure() async {
     final payment = _payment;
 
@@ -191,6 +202,7 @@ class _PaymentTestPageState extends State<PaymentTestPage> {
     }
   }
 
+  // Xử lý _retry: thực hiện phần nghiệp vụ tương ứng trong màn hình thanh toán mô phỏng.
   Future<void> _retry() async {
     final payment = _payment;
 
@@ -225,6 +237,7 @@ class _PaymentTestPageState extends State<PaymentTestPage> {
     }
   }
 
+  // Tải after mutation (_reloadAfterMutation): lấy dữ liệu cần cho màn hình và cập nhật state hiển thị.
   Future<void> _reloadAfterMutation() async {
     final latest = await _paymentService.fetchByOrderId(widget.orderId);
 
@@ -237,6 +250,7 @@ class _PaymentTestPageState extends State<PaymentTestPage> {
     });
   }
 
+  // Định dạng price (_formatPrice): chuyển dữ liệu thô thành giá trị dễ đọc để hiển thị.
   String _formatPrice(double value) {
     final text = value.round().toString();
 
@@ -255,6 +269,7 @@ class _PaymentTestPageState extends State<PaymentTestPage> {
     return '$resultđ';
   }
 
+  // Xử lý _statusColor: thực hiện phần nghiệp vụ tương ứng trong màn hình thanh toán mô phỏng.
   Color _statusColor(String status) {
     switch (status) {
       case 'paid':
@@ -270,6 +285,7 @@ class _PaymentTestPageState extends State<PaymentTestPage> {
     }
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _PaymentTestPageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return AppLayout(
@@ -284,6 +300,7 @@ class _PaymentTestPageState extends State<PaymentTestPage> {
     );
   }
 
+  // Tạo giao diện content (_buildContent): dựng widget con từ dữ liệu hiện tại.
   Widget _buildContent() {
     if (_errorMessage != null && _payment == null) {
       return Center(
@@ -561,6 +578,7 @@ class _PaymentTestPageState extends State<PaymentTestPage> {
     );
   }
 
+  // Xử lý _infoRow: thực hiện phần nghiệp vụ tương ứng trong màn hình thanh toán mô phỏng.
   Widget _infoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),

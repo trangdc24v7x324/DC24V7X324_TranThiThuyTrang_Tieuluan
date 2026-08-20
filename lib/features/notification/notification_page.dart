@@ -1,3 +1,6 @@
+// FILE HỌC TẬP: lib/features/notification/notification_page.dart
+// Vai trò: Màn hình thông báo.
+// Luồng sử dụng: Tải, hiển thị và cập nhật trạng thái thông báo theo vai trò người dùng.
 
 import 'package:flutter/material.dart';
 import 'package:project_trangdc24v7x324/models/app_notification_model.dart';
@@ -10,17 +13,21 @@ import 'package:project_trangdc24v7x324/shared/widgets/app_card.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
 import 'package:provider/provider.dart';
 
+// Lớp NotificationsPage: định nghĩa màn hình và điểm vào giao diện của chức năng này.
 class NotificationsPage extends StatefulWidget {
-
+  // Khởi tạo NotificationsPage: nhận các tham số cần thiết để tạo đối tượng cho màn hình thông báo.
   const NotificationsPage({super.key});
 
+  // Tạo state (createState): liên kết NotificationsPage với lớp State để Flutter quản lý vòng đời màn hình.
   @override
   State<NotificationsPage> createState() => _NotificationsPageState();
 }
 
+// Lớp _NotificationsPageState: quản lý state, vòng đời và các xử lý tương tác của widget phía trên.
 class _NotificationsPageState extends State<NotificationsPage> {
   String selectedFilter = 'all';
 
+  // Khởi tạo state (initState): chạy các tác vụ chuẩn bị dữ liệu khi widget được tạo lần đầu.
   @override
   void initState() {
     super.initState();
@@ -30,6 +37,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     });
   }
 
+  // Lấy biểu tượng (_getIcon): truy xuất và trả kết quả cho lớp gọi.
   IconData _getIcon(String type) {
     switch (type) {
       case 'promotion':
@@ -56,6 +64,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     }
   }
 
+  // Lấy color (_getColor): truy xuất và trả kết quả cho lớp gọi.
   Color _getColor(String type) {
     switch (type) {
       case 'promotion':
@@ -80,6 +89,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     }
   }
 
+  // Xử lý _typeLabel: thực hiện phần nghiệp vụ tương ứng trong màn hình thông báo.
   String _typeLabel(String type) {
     switch (type) {
       case 'promotion':
@@ -106,6 +116,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     }
   }
 
+  // Kiểm tra điều kiện (_isOrderType): đánh giá trạng thái đơn hàng loại và trả kết quả cho lớp gọi.
   bool _isOrderType(String type) {
     return type == 'order' ||
         type == 'order_success' ||
@@ -116,6 +127,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         type == 'order_cancelled';
   }
 
+  // Lọc/tìm thông báo (_filterNotifications): tạo tập dữ liệu phù hợp theo điều kiện đang chọn.
   List<AppNotificationModel> _filterNotifications(
     List<AppNotificationModel> notifications,
   ) {
@@ -137,6 +149,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     }
   }
 
+  // Định dạng thời gian (_formatTime): chuyển dữ liệu thô thành giá trị dễ đọc để hiển thị.
   String _formatTime(DateTime time) {
     final diff = DateTime.now().difference(time);
 
@@ -150,6 +163,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     return '$day/$month/${time.year}';
   }
 
+  // Xử lý tap thông báo (_handleTapNotification): chuẩn hóa điều kiện đầu vào và thực hiện nhánh nghiệp vụ phù hợp.
   Future<void> _handleTapNotification(
     NotificationProvider provider,
     AppNotificationModel item,
@@ -183,8 +197,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
       return;
     }
 
+    // Khuyến mãi / sản phẩm mới / thông báo chung chỉ cần đánh dấu đã đọc.
+    // Không hiển thị cảnh báo "không liên kết với đơn hàng".
   }
 
+  // Tạo giao diện bộ lọc chips (_buildFilterChips): dựng widget con từ dữ liệu hiện tại.
   Widget _buildFilterChips(NotificationProvider provider) {
     final filters = [
       _NotificationFilter('all', 'Tất cả', Icons.notifications_rounded),
@@ -241,6 +258,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     );
   }
 
+  // Tạo giao diện top actions (_buildTopActions): dựng widget con từ dữ liệu hiện tại.
   Widget _buildTopActions(NotificationProvider provider) {
     if (provider.notifications.isEmpty) return const SizedBox.shrink();
 
@@ -284,6 +302,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     );
   }
 
+  // Tạo giao diện rỗng trạng thái (_buildEmptyState): dựng widget con từ dữ liệu hiện tại.
   Widget _buildEmptyState(String message) {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
@@ -303,6 +322,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     );
   }
 
+  // Xử lý _orderStep: thực hiện phần nghiệp vụ tương ứng trong màn hình thông báo.
   int _orderStep(String type) {
     switch (type) {
       case 'order_success':
@@ -320,6 +340,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     }
   }
 
+  // Tạo giao diện đơn hàng progress (_buildOrderProgress): dựng widget con từ dữ liệu hiện tại.
   Widget _buildOrderProgress(String type, Color color) {
     final currentStep = _orderStep(type);
 
@@ -349,6 +370,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     );
   }
 
+  // Xử lý _shortOrderId: thực hiện phần nghiệp vụ tương ứng trong màn hình thông báo.
   String _shortOrderId(String orderId) {
     if (orderId.length <= 8) {
       return orderId.toUpperCase();
@@ -357,6 +379,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     return orderId.substring(0, 8).toUpperCase();
   }
 
+  // Tạo giao diện thông báo mục (_buildNotificationItem): dựng widget con từ dữ liệu hiện tại.
   Widget _buildNotificationItem(
     NotificationProvider provider,
     AppNotificationModel item,
@@ -481,6 +504,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     );
   }
 
+  // Xây dựng giao diện (build): dựng cây widget của _NotificationsPageState từ dữ liệu và state hiện tại.
   @override
   Widget build(BuildContext context) {
     return AppLayout(
@@ -532,10 +556,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 }
 
+// Lớp _NotificationFilter: thành phần phục vụ màn hình thông báo.
 class _NotificationFilter {
   final String value;
   final String label;
   final IconData icon;
 
+  // Khởi tạo _NotificationFilter: nhận các tham số cần thiết để tạo đối tượng cho màn hình thông báo.
   const _NotificationFilter(this.value, this.label, this.icon);
 }
