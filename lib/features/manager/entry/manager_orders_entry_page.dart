@@ -1,3 +1,4 @@
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -5,6 +6,7 @@ import 'package:project_trangdc24v7x324/features/manager/app/screens/manager_ord
 import 'package:project_trangdc24v7x324/features/manager/web/screens/manager_web_orders_page.dart';
 
 class ManagerOrdersEntryPage extends StatelessWidget {
+
   const ManagerOrdersEntryPage({super.key});
 
   @override

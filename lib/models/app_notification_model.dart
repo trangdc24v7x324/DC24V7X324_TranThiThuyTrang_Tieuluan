@@ -1,3 +1,4 @@
+
 class AppNotificationModel {
   final String id;
   final String title;
@@ -24,11 +25,15 @@ class AppNotificationModel {
   });
 
   bool get isPersonal => targetRole == 'personal';
+
   bool get isForCustomer => targetRole == 'customer';
+
   bool get isForManager => targetRole == 'manager';
+
   bool get isForAll => targetRole == 'all';
 
   bool get isOrderNotification => type == 'order';
+
   bool get hasOrder => orderId.isNotEmpty;
 
   factory AppNotificationModel.fromJson(Map<String, dynamic> json) {

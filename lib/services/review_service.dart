@@ -1,3 +1,4 @@
+
 import 'package:flutter/foundation.dart';
 import 'package:pocketbase/pocketbase.dart';
 
@@ -6,13 +7,10 @@ import 'package:project_trangdc24v7x324/models/product_review_model.dart';
 import 'package:project_trangdc24v7x324/services/order_service.dart';
 
 class ReviewService {
+
   PocketBase get _pb => getPocketBase();
 
   final OrderService _orderService = OrderService();
-
-  // =========================================================
-  // GET PRODUCT REVIEWS
-  // =========================================================
 
   Future<List<ProductReviewModel>> getReviews(String productId) async {
     try {
@@ -55,10 +53,6 @@ class ReviewService {
       rethrow;
     }
   }
-
-  // =========================================================
-  // CURRENT USER REVIEW
-  // =========================================================
 
   Future<ProductReviewModel?> getMyReview(String productId) async {
     final userId = _pb.authStore.model?.id;
@@ -107,10 +101,6 @@ class ReviewService {
     }
   }
 
-  // =========================================================
-  // REVIEW ELIGIBILITY
-  // =========================================================
-
   Future<bool> canCurrentUserReview(String productId) async {
     if (!_pb.authStore.isValid) {
       return false;
@@ -124,10 +114,6 @@ class ReviewService {
 
     return _orderService.hasCompletedPurchase(safeProductId);
   }
-
-  // =========================================================
-  // CREATE / UPDATE REVIEW
-  // =========================================================
 
   Future<void> saveReview({
     required String productId,
@@ -183,10 +169,6 @@ class ReviewService {
         );
   }
 
-  // =========================================================
-  // DELETE REVIEW
-  // =========================================================
-
   Future<void> deleteMyReview(String productId) async {
     final existing = await getMyReview(productId);
 
@@ -196,10 +178,6 @@ class ReviewService {
 
     await _pb.collection('product_reviews').delete(existing.id);
   }
-
-  // =========================================================
-  // PRODUCT RATING
-  // =========================================================
 
   Future<ProductRatingStats> getRatingStatsForProduct(String productId) async {
     final reviews = await getReviews(productId);
@@ -219,22 +197,28 @@ class ReviewService {
     );
   }
 
-  // =========================================================
-  // ALL PRODUCT RATING STATS
-  // =========================================================
-
   Future<Map<String, ProductRatingStats>> getAllRatingStats() async {
     try {
-      final records = await _pb
-          .collection('product_reviews')
-          .getFullList(filter: 'isVisible = true');
+      List<dynamic> records;
+
+      try {
+        records = await _pb
+            .collection('product_reviews')
+            .getFullList(filter: 'isVisible = true');
+      } catch (_) {
+
+        records = await _pb.collection('product_reviews').getFullList();
+      }
 
       final Map<String, int> totals = {};
 
       final Map<String, int> counts = {};
 
       for (final record in records) {
-        final String productId = record.data['product']?.toString() ?? '';
+        final String productId =
+            (record.data['product'] ?? record.data['productId'] ?? '')
+                .toString()
+                .trim();
 
         if (productId.isEmpty) {
           continue;

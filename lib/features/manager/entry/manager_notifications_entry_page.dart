@@ -1,3 +1,4 @@
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -5,6 +6,7 @@ import 'package:project_trangdc24v7x324/features/notification/manager_notificati
 import 'package:project_trangdc24v7x324/features/manager/web/screens/manager_web_notifications_page.dart';
 
 class ManagerNotificationsEntryPage extends StatelessWidget {
+
   const ManagerNotificationsEntryPage({super.key});
 
   @override

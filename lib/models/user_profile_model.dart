@@ -1,3 +1,4 @@
+
 import 'address_model.dart';
 import 'payment_method_model.dart';
 
@@ -30,9 +31,11 @@ class UserProfileModel {
   });
 
   bool get isCustomer => role == 'customer';
+
   bool get isManager => role == 'manager';
 
   String get username => fullName;
+
   String get passwordMasked => '******';
 
   factory UserProfileModel.fromJson(
@@ -73,6 +76,7 @@ class UserProfileModel {
     String? avatarUrl,
     String? fullName,
     DateTime? dateOfBirth,
+    bool clearDateOfBirth = false,
     String? gender,
     String? email,
     String? phoneNumber,
@@ -85,7 +89,8 @@ class UserProfileModel {
       id: id ?? this.id,
       avatarUrl: avatarUrl ?? this.avatarUrl,
       fullName: fullName ?? this.fullName,
-      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+      dateOfBirth:
+          clearDateOfBirth ? null : (dateOfBirth ?? this.dateOfBirth),
       gender: gender ?? this.gender,
       email: email ?? this.email,
       phoneNumber: phoneNumber ?? this.phoneNumber,

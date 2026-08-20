@@ -1,3 +1,4 @@
+
 import 'package:project_trangdc24v7x324/models/cart_item_model.dart';
 import 'package:project_trangdc24v7x324/providers/cart_provider.dart';
 import 'package:project_trangdc24v7x324/routes/app_routes.dart';
@@ -10,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class CartPage extends StatefulWidget {
+
   const CartPage({super.key});
 
   @override
@@ -40,7 +42,7 @@ class _CartPageState extends State<CartPage> {
       }
     }
 
-    return '${result}đ';
+    return '$resultđ';
   }
 
   void _syncSelectionWithCart(List<CartItemModel> items) {
@@ -48,7 +50,6 @@ class _CartPageState extends State<CartPage> {
 
     _selectedKeys.removeWhere((key) => !currentKeys.contains(key));
 
-    // Lần đầu vào Cart: mặc định chọn tất cả để giữ trải nghiệm cũ.
     if (!_selectionInitialized) {
       _selectedKeys.addAll(currentKeys);
       _selectionInitialized = true;
@@ -177,7 +178,7 @@ class _CartPageState extends State<CartPage> {
 
     final bool refreshed = await cart.refreshCart();
 
-    if (!mounted) {
+    if (!context.mounted) {
       return;
     }
 
@@ -460,6 +461,7 @@ class _SelectAllBar extends StatelessWidget {
 }
 
 class _EmptyCart extends StatelessWidget {
+
   const _EmptyCart();
 
   @override
@@ -708,7 +710,7 @@ class _CartImage extends StatelessWidget {
       height: 76,
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.08),
+        color: AppColors.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
       ),
       child: _FoodImage(image: image),

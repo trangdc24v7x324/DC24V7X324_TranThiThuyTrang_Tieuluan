@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
 import 'package:project_trangdc24v7x324/models/app_notification_model.dart';
@@ -139,8 +140,6 @@ class NotificationProvider extends ChangeNotifier {
     }
   }
 
-  /// Manager tạo thông báo chung cho Customer.
-  /// Không loadCustomerNotifications ở đây vì người đang đăng nhập là Manager.
   Future<bool> createCustomerNotification({
     required String title,
     required String body,
@@ -157,7 +156,6 @@ class NotificationProvider extends ChangeNotifier {
         type: type,
       );
 
-      // Manager vừa gửi xong -> tải lại danh sách để lịch sử hiển thị ngay.
       await loadManagerNotifications();
 
       return true;
@@ -171,7 +169,6 @@ class NotificationProvider extends ChangeNotifier {
     }
   }
 
-  /// Customer tự tạo/thêm thông báo đặt hàng cho chính mình.
   Future<bool> createOrderCreatedNotificationForCustomer({
     required String customerId,
     required String orderId,
@@ -192,7 +189,6 @@ class NotificationProvider extends ChangeNotifier {
     }
   }
 
-  /// Tạo thông báo cập nhật trạng thái đơn hàng cho Customer.
   Future<bool> createOrderStatusNotificationForCustomer({
     required String customerId,
     required String orderId,

@@ -1,3 +1,4 @@
+
 import 'product_model.dart';
 
 class CartItemModel {
@@ -5,17 +6,12 @@ class CartItemModel {
   final String title;
   final String image;
 
-  // Giá thực tế được chốt tại thời điểm thêm vào giỏ.
-  // Sale hợp lệ -> effectivePrice, ngược lại -> price.
   final double price;
 
-  // Giá gốc snapshot để CartPage hiển thị giá gạch ngang/tiết kiệm.
   final double originalPrice;
 
   final int quantity;
 
-  // Ghi chú riêng cho từng dòng sản phẩm.
-  // Ví dụ: "ít đá", "không hành".
   final String note;
 
   final String categoryId;
@@ -35,11 +31,8 @@ class CartItemModel {
     this.categorySlug = 'khac',
   });
 
-  // Chuẩn hóa note để so sánh các dòng giỏ hàng.
   String get normalizedNote => note.trim();
 
-  // Giá gốc thực tế dùng cho UI.
-  // Tương thích với item cũ nếu originalPrice chưa được gán.
   double get effectiveOriginalPrice =>
       originalPrice > 0 ? originalPrice : price;
 
@@ -61,7 +54,6 @@ class CartItemModel {
 
   double get totalDiscount => discountAmount * quantity;
 
-  // Cùng sản phẩm + cùng ghi chú mới được xem là cùng một dòng.
   bool sameLine(CartItemModel other) {
     return productId == other.productId &&
         normalizedNote == other.normalizedNote;
@@ -77,10 +69,8 @@ class CartItemModel {
       title: product.title,
       image: product.image,
 
-      // Luồng giá mới: luôn dùng giá thực tế.
       price: product.effectivePrice,
 
-      // Lưu giá gốc để CartPage tính phần giảm giá.
       originalPrice: product.price,
 
       quantity: quantity,

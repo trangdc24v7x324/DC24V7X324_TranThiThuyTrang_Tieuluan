@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'app_header.dart';
 
@@ -6,7 +7,7 @@ class AppLayout extends StatelessWidget {
   final bool showBack;
   final Widget child;
 
-  final List<Widget>? actions; 
+  final List<Widget>? actions;
   final Widget? floatingActionButton;
 
   const AppLayout({

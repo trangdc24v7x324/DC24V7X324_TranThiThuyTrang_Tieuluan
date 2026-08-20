@@ -1,3 +1,4 @@
+
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -9,9 +10,6 @@ import 'package:project_trangdc24v7x324/models/payment_method_model.dart';
 import 'package:project_trangdc24v7x324/models/user_profile_model.dart';
 
 class ProfileService {
-  // =========================================================
-  // PROFILE
-  // =========================================================
 
   Future<UserProfileModel> fetchProfile() async {
     final authUser = pb.authStore.model;
@@ -22,39 +20,34 @@ class ProfileService {
 
     try {
       final userRecord = await pb.collection('users').getOne(authUser.id);
-
       final userData = userRecord.data;
-
       final avatarUrl = _buildUserAvatarUrl(
         userId: userRecord.id,
         fileName: userData['avatar']?.toString(),
       );
 
-      final addressRecords = await pb
-          .collection('addresses')
-          .getFullList(
-            filter: 'user = "${userRecord.id}"',
-            sort: '-isDefault,-created',
-          );
+      final relatedData = await Future.wait([
+        pb.collection('addresses').getFullList(
+          filter: 'user = "${userRecord.id}"',
+          sort: '-isDefault,-created',
+        ),
+        pb.collection('payment_methods').getFullList(
+          filter: 'user = "${userRecord.id}"',
+          sort: '-isDefault,-created',
+        ),
+      ]);
 
+      final addressRecords = relatedData[0];
+      final paymentRecords = relatedData[1];
       final addresses = addressRecords.map(AddressModel.fromRecord).toList();
-
-      final paymentRecords = await pb
-          .collection('payment_methods')
-          .getFullList(
-            filter: 'user = "${userRecord.id}"',
-            sort: '-isDefault,-created',
-          );
-
-      final paymentMethods =
-          paymentRecords.map((record) {
-            return PaymentMethodModel.fromJson({
-              'id': record.id,
-              ...record.data,
-              'created': record.created,
-              'updated': record.updated,
-            });
-          }).toList();
+      final paymentMethods = paymentRecords.map((record) {
+        return PaymentMethodModel.fromJson({
+          'id': record.id,
+          ...record.data,
+          'created': record.created,
+          'updated': record.updated,
+        });
+      }).toList();
 
       return UserProfileModel.fromJson(
         {
@@ -68,19 +61,11 @@ class ProfileService {
         addresses: addresses,
         paymentMethods: paymentMethods,
       );
-    } catch (e) {
-      // Không clear authStore chỉ vì lỗi mạng/rule/profile.
-      // Logout chỉ nên xảy ra khi user chủ động logout
-      // hoặc AuthService xác định token thực sự không còn hợp lệ.
-      debugPrint('FETCH PROFILE ERROR: $e');
-
+    } catch (error) {
+      debugPrint('FETCH PROFILE ERROR: $error');
       rethrow;
     }
   }
-
-  // =========================================================
-  // GENERAL INFO
-  // =========================================================
 
   Future<void> updateGeneralInfo({
     required String fullName,
@@ -102,8 +87,6 @@ class ProfileService {
       'dateOfBirth': dateOfBirth?.toIso8601String(),
     };
 
-    // Giữ logic email của auth collection riêng.
-    // Chỉ gửi email khi thực sự thay đổi.
     final currentEmail = authUser.getStringValue('email').trim();
 
     final newEmail = email.trim();
@@ -117,18 +100,14 @@ class ProfileService {
     await pb.collection('users').authRefresh();
   }
 
-  // =========================================================
-  // AVATAR
-  // =========================================================
-
-  Future<void> updateAvatar(File file) async {
+  Future<String> updateAvatar(File file) async {
     final authUser = pb.authStore.model;
 
     if (authUser == null) {
       throw Exception('Chưa đăng nhập');
     }
 
-    await pb
+    final updated = await pb
         .collection('users')
         .update(
           authUser.id,
@@ -142,13 +121,14 @@ class ProfileService {
         );
 
     await pb.collection('users').authRefresh();
+
+    return _buildUserAvatarUrl(
+      userId: updated.id,
+      fileName: updated.data['avatar']?.toString(),
+    );
   }
 
-  // =========================================================
-  // ADDRESSES
-  // =========================================================
-
-  Future<void> updateAddresses(List<AddressModel> addresses) async {
+  Future<List<AddressModel>> updateAddresses(List<AddressModel> addresses) async {
     final authUser = pb.authStore.model;
 
     if (authUser == null) {
@@ -167,9 +147,6 @@ class ProfileService {
 
     final keptIds = <String>{};
 
-    // Tạo/cập nhật trước.
-    // Không xóa toàn bộ rồi tạo lại để ID của address
-    // được giữ ổn định cho PaymentPage.
     for (final address in normalized) {
       final body = address.toPocketBaseBody(userIdOverride: userId);
 
@@ -186,12 +163,18 @@ class ProfileService {
       }
     }
 
-    // Chỉ xóa những record user đã thực sự bỏ khỏi Profile.
     for (final record in oldRecords) {
       if (!keptIds.contains(record.id)) {
         await pb.collection('addresses').delete(record.id);
       }
     }
+
+    final freshRecords = await pb.collection('addresses').getFullList(
+      filter: 'user = "$userId"',
+      sort: '-isDefault,-created',
+    );
+
+    return freshRecords.map(AddressModel.fromRecord).toList();
   }
 
   List<AddressModel> _normalizeAddresses(List<AddressModel> source) {
@@ -229,57 +212,66 @@ class ProfileService {
         .toList();
   }
 
-  // =========================================================
-  // PAYMENT METHODS
-  // =========================================================
-
-  Future<void> updatePaymentMethods(List<PaymentMethodModel> methods) async {
+  Future<List<PaymentMethodModel>> updatePaymentMethods(List<PaymentMethodModel> methods) async {
     final authUser = pb.authStore.model;
 
     if (authUser == null) {
       throw Exception('Chưa đăng nhập');
     }
 
-    // Payment methods hiện chưa được Order/Payment tham chiếu
-    // bằng record id, nên giữ flow đơn giản cho MVP:
-    // replace toàn bộ danh sách.
     final oldRecords = await pb
         .collection('payment_methods')
         .getFullList(filter: 'user = "${authUser.id}"');
+    final oldById = {for (final record in oldRecords) record.id: record};
+    final keptIds = <String>{};
+
+    if (methods.isNotEmpty) {
+      final requestedDefault = methods.indexWhere((item) => item.isDefault);
+      final defaultIndex = requestedDefault >= 0 ? requestedDefault : 0;
+
+      for (int index = 0; index < methods.length; index++) {
+        final method = methods[index];
+        final body = <String, dynamic>{
+          'user': authUser.id,
+          'type': method.type.trim(),
+          'displayName': method.displayName.trim(),
+          'accountNumber': method.accountNumber.trim(),
+          'provider': method.provider.trim(),
+          'isDefault': index == defaultIndex,
+        };
+
+        final id = method.id.trim();
+
+        if (id.isNotEmpty && oldById.containsKey(id)) {
+          await pb.collection('payment_methods').update(id, body: body);
+          keptIds.add(id);
+        } else {
+          final created = await pb.collection('payment_methods').create(body: body);
+          keptIds.add(created.id);
+        }
+      }
+    }
 
     for (final record in oldRecords) {
-      await pb.collection('payment_methods').delete(record.id);
+      if (!keptIds.contains(record.id)) {
+        await pb.collection('payment_methods').delete(record.id);
+      }
     }
 
-    if (methods.isEmpty) {
-      return;
-    }
+    final freshRecords = await pb.collection('payment_methods').getFullList(
+      filter: 'user = "${authUser.id}"',
+      sort: '-isDefault,-created',
+    );
 
-    final firstDefaultIndex = methods.indexWhere((item) => item.isDefault);
-
-    final resolvedDefault = firstDefaultIndex >= 0 ? firstDefaultIndex : 0;
-
-    for (int i = 0; i < methods.length; i++) {
-      final method = methods[i];
-
-      await pb
-          .collection('payment_methods')
-          .create(
-            body: {
-              'user': authUser.id,
-              'type': method.type.trim(),
-              'displayName': method.displayName.trim(),
-              'accountNumber': method.accountNumber.trim(),
-              'provider': method.provider.trim(),
-              'isDefault': i == resolvedDefault,
-            },
-          );
-    }
+    return freshRecords.map((record) {
+      return PaymentMethodModel.fromJson({
+        'id': record.id,
+        ...record.data,
+        'created': record.created,
+        'updated': record.updated,
+      });
+    }).toList();
   }
-
-  // =========================================================
-  // HELPERS
-  // =========================================================
 
   String _buildUserAvatarUrl({
     required String userId,
@@ -289,8 +281,6 @@ class ProfileService {
       return '';
     }
 
-    return '${pb.baseUrl}/api/files/users/'
-        '$userId/$fileName'
-        '?ts=${DateTime.now().millisecondsSinceEpoch}';
+    return '${pb.baseUrl}/api/files/users/$userId/${fileName.trim()}';
   }
 }

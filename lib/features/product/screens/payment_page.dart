@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -19,6 +20,7 @@ import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_card.dart';
 
 class PaymentPage extends StatefulWidget {
+
   const PaymentPage({super.key});
 
   @override
@@ -45,9 +47,6 @@ class _PaymentPageState extends State<PaymentPage> {
   String? _deliveryError;
   String? _lastAddressId;
 
-  // Address checkout state.
-  // PaymentPage luôn load lại ProfileProvider từ backend,
-  // nhưng người dùng có thể chọn một address cụ thể hoặc GPS hiện tại.
   String? _selectedProfileAddressId;
   String? _checkoutAddressText;
   String _deliveryAddressSource = 'profile';
@@ -68,9 +67,7 @@ class _PaymentPageState extends State<PaymentPage> {
   Future<void> _initializePaymentData() async {
     final profileProvider = context.read<ProfileProvider>();
 
-    // Luôn gọi lại backend khi mở Payment để tránh dùng
-    // address cũ đang cache trong ProfileProvider.
-    await profileProvider.loadProfile(forceReload: true);
+    await profileProvider.loadProfile();
 
     if (!mounted) {
       return;
@@ -117,9 +114,7 @@ class _PaymentPageState extends State<PaymentPage> {
     if (args is List<CartItemModel>) {
       _checkoutKeys.addAll(args.map(_lineKey));
     } else {
-      // Tương thích route cũ:
-      // nếu PaymentPage được mở không kèm arguments thì
-      // dùng toàn bộ cart hiện tại.
+
       _checkoutKeys.addAll(cart.items.map(_lineKey));
     }
 
@@ -153,23 +148,8 @@ class _PaymentPageState extends State<PaymentPage> {
       }
     }
 
-    return '${result}đ';
+    return '$resultđ';
   }
-
-  Map<String, _PaymentSnapshot> _takeSnapshot(List<CartItemModel> items) {
-    return {
-      for (final item in items)
-        _lineKey(item): _PaymentSnapshot(
-          price: item.price,
-          originalPrice: item.effectiveOriginalPrice,
-          quantity: item.quantity,
-        ),
-    };
-  }
-
-  // =========================================================
-  // PROFILE ADDRESS SYNC
-  // =========================================================
 
   List<dynamic> _profileAddresses(dynamic profile) {
     try {
@@ -436,10 +416,6 @@ class _PaymentPageState extends State<PaymentPage> {
     }
   }
 
-  // =========================================================
-  // DELIVERY
-  // =========================================================
-
   String _addressId(dynamic address) {
     try {
       final value = address.id?.toString() ?? '';
@@ -458,6 +434,37 @@ class _PaymentPageState extends State<PaymentPage> {
     }
   }
 
+  double _addressLatitude(dynamic address) {
+    try {
+      final value = address.latitude;
+      if (value is num) return value.toDouble();
+      return double.tryParse(value?.toString() ?? '') ?? 0;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  double _addressLongitude(dynamic address) {
+    try {
+      final value = address.longitude;
+      if (value is num) return value.toDouble();
+      return double.tryParse(value?.toString() ?? '') ?? 0;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  bool _addressHasCoordinates(dynamic address) {
+    final latitude = _addressLatitude(address);
+    final longitude = _addressLongitude(address);
+
+    return latitude >= -90 &&
+        latitude <= 90 &&
+        longitude >= -180 &&
+        longitude <= 180 &&
+        !(latitude == 0 && longitude == 0);
+  }
+
   void _scheduleSavedDeliveryQuote(dynamic address) {
     if (address == null ||
         _isLoadingDelivery ||
@@ -466,10 +473,10 @@ class _PaymentPageState extends State<PaymentPage> {
     }
 
     final addressId = _addressId(address);
-
     final addressText = _addressLine(address);
-
-    final fingerprint = '$addressId|$addressText';
+    final latitude = _addressLatitude(address);
+    final longitude = _addressLongitude(address);
+    final fingerprint = '$addressId|$addressText|$latitude|$longitude';
 
     if (addressText.isEmpty || _lastAddressId == fingerprint) {
       return;
@@ -477,13 +484,8 @@ class _PaymentPageState extends State<PaymentPage> {
 
     _lastAddressId = fingerprint;
 
-    // Luôn resolve từ addressLine hiện tại để tránh:
-    // text đã sửa nhưng lat/lng cũ vẫn còn trong PocketBase.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
-        return;
-      }
-
+      if (!mounted) return;
       _useTypedAddress(address);
     });
   }
@@ -506,51 +508,42 @@ class _PaymentPageState extends State<PaymentPage> {
         longitude: position.longitude,
       );
 
-      String gpsAddress;
+      if (!mounted) return;
+
+      setState(() {
+        _checkoutAddressText = 'Vị trí giao hàng đã chọn bằng GPS';
+        _deliveryAddressSource = 'gps';
+        _deliveryQuote = quote;
+        _lastAddressId = null;
+        _isLoadingDelivery = false;
+      });
 
       try {
-        gpsAddress = await _deliveryService.resolveCoordinatesToAddress(
-          latitude: position.latitude,
-          longitude: position.longitude,
-        );
+        final readableAddress = await _deliveryService
+            .resolveCoordinatesToAddress(
+              latitude: position.latitude,
+              longitude: position.longitude,
+            )
+            .timeout(const Duration(seconds: 4));
+
+        if (!mounted || _deliveryAddressSource != 'gps') return;
+
+        final value = readableAddress.trim();
+        if (value.isNotEmpty) {
+          setState(() {
+            _checkoutAddressText = value;
+          });
+        }
       } catch (_) {
-        gpsAddress =
-            'Vị trí GPS '
-            '${position.latitude.toStringAsFixed(6)}, '
-            '${position.longitude.toStringAsFixed(6)}';
-      }
 
-      if (!mounted) {
-        return;
       }
+    } catch (error) {
+      if (!mounted) return;
 
       setState(() {
-        // GPS là địa chỉ giao hàng TẠM THỜI cho checkout.
-        // Không ghi đè addressLine của hồ sơ vì GPS hiện tại
-        // có thể không phải địa chỉ người dùng muốn lưu lâu dài.
-        _checkoutAddressText = gpsAddress;
-
-        _deliveryAddressSource = 'gps';
-
-        _deliveryQuote = quote;
-
-        // Không dùng quote cache của address hồ sơ khi đang ở GPS.
-        _lastAddressId = null;
+        _deliveryError = error.toString().replaceFirst('Exception: ', '');
+        _isLoadingDelivery = false;
       });
-    } catch (e) {
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {
-        _deliveryError = e.toString().replaceFirst('Exception: ', '');
-      });
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoadingDelivery = false;
-        });
-      }
     }
   }
 
@@ -574,47 +567,48 @@ class _PaymentPageState extends State<PaymentPage> {
     });
 
     try {
-      final coordinates = await _deliveryService.resolveAddressText(text);
+      double latitude = _addressLatitude(address);
+      double longitude = _addressLongitude(address);
 
-      final quote = await _deliveryService.quoteForCoordinates(
-        latitude: coordinates.latitude,
-        longitude: coordinates.longitude,
-      );
+      if (!_addressHasCoordinates(address)) {
+        final coordinates = await _deliveryService.resolveAddressText(text);
+        latitude = coordinates.latitude;
+        longitude = coordinates.longitude;
 
-      final addressId = _addressId(address);
+        final addressId = _addressId(address);
 
-      if (addressId.isNotEmpty) {
-        try {
-          await _deliveryService.saveAddressCoordinates(
-            addressId: addressId,
-            latitude: coordinates.latitude,
-            longitude: coordinates.longitude,
-          );
-        } catch (_) {
-          // Không chặn checkout nếu chỉ lỗi lưu tọa độ.
+        if (addressId.isNotEmpty) {
+          try {
+            await _deliveryService.saveAddressCoordinates(
+              addressId: addressId,
+              latitude: latitude,
+              longitude: longitude,
+            );
+          } catch (_) {
+
+          }
         }
       }
 
-      if (!mounted) {
-        return;
-      }
+      final quote = await _deliveryService.quoteForCoordinates(
+        latitude: latitude,
+        longitude: longitude,
+      );
+
+      if (!mounted) return;
 
       setState(() {
         _checkoutAddressText = text;
-
         _deliveryAddressSource = 'profile';
-
         _deliveryQuote = quote;
       });
-    } catch (e) {
-      if (!mounted) {
-        return;
-      }
+    } catch (error) {
+      if (!mounted) return;
 
       setState(() {
         _deliveryError =
-            'Không thể xác định vị trí từ địa chỉ đã nhập. '
-            '${e.toString().replaceFirst('Exception: ', '')}';
+            'Không thể xác định vị trí giao hàng. '
+            '${error.toString().replaceFirst('Exception: ', '')}';
       });
     } finally {
       if (mounted) {
@@ -644,7 +638,7 @@ class _PaymentPageState extends State<PaymentPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (_) {
+      builder: (sheetContext) {
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -656,25 +650,31 @@ class _PaymentPageState extends State<PaymentPage> {
                   style: AppText.productTitle,
                 ),
                 const SizedBox(height: 12),
-                ...methods.map((m) {
-                  return RadioListTile<String>(
-                    value: m.title,
-                    groupValue: selectedMethod,
-                    activeColor: AppColors.primary,
-                    onChanged:
-                        _isSubmitting
-                            ? null
-                            : (value) {
-                              setState(() {
-                                selectedMethod = value;
-                              });
+                RadioGroup<String>(
+                  groupValue: selectedMethod,
+                  onChanged: (value) {
+                    if (_isSubmitting || value == null) return;
 
-                              Navigator.pop(context);
-                            },
-                    title: Text(m.title),
-                    subtitle: Text(m.subtitle),
-                  );
-                }),
+                    setState(() {
+                      selectedMethod = value;
+                    });
+
+                    Navigator.pop(sheetContext);
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children:
+                        methods.map((method) {
+                          return RadioListTile<String>(
+                            value: method.title,
+                            enabled: !_isSubmitting,
+                            activeColor: AppColors.primary,
+                            title: Text(method.title),
+                            subtitle: Text(method.subtitle),
+                          );
+                        }).toList(),
+                  ),
+                ),
               ],
             ),
           ),
@@ -688,9 +688,7 @@ class _PaymentPageState extends State<PaymentPage> {
     required CartProvider cart,
     required dynamic address,
   }) async {
-    if (_isSubmitting) {
-      return;
-    }
+    if (_isSubmitting) return;
 
     if (address == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -699,21 +697,21 @@ class _PaymentPageState extends State<PaymentPage> {
       return;
     }
 
-    if (_deliveryQuote == null) {
+    final currentQuote = _deliveryQuote;
+
+    if (currentQuote == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Vui lòng xác định vị trí giao hàng để tính khoảng cách và phí.',
-          ),
+          content: Text('Vui lòng xác định vị trí giao hàng trước khi đặt đơn.'),
         ),
       );
       return;
     }
 
-    if (!_deliveryQuote!.isDeliverable) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(_deliveryQuote!.message)));
+    if (!currentQuote.isDeliverable) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(currentQuote.message)),
+      );
       return;
     }
 
@@ -724,354 +722,180 @@ class _PaymentPageState extends State<PaymentPage> {
       return;
     }
 
-    final beforeItems = _checkoutItems(cart);
+    final checkoutItems = _checkoutItems(cart);
 
-    if (beforeItems.isEmpty) {
+    if (checkoutItems.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Không còn sản phẩm nào được chọn để thanh toán.'),
-        ),
+        const SnackBar(content: Text('Không còn sản phẩm nào để thanh toán.')),
       );
       return;
     }
-
-    final before = _takeSnapshot(beforeItems);
 
     setState(() {
       _isSubmitting = true;
     });
 
-    // Kiểm tra lại server ngay trước khi tạo order.
-    final bool refreshed = await cart.refreshCart();
+    try {
 
-    if (!mounted) {
-      return;
-    }
+      final latestDeliveryQuote = await _refreshDeliveryQuote();
 
-    if (!refreshed) {
-      setState(() {
-        _isSubmitting = false;
-      });
+      if (!context.mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            cart.errorMessage ?? 'Không thể kiểm tra lại giỏ hàng.',
+      if (latestDeliveryQuote == null || !latestDeliveryQuote.isDeliverable) {
+        setState(() {
+          _deliveryQuote = latestDeliveryQuote;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              latestDeliveryQuote?.message ?? 'Không thể xác nhận phí giao hàng.',
+            ),
           ),
-        ),
-      );
-      return;
-    }
-
-    final latestItems = _checkoutItems(cart);
-
-    final latestKeys = latestItems.map(_lineKey).toSet();
-
-    final bool itemMissing =
-        latestKeys.length != _checkoutKeys.length ||
-        _checkoutKeys.any((key) => !latestKeys.contains(key));
-
-    if (itemMissing) {
-      setState(() {
-        _isSubmitting = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Một số sản phẩm đã chọn không còn khả dụng. '
-            'Vui lòng quay lại giỏ hàng để kiểm tra.',
-          ),
-        ),
-      );
-      return;
-    }
-
-    final after = _takeSnapshot(latestItems);
-
-    bool changed = false;
-
-    for (final key in _checkoutKeys) {
-      final oldItem = before[key];
-
-      final newItem = after[key];
-
-      if (oldItem == null || newItem == null) {
-        changed = true;
-        break;
-      }
-
-      if (oldItem.price != newItem.price ||
-          oldItem.originalPrice != newItem.originalPrice ||
-          oldItem.quantity != newItem.quantity) {
-        changed = true;
-        break;
-      }
-    }
-
-    if (changed) {
-      setState(() {
-        _isSubmitting = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Giá, khuyến mãi hoặc số lượng vừa thay đổi. '
-            'Thông tin thanh toán đã được cập nhật, '
-            'vui lòng kiểm tra lại rồi xác nhận lần nữa.',
-          ),
-          duration: Duration(seconds: 3),
-        ),
-      );
-      return;
-    }
-
-    final latestDeliveryQuote = await _refreshDeliveryQuote();
-
-    if (!mounted) {
-      return;
-    }
-
-    if (latestDeliveryQuote == null || !latestDeliveryQuote.isDeliverable) {
-      setState(() {
-        _isSubmitting = false;
-        _deliveryQuote = latestDeliveryQuote;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            latestDeliveryQuote?.message ?? 'Không thể xác nhận phí giao hàng.',
-          ),
-        ),
-      );
-      return;
-    }
-
-    final oldDeliveryQuote = _deliveryQuote!;
-
-    final bool deliveryChanged =
-        (latestDeliveryQuote.deliveryFee - oldDeliveryQuote.deliveryFee).abs() >
-            0.001 ||
-        (latestDeliveryQuote.distanceKm - oldDeliveryQuote.distanceKm).abs() >
-            0.05;
-
-    if (deliveryChanged) {
-      setState(() {
-        _isSubmitting = false;
-        _deliveryQuote = latestDeliveryQuote;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Khoảng cách hoặc phí giao hàng vừa thay đổi. '
-            'Vui lòng kiểm tra lại rồi xác nhận lần nữa.',
-          ),
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _deliveryQuote = latestDeliveryQuote;
-    });
-
-    final double itemTotal = latestItems.fold<double>(
-      0,
-      (sum, item) => sum + item.subtotal,
-    );
-
-    final double total = itemTotal + latestDeliveryQuote.deliveryFee;
-
-    final orderProvider = context.read<OrderProvider>();
-
-    final bool success = await orderProvider.placeOrder(
-      latestItems,
-      total,
-      receiverName: address.receiverName,
-      receiverPhone: address.phoneNumber,
-      address: _effectiveDeliveryAddress(address),
-      deliveryLatitude: latestDeliveryQuote.customerLatitude,
-      deliveryLongitude: latestDeliveryQuote.customerLongitude,
-      paymentMethod: selectedMethod!,
-      note: noteController.text.trim(),
-    );
-
-    if (!mounted) {
-      return;
-    }
-
-    if (!success) {
-      // OrderService có thể chặn nếu giá đổi đúng trong
-      // khoảng thời gian giữa refresh và create order.
-      await cart.refreshCart();
-
-      if (!mounted) {
+        );
         return;
       }
 
       setState(() {
-        _isSubmitting = false;
+        _deliveryQuote = latestDeliveryQuote;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(orderProvider.errorMessage ?? 'Đặt hàng thất bại'),
-        ),
+      final itemTotal = checkoutItems.fold<double>(
+        0,
+        (sum, item) => sum + item.subtotal,
       );
-      return;
-    }
+      final total = itemTotal + latestDeliveryQuote.deliveryFee;
+      final orderProvider = context.read<OrderProvider>();
 
-    // =====================================================
-    // PAYMENT RECORD
-    // =====================================================
-    //
-    // COD -> unpaid.
-    // Online/QR demo -> pending.
-    //
-    PaymentRecordModel? paymentRecord;
-    String paymentRecordMessage = '';
-
-    final createdOrder = orderProvider.selectedOrder;
-
-    if (createdOrder != null) {
-      try {
-        paymentRecord = await _paymentService.ensureInitialPayment(
-          orderId: createdOrder.id,
-          method: selectedMethod!,
-          amount: createdOrder.totalAmount,
-        );
-
-        if (_paymentService.isCashMethod(selectedMethod!)) {
-          paymentRecordMessage =
-              'Thanh toán khi nhận hàng. '
-              'Trạng thái thanh toán: chưa thanh toán.';
-        } else {
-          paymentRecordMessage =
-              'Yêu cầu thanh toán demo đã được tạo '
-              'ở trạng thái chờ xác nhận.';
-        }
-      } catch (e, stackTrace) {
-        debugPrint('========== CREATE PAYMENT ERROR ==========');
-        debugPrint('ERROR: $e');
-        debugPrint('STACK: $stackTrace');
-        debugPrint('ORDER ID: ${createdOrder.id}');
-        debugPrint('METHOD: $selectedMethod');
-        debugPrint('AMOUNT: ${createdOrder.totalAmount}');
-        debugPrint('==========================================');
-
-        paymentRecordMessage =
-            'Đơn hàng đã tạo nhưng payment record '
-            'chưa đồng bộ. Bạn có thể mở chi tiết '
-            'đơn hàng và tiếp tục thanh toán sau.';
-      }
-    } else {
-      paymentRecordMessage =
-          'Đơn hàng đã tạo nhưng chưa đọc lại được dữ liệu order.';
-    }
-
-    // Order đã thành công:
-    // chỉ xóa đúng các dòng vừa mua khỏi active cart.
-    final bool cleanupSuccess = await cart.removePurchasedItems(latestItems);
-
-    if (!mounted) {
-      return;
-    }
-
-    setState(() {
-      _isSubmitting = false;
-    });
-
-    final bool hasRemainingItems = cart.items.isNotEmpty;
-
-    final String cartMessage =
-        cleanupSuccess
-            ? (hasRemainingItems
-                ? 'Các sản phẩm chưa chọn thanh toán vẫn được giữ trong giỏ hàng.'
-                : 'Giỏ hàng hiện đã trống.')
-            : 'Giỏ hàng chưa đồng bộ hoàn toàn; vui lòng tải lại trước khi đặt thêm đơn.';
-
-    final bool isCash = _paymentService.isCashMethod(selectedMethod!);
-
-    // Online/QR demo:
-    // order đã tạo -> chuyển sang màn hình QR test.
-    if (!isCash && createdOrder != null && paymentRecord != null) {
-      Navigator.pushReplacementNamed(
-        context,
-        AppRoutes.paymentTest,
-        arguments: {'orderId': createdOrder.id},
+      final success = await orderProvider.placeOrder(
+        checkoutItems,
+        total,
+        receiverName: _receiverName(address),
+        receiverPhone: _phoneNumber(address),
+        address: _effectiveDeliveryAddress(address),
+        deliveryLatitude: latestDeliveryQuote.customerLatitude,
+        deliveryLongitude: latestDeliveryQuote.customerLongitude,
+        paymentMethod: selectedMethod!,
+        note: noteController.text.trim(),
       );
 
-      return;
-    }
+      if (!context.mounted) return;
 
-    // COD hoặc payment record online bị lỗi:
-    // hiển thị kết quả tạo đơn, không tuyên bố "đã thanh toán".
-    final String dialogMessage =
-        'Đơn hàng đã được ghi nhận. '
-        '$paymentRecordMessage '
-        '$cartMessage';
+      if (!success) {
 
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+        await cart.refreshCart();
+
+        if (!context.mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(orderProvider.errorMessage ?? 'Đặt hàng thất bại'),
           ),
-          title: const Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.green),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Đặt hàng thành công',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        );
+        return;
+      }
+
+      PaymentRecordModel? paymentRecord;
+      String paymentRecordMessage = '';
+      final createdOrder = orderProvider.selectedOrder;
+
+      if (createdOrder != null) {
+        try {
+          paymentRecord = await _paymentService.ensureInitialPayment(
+            orderId: createdOrder.id,
+            method: selectedMethod!,
+            amount: createdOrder.totalAmount,
+          );
+
+          paymentRecordMessage = _paymentService.isCashMethod(selectedMethod!)
+              ? 'Thanh toán khi nhận hàng. Trạng thái: chưa thanh toán.'
+              : 'Yêu cầu thanh toán demo đã được tạo và đang chờ xác nhận.';
+        } catch (error) {
+          debugPrint('Không thể tạo payment cho order ${createdOrder.id}: $error');
+          paymentRecordMessage =
+              'Đơn hàng đã tạo nhưng giao dịch thanh toán chưa đồng bộ. '
+              'Bạn có thể tiếp tục thanh toán trong chi tiết đơn hàng.';
+        }
+      } else {
+        paymentRecordMessage = 'Đơn hàng đã tạo nhưng chưa đọc được dữ liệu đơn.';
+      }
+
+      final cleanupSuccess = await cart.removePurchasedItems(checkoutItems);
+
+      if (!context.mounted) return;
+
+      final hasRemainingItems = cart.items.isNotEmpty;
+      final cartMessage = cleanupSuccess
+          ? (hasRemainingItems
+              ? 'Các sản phẩm chưa thanh toán vẫn được giữ trong giỏ.'
+              : 'Giỏ hàng hiện đã trống.')
+          : 'Giỏ hàng chưa đồng bộ hoàn toàn; vui lòng tải lại trước đơn tiếp theo.';
+
+      final isCash = _paymentService.isCashMethod(selectedMethod!);
+
+      if (!isCash && createdOrder != null && paymentRecord != null) {
+        Navigator.pushReplacementNamed(
+          context,
+          AppRoutes.paymentTest,
+          arguments: {'orderId': createdOrder.id},
+        );
+        return;
+      }
+
+      final dialogMessage =
+          'Đơn hàng đã được ghi nhận. $paymentRecordMessage $cartMessage';
+
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.green),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Đặt hàng thành công',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
                 ),
+              ],
+            ),
+            content: Text(dialogMessage),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    AppRoutes.home,
+                    (route) => false,
+                  );
+                },
+                child: const Text('Về trang chủ'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                  Navigator.pushReplacementNamed(context, AppRoutes.orders);
+                },
+                child: const Text('Xem đơn hàng'),
               ),
             ],
-          ),
-          content: Text(dialogMessage),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext);
-
-                if (createdOrder != null) {
-                  Navigator.pushReplacementNamed(
-                    context,
-                    AppRoutes.orderDetail,
-                    arguments: createdOrder.id,
-                  );
-                } else {
-                  Navigator.pushReplacementNamed(context, AppRoutes.orders);
-                }
-              },
-              child: const Text('Xem đơn hàng'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () {
-                Navigator.pop(dialogContext);
-
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  AppRoutes.home,
-                  (route) => false,
-                );
-              },
-              child: const Text('Về trang chủ'),
-            ),
-          ],
-        );
-      },
-    );
+          );
+        },
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
   }
 
   @override
@@ -1707,16 +1531,4 @@ class _PaymentPageState extends State<PaymentPage> {
       ),
     );
   }
-}
-
-class _PaymentSnapshot {
-  final double price;
-  final double originalPrice;
-  final int quantity;
-
-  const _PaymentSnapshot({
-    required this.price,
-    required this.originalPrice,
-    required this.quantity,
-  });
 }

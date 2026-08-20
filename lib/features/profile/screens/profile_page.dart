@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -10,12 +11,12 @@ import 'package:project_trangdc24v7x324/features/profile/widgets/profile_header.
 import 'package:project_trangdc24v7x324/providers/profile_provider.dart';
 import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 
-// DESIGN SYSTEM
 import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
 import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 
 class ProfilePage extends StatefulWidget {
+
   const ProfilePage({super.key});
 
   @override
@@ -23,11 +24,13 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+
   @override
   void initState() {
     super.initState();
     Future.microtask(() {
-      context.read<ProfileProvider>().loadProfile(forceReload: true);
+      if (!mounted) return;
+      context.read<ProfileProvider>().loadProfile();
     });
   }
 
@@ -125,12 +128,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       updatedAddresses,
                     );
 
-                    if (success) {
-                      // Lấy lại record thật từ PocketBase:
-                      // id mới, default, label, lat/lng.
-                      await provider.loadProfile(forceReload: true);
-                    }
-
                     if (!context.mounted) return;
 
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -156,12 +153,6 @@ class _ProfilePageState extends State<ProfilePage> {
                     final success = await provider.updatePaymentMethods(
                       updatedMethods,
                     );
-
-                    if (success) {
-                      // PaymentPage sẽ đọc lại đúng phương thức mặc định
-                      // từ ProfileProvider/PocketBase.
-                      await provider.loadProfile(forceReload: true);
-                    }
 
                     if (!context.mounted) return;
 
@@ -191,9 +182,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 const SizedBox(height: 18),
 
                 _LogoutButton(
-                  isLoading: provider.isLoading,
+                  isLoading: provider.isBusy,
                   onPressed:
-                      provider.isLoading
+                      provider.isBusy
                           ? null
                           : () async {
                             final shouldLogout = await _showLogoutDialog();
@@ -444,8 +435,8 @@ class _LogoutButton extends StatelessWidget {
                 : const Icon(Icons.logout_rounded),
         label: Text(isLoading ? 'Đang đăng xuất...' : 'Đăng xuất'),
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(255, 144, 12, 2), // màu nền nút
-          foregroundColor: Colors.white, // màu chữ và icon
+          backgroundColor: const Color.fromARGB(255, 144, 12, 2),
+          foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),

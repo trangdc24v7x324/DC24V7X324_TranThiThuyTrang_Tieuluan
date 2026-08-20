@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 
 import 'package:project_trangdc24v7x324/routes/app_routes.dart';
@@ -338,9 +339,9 @@ class ManagerSidebar extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.12),
+                      color: Colors.white.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white.withOpacity(0.16)),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
                     ),
                     child: Row(
                       children: [

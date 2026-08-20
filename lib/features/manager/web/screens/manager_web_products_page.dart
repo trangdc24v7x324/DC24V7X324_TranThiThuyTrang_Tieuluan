@@ -1,3 +1,4 @@
+
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -37,6 +38,7 @@ int _discountPercent(ProductModel product) {
 }
 
 class ManagerWebProductsPage extends StatefulWidget {
+
   const ManagerWebProductsPage({super.key});
 
   @override
@@ -66,7 +68,7 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
   Future<void> _loadData() async {
     await Future.wait([
       context.read<ProductProvider>().loadInitialData(),
-      context.read<ProfileProvider>().loadProfile(forceReload: true),
+      context.read<ProfileProvider>().loadProfile(),
     ]);
   }
 
@@ -83,7 +85,7 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
       }
     }
 
-    return '${buffer}đ';
+    return '$bufferđ';
   }
 
   List<String> _getCategories(List<ProductModel> products) {
@@ -135,9 +137,8 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
       MaterialPageRoute(builder: (_) => const ManagerWebProductFormPage()),
     );
 
-    if (result == true && mounted) {
-      await context.read<ProductProvider>().loadProducts();
-    }
+    if (result != true || !mounted) return;
+    await context.read<ProductProvider>().loadProducts();
   }
 
   Future<void> _openEditPage(ProductModel product) async {
@@ -148,9 +149,8 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
       ),
     );
 
-    if (result == true && mounted) {
-      await context.read<ProductProvider>().loadProducts();
-    }
+    if (result != true || !mounted) return;
+    await context.read<ProductProvider>().loadProducts();
   }
 
   Future<void> _confirmDelete(ProductModel product) async {
@@ -192,7 +192,7 @@ class _ManagerWebProductsPageState extends State<ManagerWebProductsPage> {
       },
     );
 
-    if (confirmed != true) {
+    if (confirmed != true || !mounted) {
       return;
     }
 
@@ -497,7 +497,7 @@ class _SummaryItem extends StatelessWidget {
             width: 52,
             height: 52,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.11),
+              color: color.withValues(alpha: 0.11),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(icon, color: color, size: 27),
@@ -600,7 +600,7 @@ class _Toolbar extends StatelessWidget {
           );
 
           final categoryField = DropdownButtonFormField<String>(
-            value: selectedCategory,
+            initialValue: selectedCategory,
             isExpanded: true,
             decoration: _filterDecoration(
               label: 'Danh mục',
@@ -618,7 +618,7 @@ class _Toolbar extends StatelessWidget {
           );
 
           final statusField = DropdownButtonFormField<String>(
-            value: selectedStatus,
+            initialValue: selectedStatus,
             isExpanded: true,
             decoration: _filterDecoration(
               label: 'Trạng thái',
@@ -842,7 +842,7 @@ class _ProductTable extends StatelessWidget {
           constraints: const BoxConstraints(minWidth: 930),
           child: DataTable(
             headingRowColor: WidgetStatePropertyAll(
-              AppColors.backgroundSecondary.withOpacity(0.75),
+              AppColors.backgroundSecondary.withValues(alpha: 0.75),
             ),
             headingTextStyle: const TextStyle(
               color: AppColors.textSecondary,
@@ -1110,7 +1110,7 @@ class _ProductPrice extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEF4444).withOpacity(0.1),
+                  color: const Color(0xFFEF4444).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(99),
                 ),
                 child: Text(
@@ -1160,6 +1160,7 @@ class _ProductStatus extends StatelessWidget {
 }
 
 class _SaleChip extends StatelessWidget {
+
   const _SaleChip();
 
   @override
@@ -1169,7 +1170,7 @@ class _SaleChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.11),
+        color: color.withValues(alpha: 0.11),
         borderRadius: BorderRadius.circular(99),
       ),
       child: const Text(
@@ -1196,7 +1197,7 @@ class _StatusChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.11),
+        color: color.withValues(alpha: 0.11),
         borderRadius: BorderRadius.circular(99),
       ),
       child: Text(
@@ -1229,7 +1230,7 @@ class _ActionButton extends StatelessWidget {
     return Tooltip(
       message: tooltip,
       child: Material(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),
         child: InkWell(
           onTap: onTap,
@@ -1246,6 +1247,7 @@ class _ActionButton extends StatelessWidget {
 }
 
 class _EmptyProducts extends StatelessWidget {
+
   const _EmptyProducts();
 
   @override

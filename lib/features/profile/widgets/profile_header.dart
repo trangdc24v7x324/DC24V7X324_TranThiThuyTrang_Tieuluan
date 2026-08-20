@@ -1,3 +1,4 @@
+
 import 'dart:io';
 
 import 'package:project_trangdc24v7x324/providers/profile_provider.dart';
@@ -13,20 +14,13 @@ class ProfileHeader extends StatelessWidget {
 
   Future<void> _pickImage(BuildContext context) async {
     try {
-      debugPrint('Bấm avatar');
-
       final picker = ImagePicker();
       final picked = await picker.pickImage(
         source: ImageSource.gallery,
         imageQuality: 85,
       );
 
-      if (picked == null) {
-        debugPrint('Không chọn ảnh');
-        return;
-      }
-
-      debugPrint('Đã chọn ảnh: ${picked.path}');
+      if (picked == null || !context.mounted) return;
 
       final success = await context.read<ProfileProvider>().updateAvatar(
         File(picked.path),
@@ -55,7 +49,7 @@ class ProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<ProfileProvider>();
-    final isLoading = provider.isLoading;
+    final isUploadingAvatar = provider.isUploadingAvatar;
 
     return Container(
       width: double.infinity,
@@ -65,7 +59,7 @@ class ProfileHeader extends StatelessWidget {
         borderRadius: BorderRadius.circular(26),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.07),
+            color: Colors.black.withValues(alpha: 0.07),
             blurRadius: 12,
             offset: const Offset(0, 5),
           ),
@@ -75,7 +69,7 @@ class ProfileHeader extends StatelessWidget {
         children: [
           GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: isLoading ? null : () => _pickImage(context),
+            onTap: isUploadingAvatar ? null : () => _pickImage(context),
             child: Stack(
               clipBehavior: Clip.none,
               children: [
@@ -122,14 +116,14 @@ class ProfileHeader extends StatelessWidget {
                       borderRadius: BorderRadius.circular(18),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.18),
+                          color: Colors.black.withValues(alpha: 0.18),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),
                       ],
                     ),
                     child:
-                        isLoading
+                        isUploadingAvatar
                             ? const SizedBox(
                               width: 16,
                               height: 16,

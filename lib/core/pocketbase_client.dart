@@ -1,22 +1,15 @@
+
 import 'package:pocketbase/pocketbase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Địa chỉ PocketBase mặc định khi chạy trên Android Emulator.
-///
-/// Địa chỉ Host-only ổn định của Ubuntu Server VirtualBox.
-/// Nginx lắng nghe cổng 80 và reverse proxy đến PocketBase 127.0.0.1:8090.
 const String _defaultPocketBaseUrl = 'http://192.168.56.102';
 
-/// Khóa dùng để lưu phiên đăng nhập PocketBase.
 const String _authStorageKey = 'pb_auth';
 
 late final PocketBase pb;
 
 bool _isPocketBaseInitialized = false;
 
-/// Trả về PocketBase client dùng chung của toàn ứng dụng.
-///
-/// Phải gọi [initPocketBase] trước khi sử dụng hàm này.
 PocketBase getPocketBase() {
   if (!_isPocketBaseInitialized) {
     throw StateError(
@@ -28,11 +21,6 @@ PocketBase getPocketBase() {
   return pb;
 }
 
-/// Khởi tạo PocketBase client và phục hồi phiên đăng nhập.
-///
-/// URL PocketBase có thể được truyền khi chạy ứng dụng:
-///
-/// flutter run --dart-define=POCKETBASE_URL=http://192.168.56.102
 Future<void> initPocketBase() async {
   if (_isPocketBaseInitialized) {
     return;

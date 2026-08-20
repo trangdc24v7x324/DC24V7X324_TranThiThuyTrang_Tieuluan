@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
 import 'package:project_trangdc24v7x324/features/manager/web/widgets/manager_web_layout.dart';
@@ -11,6 +12,7 @@ import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 import 'package:provider/provider.dart';
 
 class ManagerWebNotificationsPage extends StatefulWidget {
+
   const ManagerWebNotificationsPage({super.key});
 
   @override
@@ -58,7 +60,7 @@ class _ManagerWebNotificationsPageState
 
     await Future.wait([
       productProvider.loadProducts(),
-      context.read<ProfileProvider>().loadProfile(forceReload: true),
+      context.read<ProfileProvider>().loadProfile(),
       context.read<NotificationProvider>().loadManagerNotifications(),
     ]);
   }
@@ -395,7 +397,7 @@ class _SentNotificationsHistoryCard extends StatelessWidget {
                   width: 42,
                   height: 42,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.09),
+                    color: AppColors.primary.withValues(alpha: 0.09),
                     borderRadius: BorderRadius.circular(13),
                   ),
                   child: const Icon(
@@ -494,7 +496,7 @@ class _SentNotificationsHistoryCard extends StatelessWidget {
                         width: 42,
                         height: 42,
                         decoration: BoxDecoration(
-                          color: color.withOpacity(0.11),
+                          color: color.withValues(alpha: 0.11),
                           borderRadius: BorderRadius.circular(13),
                         ),
                         child: Icon(
@@ -552,7 +554,7 @@ class _SentNotificationsHistoryCard extends StatelessWidget {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: color.withOpacity(0.09),
+                                color: color.withValues(alpha: 0.09),
                                 borderRadius: BorderRadius.circular(99),
                               ),
                               child: Text(
@@ -584,7 +586,7 @@ String _formatHistoryTime(DateTime time) {
   final month = local.month.toString().padLeft(2, '0');
   final hour = local.hour.toString().padLeft(2, '0');
   final minute = local.minute.toString().padLeft(2, '0');
-  return '$day/$month ${hour}:$minute';
+  return '$day/$month $hour:$minute';
 }
 
 class _NotificationOverview extends StatelessWidget {
@@ -601,10 +603,10 @@ class _NotificationOverview extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [color.withOpacity(0.12), AppColors.surface],
+          colors: [color.withValues(alpha: 0.12), AppColors.surface],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.18)),
+        border: Border.all(color: color.withValues(alpha: 0.18)),
       ),
       child: Row(
         children: [
@@ -612,7 +614,7 @@ class _NotificationOverview extends StatelessWidget {
             width: 54,
             height: 54,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
+              color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(17),
             ),
             child: Icon(_typeIcon(selectedType), color: color, size: 27),
@@ -711,7 +713,7 @@ class _NotificationFormCard extends StatelessWidget {
           const _AudienceBox(),
           const SizedBox(height: 15),
           DropdownButtonFormField<String>(
-            value: selectedType,
+            initialValue: selectedType,
             isExpanded: true,
             decoration: _decoration(
               label: 'Loại thông báo',
@@ -758,7 +760,7 @@ class _NotificationFormCard extends StatelessWidget {
               )
             else
               DropdownButtonFormField<String>(
-                value: selectedProductId,
+                initialValue: selectedProductId,
                 isExpanded: true,
                 decoration: _decoration(
                   label: 'Sản phẩm cần giới thiệu',
@@ -808,7 +810,7 @@ class _NotificationFormCard extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.06),
+                color: Colors.red.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -902,6 +904,7 @@ class _NotificationFormCard extends StatelessWidget {
 }
 
 class _AudienceBox extends StatelessWidget {
+
   const _AudienceBox();
 
   @override
@@ -1003,10 +1006,10 @@ class _NotificationPreviewCard extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [color.withOpacity(0.12), AppColors.surface],
+                colors: [color.withValues(alpha: 0.12), AppColors.surface],
               ),
               borderRadius: BorderRadius.circular(19),
-              border: Border.all(color: color.withOpacity(0.22)),
+              border: Border.all(color: color.withValues(alpha: 0.22)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1015,7 +1018,7 @@ class _NotificationPreviewCard extends StatelessWidget {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.14),
+                    color: color.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Icon(_typeIcon(type), color: color),
@@ -1059,7 +1062,7 @@ class _NotificationPreviewCard extends StatelessWidget {
                             vertical: 8,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.78),
+                            color: Colors.white.withValues(alpha: 0.78),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: AppColors.border),
                           ),
@@ -1219,6 +1222,7 @@ class _TemplateCard extends StatelessWidget {
 }
 
 class _UsageTipsCard extends StatelessWidget {
+
   const _UsageTipsCard();
 
   @override
@@ -1387,5 +1391,5 @@ String _formatMoney(double value) {
     }
   }
 
-  return '${buffer}đ';
+  return '$bufferđ';
 }

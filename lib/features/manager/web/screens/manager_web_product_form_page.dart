@@ -1,3 +1,4 @@
+
 import 'dart:typed_data';
 
 import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
@@ -126,7 +127,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
     try {
       await Future.wait([
         context.read<ProductProvider>().loadCategories(),
-        context.read<ProfileProvider>().loadProfile(forceReload: true),
+        context.read<ProfileProvider>().loadProfile(),
       ]);
 
       if (!mounted) return;
@@ -601,10 +602,10 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primary.withOpacity(0.10), AppColors.surface],
+          colors: [AppColors.primary.withValues(alpha: 0.10), AppColors.surface],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withOpacity(0.16)),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.16)),
       ),
       child: Row(
         children: [
@@ -612,7 +613,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
             width: 54,
             height: 54,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.12),
+              color: AppColors.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(17),
             ),
             child: Icon(
@@ -701,7 +702,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
                   SizedBox(
                     width: itemWidth,
                     child: DropdownButtonFormField<String>(
-                      value: _selectedCategoryId,
+                      initialValue: _selectedCategoryId,
                       isExpanded: true,
                       decoration: _inputDecoration(
                         label: 'Danh mục',
@@ -837,7 +838,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
                   border: Border.all(
                     color:
                         _isOnSale
-                            ? AppColors.primary.withOpacity(0.22)
+                            ? AppColors.primary.withValues(alpha: 0.22)
                             : AppColors.border,
                   ),
                 ),
@@ -862,7 +863,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
                         ),
                       ),
                       value: _isOnSale,
-                      activeColor: Colors.white,
+                      activeThumbColor: Colors.white,
                       activeTrackColor: AppColors.primary,
                       onChanged:
                           _isSubmitting
@@ -1181,7 +1182,7 @@ class _ManagerWebProductFormPageState extends State<ManagerWebProductFormPage> {
           style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
         ),
         value: _isAvailable,
-        activeColor: Colors.white,
+        activeThumbColor: Colors.white,
         activeTrackColor: AppColors.success,
         onChanged:
             _isSubmitting
@@ -1358,7 +1359,7 @@ class _FormSection extends StatelessWidget {
                 width: 43,
                 height: 43,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.09),
+                  color: AppColors.primary.withValues(alpha: 0.09),
                   borderRadius: BorderRadius.circular(13),
                 ),
                 child: Icon(icon, color: AppColors.primary, size: 22),
@@ -1538,9 +1539,9 @@ class _ErrorBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       decoration: BoxDecoration(
-        color: Colors.red.withOpacity(0.06),
+        color: Colors.red.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.red.withOpacity(0.18)),
+        border: Border.all(color: Colors.red.withValues(alpha: 0.18)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1593,5 +1594,5 @@ String _formatMoney(double value) {
     }
   }
 
-  return '${buffer}đ';
+  return '$bufferđ';
 }

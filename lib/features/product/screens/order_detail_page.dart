@@ -1,7 +1,10 @@
+
 import 'package:project_trangdc24v7x324/models/order_item_model.dart';
+import 'package:project_trangdc24v7x324/models/order_model.dart';
 import 'package:project_trangdc24v7x324/models/payment_record_model.dart';
 import 'package:project_trangdc24v7x324/providers/order_provider.dart';
 import 'package:project_trangdc24v7x324/routes/app_routes.dart';
+import 'package:project_trangdc24v7x324/services/map_navigation_service.dart';
 import 'package:project_trangdc24v7x324/services/payment_service.dart';
 import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 import 'package:flutter/material.dart';
@@ -55,8 +58,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         _paymentRecord = payment;
       });
     } catch (_) {
-      // Không chặn OrderDetail nếu payment chưa tồn tại
-      // hoặc API payment tạm thời lỗi.
+
       if (mounted) {
         setState(() {
           _paymentRecord = null;
@@ -68,6 +70,26 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           _isLoadingPayment = false;
         });
       }
+    }
+  }
+
+  Future<void> _openDeliveryLocation(OrderModel order) async {
+    if (!order.hasDeliveryCoordinates) return;
+
+    try {
+      await MapNavigationService.openDirections(
+        latitude: order.deliveryLatitude,
+        longitude: order.deliveryLongitude,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            error.toString().replaceFirst('Exception: ', ''),
+          ),
+        ),
+      );
     }
   }
 
@@ -168,6 +190,22 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                       _infoRow('Người nhận', order.receiverName),
                       _infoRow('Số điện thoại', order.receiverPhone),
                       _infoRow('Địa chỉ', order.deliveryAddress),
+                      if (order.distanceKm > 0)
+                        _infoRow(
+                          'Khoảng cách ước tính',
+                          '${order.distanceKm.toStringAsFixed(1)} km',
+                        ),
+                      if (order.hasDeliveryCoordinates) ...[
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: OutlinedButton.icon(
+                            onPressed: () => _openDeliveryLocation(order),
+                            icon: const Icon(Icons.directions_outlined),
+                            label: const Text('Xem vị trí giao hàng'),
+                          ),
+                        ),
+                      ],
                       if (order.note.trim().isNotEmpty)
                         _infoRow('Ghi chú', order.note),
                     ],
@@ -228,7 +266,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),

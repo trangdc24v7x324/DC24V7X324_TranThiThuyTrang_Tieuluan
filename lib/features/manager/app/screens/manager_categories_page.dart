@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 
 import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
@@ -6,6 +7,7 @@ import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
 
 class ManagerCategoriesPage extends StatefulWidget {
+
   const ManagerCategoriesPage({super.key});
 
   @override
@@ -139,7 +141,7 @@ class _ManagerCategoriesPageState extends State<ManagerCategoriesPage> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
-                      value: selectedIcon,
+                      initialValue: selectedIcon,
                       decoration: const InputDecoration(
                         labelText: 'Icon',
                         border: OutlineInputBorder(),
@@ -184,7 +186,7 @@ class _ManagerCategoriesPageState extends State<ManagerCategoriesPage> {
                       contentPadding: EdgeInsets.zero,
                       title: const Text('Đang hoạt động'),
                       value: isActive,
-                      activeColor: Colors.white,
+                      activeThumbColor: Colors.white,
                       activeTrackColor: Colors.green,
                       onChanged:
                           (value) => setDialogState(() => isActive = value),
@@ -230,8 +232,9 @@ class _ManagerCategoriesPageState extends State<ManagerCategoriesPage> {
                         await pb.collection('categories').create(body: body);
                       }
 
-                      if (dialogContext.mounted)
+                      if (dialogContext.mounted) {
                         Navigator.pop(dialogContext, true);
+                      }
                     } catch (e) {
                       _showMessage(
                         isEdit
@@ -372,7 +375,7 @@ class _CategoryCard extends StatelessWidget {
         border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -382,7 +385,7 @@ class _CategoryCard extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 24,
-            backgroundColor: const Color(0xFFEF2A39).withOpacity(0.1),
+            backgroundColor: const Color(0xFFEF2A39).withValues(alpha: 0.1),
             child: Icon(icon, color: const Color(0xFFEF2A39)),
           ),
           const SizedBox(width: 12),

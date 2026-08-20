@@ -1,6 +1,8 @@
+
 import 'package:flutter/material.dart';
 
 class OrderStatusHelper {
+
   static String getText(String status) {
     switch (status) {
       case 'placed':
@@ -31,7 +33,7 @@ class OrderStatusHelper {
       case 'delivering':
         return Colors.purple;
       case 'completed':
-        return Colors.green; 
+        return Colors.green;
       case 'cancelled':
         return Colors.red;
       default:

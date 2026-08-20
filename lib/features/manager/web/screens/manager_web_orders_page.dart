@@ -1,3 +1,4 @@
+
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -10,10 +11,36 @@ import 'package:project_trangdc24v7x324/models/order_model.dart';
 import 'package:project_trangdc24v7x324/providers/order_provider.dart';
 import 'package:project_trangdc24v7x324/providers/profile_provider.dart';
 import 'package:project_trangdc24v7x324/routes/app_routes.dart';
+import 'package:project_trangdc24v7x324/services/map_navigation_service.dart';
 import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 import 'package:provider/provider.dart';
 
+Future<void> _openDeliveryDirections(
+  BuildContext context,
+  OrderModel order,
+) async {
+  if (!order.hasDeliveryCoordinates) return;
+
+  try {
+    await MapNavigationService.openDirections(
+      latitude: order.deliveryLatitude,
+      longitude: order.deliveryLongitude,
+    );
+  } catch (error) {
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          error.toString().replaceFirst('Exception: ', ''),
+        ),
+      ),
+    );
+  }
+}
+
 class ManagerWebOrdersPage extends StatefulWidget {
+
   const ManagerWebOrdersPage({super.key});
 
   @override
@@ -45,7 +72,7 @@ class _ManagerWebOrdersPageState extends State<ManagerWebOrdersPage> {
   Future<void> _loadData() async {
     await Future.wait([
       context.read<OrderProvider>().loadAllOrders(),
-      context.read<ProfileProvider>().loadProfile(forceReload: true),
+      context.read<ProfileProvider>().loadProfile(),
       _loadPaymentStatuses(),
     ]);
   }
@@ -66,7 +93,6 @@ class _ManagerWebOrdersPageState extends State<ManagerWebOrdersPage> {
           continue;
         }
 
-        // records đã sort -updated nên record đầu tiên của mỗi order là mới nhất.
         loaded.putIfAbsent(orderId, () => status);
       }
 
@@ -82,19 +108,15 @@ class _ManagerWebOrdersPageState extends State<ManagerWebOrdersPage> {
     } catch (e) {
       debugPrint('MANAGER LOAD PAYMENT STATUSES ERROR: $e');
 
-      // Không làm hỏng trang Order nếu collection payments tạm thời lỗi.
-      // Khi đó UI fallback về orders.payment_status.
     }
   }
 
   String _effectivePaymentStatus(OrderModel order) {
-    // Manager xác nhận đã thu tiền (đặc biệt COD/tiền mặt)
-    // thì trạng thái paid của order được ưu tiên.
+
     if (order.paymentStatus == 'paid') {
       return 'paid';
     }
 
-    // Với QR/MoMo demo, trạng thái chi tiết lấy từ payments.
     return _paymentStatusByOrderId[order.id] ?? order.paymentStatus;
   }
 
@@ -459,7 +481,7 @@ class _OrderSummaryCard extends StatelessWidget {
             width: 52,
             height: 52,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.11),
+              color: color.withValues(alpha: 0.11),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(icon, color: color, size: 27),
@@ -589,7 +611,7 @@ class _OrderFilters extends StatelessWidget {
               SizedBox(
                 width: secondaryWidth,
                 child: DropdownButtonFormField<String>(
-                  value: statusFilter,
+                  initialValue: statusFilter,
                   isExpanded: true,
                   decoration: _filterDecoration(
                     'Trạng thái đơn',
@@ -629,7 +651,7 @@ class _OrderFilters extends StatelessWidget {
               SizedBox(
                 width: secondaryWidth,
                 child: DropdownButtonFormField<String>(
-                  value: paymentFilter,
+                  initialValue: paymentFilter,
                   isExpanded: true,
                   decoration: _filterDecoration(
                     'Thanh toán',
@@ -830,8 +852,8 @@ class _OrderTable extends StatelessWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(minWidth: 1120),
           child: DataTable(
-            headingRowColor: MaterialStateProperty.all(
-              AppColors.backgroundSecondary.withOpacity(0.78),
+            headingRowColor: WidgetStateProperty.all(
+              AppColors.backgroundSecondary.withValues(alpha: 0.78),
             ),
             headingTextStyle: const TextStyle(
               color: AppColors.textSecondary,
@@ -946,7 +968,7 @@ class _OrderTable extends StatelessWidget {
                       label: const Text('Xem đơn'),
                       style: FilledButton.styleFrom(
                         foregroundColor: AppColors.primary,
-                        backgroundColor: AppColors.primary.withOpacity(0.09),
+                        backgroundColor: AppColors.primary.withValues(alpha: 0.09),
                       ),
                     ),
                   ),
@@ -1153,8 +1175,7 @@ class _ManagerWebOrderDetailDialogState
     String orderId, {
     required String fallback,
   }) async {
-    // Nếu Manager đã xác nhận thu tiền ở orders thì ưu tiên paid.
-    // Cách này giúp COD/Tiền mặt không cần quyền Update collection payments.
+
     if (fallback == 'paid') {
       return 'paid';
     }
@@ -1184,8 +1205,6 @@ class _ManagerWebOrderDetailDialogState
       return;
     }
 
-    // Không hiển thị hộp thoại xác nhận trung gian.
-    // Bấm nút là cập nhật trạng thái ngay.
     await _runBusy(() async {
       final provider = context.read<OrderProvider>();
 
@@ -1300,14 +1319,6 @@ class _ManagerWebOrderDetailDialogState
       return;
     }
 
-    // Manager chỉ xác nhận trạng thái thu tiền tổng quát trên ORDER.
-    // Không PATCH trực tiếp collection payments để tránh lỗi API Rule 404.
-    //
-    // payments.status:
-    //   dùng cho QR/MoMo demo (pending / paid / failed)
-    //
-    // orders.payment_status:
-    //   dùng cho xác nhận của Manager, đặc biệt COD/Tiền mặt.
     final orderPaymentStatus =
         _selectedPaymentStatus == 'paid' ? 'paid' : 'unpaid';
 
@@ -1524,6 +1535,22 @@ class _ManagerWebOrderDetailDialogState
                       value: order.receiverPhone,
                     ),
                     _InfoLine(label: 'Địa chỉ', value: order.deliveryAddress),
+                    if (order.hasDeliveryCoordinates) ...[
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: OutlinedButton.icon(
+                          onPressed: () => _openDeliveryDirections(context, order),
+                          icon: const Icon(Icons.directions_outlined),
+                          label: const Text('Mở chỉ đường'),
+                        ),
+                      ),
+                    ],
+                    if (order.distanceKm > 0)
+                      _InfoLine(
+                        label: 'Khoảng cách ước tính',
+                        value: '${order.distanceKm.toStringAsFixed(1)} km',
+                      ),
                     _InfoLine(
                       label: 'Ngày đặt',
                       value: _formatDate(order.orderDate),
@@ -1569,7 +1596,7 @@ class _ManagerWebOrderDetailDialogState
                     width: double.infinity,
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.06),
+                      color: Colors.red.withValues(alpha: 0.06),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Text(
@@ -1608,7 +1635,7 @@ class _ManagerWebOrderDetailDialogState
                     ),
                     const SizedBox(height: 14),
                     DropdownButtonFormField<String>(
-                      value: _selectedPaymentStatus,
+                      initialValue: _selectedPaymentStatus,
                       isExpanded: true,
                       decoration: InputDecoration(
                         labelText: 'Trạng thái thanh toán',
@@ -1648,8 +1675,6 @@ class _ManagerWebOrderDetailDialogState
                                   return;
                                 }
 
-                                // Manager chỉ xác nhận Chưa thanh toán / Đã thanh toán.
-                                // pending/failed là trạng thái của QR/MoMo demo.
                                 if (value == 'pending' || value == 'failed') {
                                   return;
                                 }
@@ -1710,7 +1735,7 @@ class _ManagerWebOrderDetailDialogState
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.07),
+                          color: Colors.red.withValues(alpha: 0.07),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -1756,7 +1781,7 @@ class _ManagerWebOrderDetailDialogState
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.red,
                             side: BorderSide(
-                              color: Colors.red.withOpacity(0.45),
+                              color: Colors.red.withValues(alpha: 0.45),
                             ),
                             padding: const EdgeInsets.symmetric(vertical: 15),
                           ),
@@ -1772,7 +1797,7 @@ class _ManagerWebOrderDetailDialogState
                         decoration: BoxDecoration(
                           color: _statusColor(
                             order.orderStatus,
-                          ).withOpacity(0.08),
+                          ).withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(13),
                         ),
                         child: Text(
@@ -1836,7 +1861,7 @@ class _DetailHeader extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(15),
             ),
             child: const Icon(
@@ -1917,9 +1942,9 @@ class _StatusTimeline extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(17),
         decoration: BoxDecoration(
-          color: Colors.red.withOpacity(0.06),
+          color: Colors.red.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.red.withOpacity(0.2)),
+          border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
         ),
         child: const Row(
           children: [
@@ -1968,7 +1993,7 @@ class _StatusTimeline extends StatelessWidget {
                             height: 38,
                             color:
                                 reached
-                                    ? _statusColor(status).withOpacity(0.45)
+                                    ? _statusColor(status).withValues(alpha: 0.45)
                                     : AppColors.border,
                           ),
                       ],
@@ -2094,7 +2119,7 @@ class _TimelineDot extends StatelessWidget {
             current
                 ? [
                   BoxShadow(
-                    color: color.withOpacity(0.22),
+                    color: color.withValues(alpha: 0.22),
                     blurRadius: 12,
                     spreadRadius: 2,
                   ),
@@ -2144,7 +2169,7 @@ class _SectionCard extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.09),
+                  color: color.withValues(alpha: 0.09),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: color, size: 20),
@@ -2433,7 +2458,7 @@ class _StatusChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.11),
+        color: color.withValues(alpha: 0.11),
         borderRadius: BorderRadius.circular(99),
       ),
       child: Text(
@@ -2486,6 +2511,7 @@ class _OrderErrorState extends StatelessWidget {
 }
 
 class _EmptyOrders extends StatelessWidget {
+
   const _EmptyOrders();
 
   @override
@@ -2785,5 +2811,5 @@ String _formatMoney(double value) {
     }
   }
 
-  return '${buffer}đ';
+  return '$bufferđ';
 }

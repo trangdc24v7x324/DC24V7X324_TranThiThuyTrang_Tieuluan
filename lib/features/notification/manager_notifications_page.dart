@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -8,6 +9,7 @@ import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
 
 class ManagerNotificationsPage extends StatefulWidget {
+
   const ManagerNotificationsPage({super.key});
 
   @override
@@ -27,6 +29,7 @@ class _ManagerNotificationsPageState extends State<ManagerNotificationsPage> {
   void initState() {
     super.initState();
     Future.microtask(() {
+      if (!mounted) return;
       final productProvider = context.read<ProductProvider>();
       if (productProvider.products.isEmpty) {
         productProvider.loadProducts();
@@ -115,6 +118,8 @@ class _ManagerNotificationsPageState extends State<ManagerNotificationsPage> {
             body: body,
             type: selectedType,
           );
+
+      if (!mounted) return;
 
       if (!success) {
         _showMessage('Gửi thông báo thất bại');
@@ -248,7 +253,7 @@ class _ManagerNotificationsPageState extends State<ManagerNotificationsPage> {
             width: 52,
             height: 52,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.14),
+              color: color.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(_typeIcon(selectedType), color: color),
@@ -277,7 +282,7 @@ class _ManagerNotificationsPageState extends State<ManagerNotificationsPage> {
                       vertical: 7,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.75),
+                      color: Colors.white.withValues(alpha: 0.75),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Row(
@@ -337,7 +342,7 @@ class _ManagerNotificationsPageState extends State<ManagerNotificationsPage> {
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: DropdownButtonFormField<String>(
-        value: selectedProductId,
+        initialValue: selectedProductId,
         isExpanded: true,
         decoration: _decoration(
           label: 'Chọn sản phẩm mới',
@@ -444,7 +449,7 @@ class _ManagerNotificationsPageState extends State<ManagerNotificationsPage> {
                           const SizedBox(height: 16),
 
                           DropdownButtonFormField<String>(
-                            value: selectedType,
+                            initialValue: selectedType,
                             decoration: _decoration(
                               label: 'Loại thông báo',
                               icon: Icons.category_rounded,

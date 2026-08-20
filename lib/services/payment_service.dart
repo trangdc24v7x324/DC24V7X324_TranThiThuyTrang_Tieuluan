@@ -1,12 +1,9 @@
+
 import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
 import 'package:project_trangdc24v7x324/models/payment_record_model.dart';
 
 class PaymentService {
   static const String collectionName = 'payments';
-
-  // =========================================================
-  // METHOD
-  // =========================================================
 
   bool isCashMethod(String method) {
     final value = method.toLowerCase().trim();
@@ -23,10 +20,6 @@ class PaymentService {
   String initialStatusForMethod(String method) {
     return isCashMethod(method) ? 'unpaid' : 'pending';
   }
-
-  // =========================================================
-  // CREATE
-  // =========================================================
 
   Future<PaymentRecordModel> ensureInitialPayment({
     required String orderId,
@@ -48,7 +41,6 @@ class PaymentService {
       throw Exception('Số tiền thanh toán không hợp lệ.');
     }
 
-    // Mỗi order chỉ dùng một payment record trong MVP.
     final existing = await fetchByOrderId(normalizedOrderId);
 
     if (existing != null) {
@@ -65,7 +57,7 @@ class PaymentService {
         .collection(collectionName)
         .create(
           body: {
-            // Khớp DB hiện tại.
+
             'order': normalizedOrderId,
             'method': normalizedMethod,
             'amount': amount,
@@ -82,9 +74,6 @@ class PaymentService {
     return _fromRecord(record);
   }
 
-  /// Khi quay lại từ lịch sử đơn hàng:
-  /// - có payment => đọc đúng record cũ
-  /// - thiếu payment => dựng lại từ order hiện có
   Future<PaymentRecordModel> fetchOrCreateForOrder(String orderId) async {
     final normalizedOrderId = orderId.trim();
 
@@ -115,10 +104,6 @@ class PaymentService {
     );
   }
 
-  // =========================================================
-  // READ
-  // =========================================================
-
   Future<PaymentRecordModel?> fetchByOrderId(String orderId) async {
     final normalizedOrderId = orderId.trim();
 
@@ -135,6 +120,39 @@ class PaymentService {
     }
 
     return _fromRecord(records.first);
+  }
+
+  Future<Map<String, PaymentRecordModel>> fetchLatestByOrderIds(
+    Iterable<String> orderIds,
+  ) async {
+    final wanted =
+        orderIds.map((id) => id.trim()).where((id) => id.isNotEmpty).toSet();
+
+    if (wanted.isEmpty) {
+      return <String, PaymentRecordModel>{};
+    }
+
+    final records = await pb
+        .collection(collectionName)
+        .getFullList(sort: '-updated');
+
+    final result = <String, PaymentRecordModel>{};
+
+    for (final record in records) {
+      final orderId = (record.data['order'] ?? '').toString().trim();
+
+      if (!wanted.contains(orderId) || result.containsKey(orderId)) {
+        continue;
+      }
+
+      result[orderId] = _fromRecord(record);
+
+      if (result.length == wanted.length) {
+        break;
+      }
+    }
+
+    return result;
   }
 
   Future<PaymentRecordModel> fetchById(String paymentId) async {
@@ -173,12 +191,6 @@ class PaymentService {
 
     return fetchOrCreateForOrder(normalizedOrderId);
   }
-
-  // =========================================================
-  // DEMO STATUS
-  // Existing DB statuses only:
-  // unpaid / pending / paid / failed
-  // =========================================================
 
   Future<void> markDemoPaid({
     required String paymentId,
@@ -300,10 +312,6 @@ class PaymentService {
     }
   }
 
-  // =========================================================
-  // QR DEMO
-  // =========================================================
-
   String buildDemoQrPayload(PaymentRecordModel payment) {
     return [
       'YOURFOOD',
@@ -313,10 +321,6 @@ class PaymentService {
       'TX=${payment.transactionCode}',
     ].join('|');
   }
-
-  // =========================================================
-  // INTERNAL
-  // =========================================================
 
   PaymentRecordModel _fromRecord(dynamic record) {
     return PaymentRecordModel.fromJson({

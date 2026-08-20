@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -10,6 +11,7 @@ import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 
 class ManagerWebChatPage extends StatefulWidget {
+
   const ManagerWebChatPage({super.key});
 
   @override
@@ -59,7 +61,7 @@ class _ManagerWebChatPageState extends State<ManagerWebChatPage> {
 
     await Future.wait([
       _loadRooms(autoSelect: true),
-      context.read<ProfileProvider>().loadProfile(forceReload: true),
+      context.read<ProfileProvider>().loadProfile(),
     ]);
   }
 
@@ -502,7 +504,7 @@ class _ManagerWebChatPageState extends State<ManagerWebChatPage> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-            color: Colors.red.withOpacity(0.06),
+            color: Colors.red.withValues(alpha: 0.06),
             child: Row(
               children: [
                 const Icon(
@@ -607,7 +609,7 @@ class _RoomTile extends StatelessWidget {
     return Material(
       color:
           selected
-              ? AppColors.primary.withOpacity(0.08)
+              ? AppColors.primary.withValues(alpha: 0.08)
               : unread
               ? const Color(0xFFFFF7F7)
               : Colors.transparent,
@@ -622,9 +624,9 @@ class _RoomTile extends StatelessWidget {
             border: Border.all(
               color:
                   selected
-                      ? AppColors.primary.withOpacity(0.25)
+                      ? AppColors.primary.withValues(alpha: 0.25)
                       : unread
-                      ? Colors.red.withOpacity(0.16)
+                      ? Colors.red.withValues(alpha: 0.16)
                       : Colors.transparent,
             ),
           ),
@@ -958,7 +960,7 @@ class _Avatar extends StatelessWidget {
 
     return CircleAvatar(
       radius: radius,
-      backgroundColor: AppColors.primary.withOpacity(0.12),
+      backgroundColor: AppColors.primary.withValues(alpha: 0.12),
       backgroundImage: url.trim().isEmpty ? null : NetworkImage(url),
       child:
           url.trim().isEmpty
@@ -975,6 +977,7 @@ class _Avatar extends StatelessWidget {
 }
 
 class _NoConversationSelected extends StatelessWidget {
+
   const _NoConversationSelected();
 
   @override
@@ -1009,6 +1012,7 @@ class _NoConversationSelected extends StatelessWidget {
 }
 
 class _EmptyConversation extends StatelessWidget {
+
   const _EmptyConversation();
 
   @override

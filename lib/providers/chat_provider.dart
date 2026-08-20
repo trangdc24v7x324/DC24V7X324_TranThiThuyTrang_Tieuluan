@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:pocketbase/pocketbase.dart';
 
@@ -60,9 +61,11 @@ class ChatProvider with ChangeNotifier {
   List<ChatRoomSummary> get rooms => List.unmodifiable(_rooms);
 
   bool get isLoading => _isLoading;
+
   bool get isSending => _isSending;
 
   int get unreadCount => _unreadCount;
+
   int get totalRooms => _totalRooms;
 
   String? get errorMessage => _errorMessage;

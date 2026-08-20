@@ -1,3 +1,4 @@
+
 import 'package:project_trangdc24v7x324/features/product/widgets/food_card.dart';
 import 'package:project_trangdc24v7x324/models/cart_item_model.dart';
 import 'package:project_trangdc24v7x324/models/product_model.dart';
@@ -14,16 +15,12 @@ class FoodAvailable extends StatelessWidget {
   final String searchQuery;
   final String selectedCategory;
 
-  /// Dùng để yêu cầu toàn bộ FoodCard tải lại rating thật.
-  final int ratingRefreshVersion;
-
   const FoodAvailable({
     super.key,
     required this.favoritedItems,
     required this.onFavoriteToggle,
     required this.searchQuery,
     required this.selectedCategory,
-    this.ratingRefreshVersion = 0,
   });
 
   bool isFavorited(ProductModel product) {
@@ -122,10 +119,13 @@ class FoodAvailable extends StatelessWidget {
           itemBuilder: (context, index) {
             final item = filteredItems[index];
 
+            final ratingStats = productProvider.ratingStatsForProduct(item.id);
+
             return FoodCard(
               product: item,
               isFavorited: isFavorited(item),
-              ratingRefreshVersion: ratingRefreshVersion,
+              rating: ratingStats.average,
+              reviewCount: ratingStats.count,
               onFavoriteToggle: () => onFavoriteToggle(item),
               onAddToCart: () {
                 final cart = context.read<CartProvider>();

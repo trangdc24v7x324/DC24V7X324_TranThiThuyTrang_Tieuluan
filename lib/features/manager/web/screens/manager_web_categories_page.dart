@@ -1,3 +1,4 @@
+
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 
 class ManagerWebCategoriesPage extends StatefulWidget {
+
   const ManagerWebCategoriesPage({super.key});
 
   @override
@@ -42,7 +44,7 @@ class _ManagerWebCategoriesPageState extends State<ManagerWebCategoriesPage> {
   Future<void> _loadInitialData() async {
     await Future.wait([
       _loadCategories(),
-      context.read<ProfileProvider>().loadProfile(forceReload: true),
+      context.read<ProfileProvider>().loadProfile(),
     ]);
   }
 
@@ -267,7 +269,7 @@ class _ManagerWebCategoriesPageState extends State<ManagerWebCategoriesPage> {
                             width: 46,
                             height: 46,
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.1),
+                              color: AppColors.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: Icon(
@@ -376,7 +378,7 @@ class _ManagerWebCategoriesPageState extends State<ManagerWebCategoriesPage> {
                                 SizedBox(
                                   width: fieldWidth,
                                   child: DropdownButtonFormField<String>(
-                                    value: selectedIcon,
+                                    initialValue: selectedIcon,
                                     isExpanded: true,
                                     decoration: _inputDecoration(
                                       label: 'Biểu tượng',
@@ -454,7 +456,7 @@ class _ManagerWebCategoriesPageState extends State<ManagerWebCategoriesPage> {
                                         ),
                                       ),
                                       value: isActive,
-                                      activeColor: Colors.white,
+                                      activeThumbColor: Colors.white,
                                       activeTrackColor: AppColors.success,
                                       onChanged:
                                           isSaving
@@ -913,7 +915,7 @@ class _SummaryCard extends StatelessWidget {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.11),
+              color: color.withValues(alpha: 0.11),
               borderRadius: BorderRadius.circular(15),
             ),
             child: Icon(icon, color: color, size: 26),
@@ -1029,7 +1031,7 @@ class _CategoryToolbar extends StatelessWidget {
               SizedBox(
                 width: secondaryWidth,
                 child: DropdownButtonFormField<String>(
-                  value: selectedStatus,
+                  initialValue: selectedStatus,
                   isExpanded: true,
                   decoration: InputDecoration(
                     labelText: 'Trạng thái',
@@ -1215,8 +1217,8 @@ class _CategoryTable extends StatelessWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(minWidth: 900),
           child: DataTable(
-            headingRowColor: MaterialStateProperty.all(
-              AppColors.backgroundSecondary.withOpacity(0.78),
+            headingRowColor: WidgetStateProperty.all(
+              AppColors.backgroundSecondary.withValues(alpha: 0.78),
             ),
             headingTextStyle: const TextStyle(
               color: AppColors.textSecondary,
@@ -1457,7 +1459,7 @@ class _CategoryIcon extends StatelessWidget {
       width: 50,
       height: 50,
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.1),
+        color: AppColors.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(15),
       ),
       child: Icon(icon, color: AppColors.primary, size: 25),
@@ -1477,7 +1479,7 @@ class _StatusChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.11),
+        color: color.withValues(alpha: 0.11),
         borderRadius: BorderRadius.circular(99),
       ),
       child: Text(
@@ -1510,7 +1512,7 @@ class _ActionButton extends StatelessWidget {
     return Tooltip(
       message: tooltip,
       child: Material(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),
         child: InkWell(
           onTap: onTap,
@@ -1527,6 +1529,7 @@ class _ActionButton extends StatelessWidget {
 }
 
 class _EmptyCategories extends StatelessWidget {
+
   const _EmptyCategories();
 
   @override

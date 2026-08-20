@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -271,6 +272,7 @@ class _ChatError extends StatelessWidget {
 }
 
 class _EmptyChat extends StatelessWidget {
+
   const _EmptyChat();
 
   @override
@@ -284,7 +286,7 @@ class _EmptyChat extends StatelessWidget {
             Icon(
               Icons.forum_outlined,
               size: 62,
-              color: AppColors.textGrey.withOpacity(0.45),
+              color: AppColors.textGrey.withValues(alpha: 0.45),
             ),
             const SizedBox(height: 12),
             Text(

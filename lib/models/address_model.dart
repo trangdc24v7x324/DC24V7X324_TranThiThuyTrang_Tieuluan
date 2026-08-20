@@ -1,3 +1,4 @@
+
 class AddressModel {
   final String id;
   final String userId;
@@ -82,7 +83,7 @@ class AddressModel {
 
   Map<String, dynamic> toPocketBaseBody({String? userIdOverride}) {
     final body = <String, dynamic>{
-      // Giữ đúng schema camelCase đang dùng trong project.
+
       'label': label.trim(),
       'receiverName': receiverName.trim(),
       'phoneNumber': phoneNumber.trim(),

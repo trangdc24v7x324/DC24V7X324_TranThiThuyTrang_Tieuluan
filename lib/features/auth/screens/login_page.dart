@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -6,6 +7,7 @@ import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 import 'package:project_trangdc24v7x324/services/auth_service.dart';
 
 class LoginPage extends StatefulWidget {
+
   const LoginPage({super.key});
 
   @override
@@ -31,10 +33,6 @@ class _LoginPageState extends State<LoginPage> {
     _loadLastEmail();
   }
 
-  // =========================================================
-  // LOAD EMAIL ĐÃ ĐĂNG NHẬP TRƯỚC ĐÓ
-  // =========================================================
-
   Future<void> _loadLastEmail() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -47,19 +45,11 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // =========================================================
-  // VALIDATE EMAIL
-  // =========================================================
-
   bool _isValidEmail(String email) {
     final RegExp emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
     return emailRegex.hasMatch(email);
   }
-
-  // =========================================================
-  // CHUYỂN LỖI THÀNH THÔNG BÁO THÂN THIỆN
-  // =========================================================
 
   String _getLoginErrorMessage(Object error) {
     final String message =
@@ -89,21 +79,12 @@ class _LoginPageState extends State<LoginPage> {
         'Vui lòng kiểm tra email hoặc mật khẩu.';
   }
 
-  // =========================================================
-  // LOGIN
-  // =========================================================
-
   Future<void> _login() async {
     if (_isLoading) return;
 
     final String email = _emailController.text.trim().toLowerCase();
 
-    // Không trim password.
     final String password = _passwordController.text;
-
-    // =======================================================
-    // VALIDATION
-    // =======================================================
 
     if (email.isEmpty) {
       setState(() {
@@ -135,25 +116,14 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      // =====================================================
-      // AUTHENTICATE
-      // =====================================================
 
       await _authService.login(email: email, password: password);
-
-      // =====================================================
-      // LƯU EMAIL
-      // =====================================================
 
       final SharedPreferences prefs = await SharedPreferences.getInstance();
 
       await prefs.setString('last_email', email);
 
       if (!mounted) return;
-
-      // =====================================================
-      // KIỂM TRA ROLE
-      // =====================================================
 
       if (_authService.isManager) {
         setState(() {
@@ -175,7 +145,6 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
-      // Không thuộc role hợp lệ.
       await _authService.logout();
 
       if (!mounted) return;
@@ -194,10 +163,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // =========================================================
-  // OPEN REGISTER
-  // =========================================================
-
   Future<void> _openRegisterPage() async {
     final Object? result = await Navigator.pushNamed(
       context,
@@ -206,7 +171,6 @@ class _LoginPageState extends State<LoginPage> {
 
     if (!mounted) return;
 
-    // RegisterPage sẽ trả email về nếu đăng ký thành công.
     if (result is String && result.trim().isNotEmpty) {
       final String registeredEmail = result.trim().toLowerCase();
 
@@ -228,10 +192,6 @@ class _LoginPageState extends State<LoginPage> {
       );
     }
   }
-
-  // =========================================================
-  // INPUT DECORATION
-  // =========================================================
 
   InputDecoration _inputDecoration({
     required String label,
@@ -261,10 +221,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // =========================================================
-  // DISPOSE
-  // =========================================================
-
   @override
   void dispose() {
     _emailController.dispose();
@@ -272,10 +228,6 @@ class _LoginPageState extends State<LoginPage> {
 
     super.dispose();
   }
-
-  // =========================================================
-  // UI
-  // =========================================================
 
   @override
   Widget build(BuildContext context) {
@@ -324,7 +276,7 @@ class _LoginPageState extends State<LoginPage> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 15,
-                        color: Colors.white.withOpacity(0.95),
+                        color: Colors.white.withValues(alpha: 0.95),
                         fontWeight: FontWeight.w400,
                       ),
                     ),
@@ -339,7 +291,7 @@ class _LoginPageState extends State<LoginPage> {
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.12),
+                            color: Colors.black.withValues(alpha: 0.12),
                             blurRadius: 14,
                             offset: const Offset(0, 6),
                           ),
@@ -370,9 +322,6 @@ class _LoginPageState extends State<LoginPage> {
 
                           const SizedBox(height: 20),
 
-                          // =========================
-                          // EMAIL
-                          // =========================
                           TextField(
                             controller: _emailController,
                             enabled: !_isLoading,
@@ -387,9 +336,6 @@ class _LoginPageState extends State<LoginPage> {
 
                           const SizedBox(height: 14),
 
-                          // =========================
-                          // PASSWORD
-                          // =========================
                           TextField(
                             controller: _passwordController,
                             enabled: !_isLoading,
@@ -455,9 +401,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                           ),
-                          // =========================
-                          // ERROR
-                          // =========================
+
                           if (_error != null) ...[
                             const SizedBox(height: 14),
                             Container(
@@ -484,9 +428,6 @@ class _LoginPageState extends State<LoginPage> {
 
                           const SizedBox(height: 20),
 
-                          // =========================
-                          // LOGIN BUTTON
-                          // =========================
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
@@ -533,7 +474,7 @@ class _LoginPageState extends State<LoginPage> {
                         text: TextSpan(
                           text: 'Chưa có tài khoản? ',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.92),
+                            color: Colors.white.withValues(alpha: 0.92),
                             fontSize: 14,
                           ),
                           children: const [

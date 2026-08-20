@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:project_trangdc24v7x324/models/user_profile_model.dart';
 import '../../../shared/widgets/section_card.dart';
@@ -205,7 +206,7 @@ class _GeneralInfoSectionState extends State<GeneralInfoSection> {
           ),
           Expanded(
             child: DropdownButtonFormField<String>(
-              value: _selectedGender.isEmpty ? null : _selectedGender,
+              initialValue: _selectedGender.isEmpty ? null : _selectedGender,
               items: const [
                 DropdownMenuItem(value: 'Nam', child: Text('Nam')),
                 DropdownMenuItem(value: 'Nữ', child: Text('Nữ')),

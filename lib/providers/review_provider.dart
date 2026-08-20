@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:project_trangdc24v7x324/models/product_review_model.dart';
 import 'package:project_trangdc24v7x324/services/review_service.dart';
@@ -59,69 +60,58 @@ class ReviewProvider extends ChangeNotifier {
     }
   }
 
-  // =========================================================
-  // LOAD
-  // =========================================================
+  Future<bool> _canReviewSafely(String productId) async {
+    try {
+      return await _service.canCurrentUserReview(productId);
+    } catch (error) {
+      debugPrint('review eligibility error: $error');
+      return false;
+    }
+  }
 
   Future<void> loadReviews(String productId) async {
     _isLoading = true;
     _errorMessage = null;
-
     notifyListeners();
 
     try {
-      // Danh sách đánh giá phải tải độc lập với việc kiểm tra quyền review.
-      // Nếu API Rule của orders/payments tạm thời lỗi, người dùng vẫn xem
-      // được đánh giá công khai; chỉ form đánh giá bị khóa.
       final results = await Future.wait([
         _service.getReviews(productId),
         _service.getMyReview(productId),
+        _canReviewSafely(productId),
       ]);
 
       _reviews
         ..clear()
         ..addAll(results[0] as List<ProductReviewModel>);
-
       _myReview = results[1] as ProductReviewModel?;
-
-      try {
-        _canReview = await _service.canCurrentUserReview(productId);
-      } catch (eligibilityError) {
-        _canReview = false;
-        debugPrint(
-          'loadReviews eligibility error: $eligibilityError',
-        );
-      }
+      _canReview = results[2] as bool;
     } catch (error) {
       _errorMessage = 'Không thể tải đánh giá';
-
       debugPrint('loadReviews error: $error');
     } finally {
       _isLoading = false;
-
       notifyListeners();
     }
   }
 
-  // =========================================================
-  // SAVE
-  // =========================================================
+  Future<void> _reloadReviewDataOnly(String productId) async {
+    final results = await Future.wait([
+      _service.getReviews(productId),
+      _service.getMyReview(productId),
+    ]);
+
+    _reviews
+      ..clear()
+      ..addAll(results[0] as List<ProductReviewModel>);
+    _myReview = results[1] as ProductReviewModel?;
+  }
 
   Future<bool> saveReview({
     required String productId,
     required int rating,
     required String comment,
   }) async {
-    final canReview = await checkReviewEligibility(productId);
-
-    if (!canReview) {
-      _errorMessage =
-          'Bạn chỉ có thể đánh giá sản phẩm đã mua trong '
-          'đơn hoàn thành và đã thanh toán.';
-      notifyListeners();
-      return false;
-    }
-
     _isSaving = true;
     _errorMessage = null;
 
@@ -134,7 +124,8 @@ class ReviewProvider extends ChangeNotifier {
         comment: comment,
       );
 
-      await loadReviews(productId);
+      await _reloadReviewDataOnly(productId);
+      _canReview = true;
 
       return true;
     } catch (error) {
@@ -148,10 +139,6 @@ class ReviewProvider extends ChangeNotifier {
     }
   }
 
-  // =========================================================
-  // DELETE
-  // =========================================================
-
   Future<bool> deleteReview(String productId) async {
     _isSaving = true;
 
@@ -160,7 +147,7 @@ class ReviewProvider extends ChangeNotifier {
     try {
       await _service.deleteMyReview(productId);
 
-      await loadReviews(productId);
+      await _reloadReviewDataOnly(productId);
 
       return true;
     } catch (error) {

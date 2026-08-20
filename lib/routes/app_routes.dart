@@ -1,3 +1,4 @@
+
 import 'package:project_trangdc24v7x324/features/auth/screens/forgot_password_page.dart';
 import 'package:project_trangdc24v7x324/features/auth/screens/login_page.dart';
 import 'package:project_trangdc24v7x324/features/auth/screens/register_page.dart';
@@ -25,7 +26,6 @@ import 'package:flutter/material.dart';
 class AppRoutes {
   static const String splash = '/';
 
-  // Customer
   static const String home = '/home';
   static const String product = '/product';
   static const String profile = '/profile';
@@ -37,12 +37,10 @@ class AppRoutes {
   static const String paymentTest = '/payment-test';
   static const String orderDetail = '/order-detail';
 
-  // Auth
   static const String login = '/login';
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
 
-  // Manager
   static const String managerHome = '/manager-home';
   static const String managerOrders = '/manager-orders';
   static const String managerRevenue = '/manager-revenue';
@@ -53,13 +51,12 @@ class AppRoutes {
   static const String managerNotifications = '/manager-notifications';
 
   static Map<String, WidgetBuilder> get routes => {
-    // Auth
+
     splash: (context) => const SplashScreen(),
     login: (context) => const LoginPage(),
     register: (context) => const RegisterPage(),
     forgotPassword: (context) => const ForgotPasswordPage(),
 
-    // Customer
     home: (context) => const HomePage(),
     product: (context) => const ProductPage(),
     profile: (context) => const ProfilePage(),
@@ -69,8 +66,6 @@ class AppRoutes {
     notifications: (context) => const NotificationsPage(),
     payment: (context) => const PaymentPage(),
 
-    // Manager
-    // EntryPage sẽ tự chọn giao diện Web hoặc giao diện app bằng kIsWeb.
     managerHome: (context) => const ManagerHomeEntryPage(),
     managerProducts: (context) => const ManagerProductsEntryPage(),
     managerCategories: (context) => const ManagerCategoriesEntryPage(),
@@ -80,7 +75,6 @@ class AppRoutes {
     managerNotifications: (context) => const ManagerNotificationsEntryPage(),
   };
 
-  /// Các route cần nhận arguments động được xử lý tại đây.
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case managerChatDetail:

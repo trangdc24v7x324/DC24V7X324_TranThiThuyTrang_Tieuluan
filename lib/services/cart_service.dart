@@ -1,3 +1,4 @@
+
 import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
 import 'package:project_trangdc24v7x324/models/cart_item_model.dart';
 
@@ -85,9 +86,20 @@ class CartService {
       return <CartItemModel>[];
     }
 
-    final itemRecords = await pb
-        .collection('cart_items')
-        .getFullList(filter: 'cart = "$cartId"', sort: 'created');
+    List<dynamic> itemRecords;
+
+    try {
+      itemRecords = await pb.collection('cart_items').getFullList(
+        filter: 'cart = "$cartId"',
+        sort: 'created',
+        expand: 'product,product.category',
+      );
+    } catch (_) {
+
+      itemRecords = await pb
+          .collection('cart_items')
+          .getFullList(filter: 'cart = "$cartId"', sort: 'created');
+    }
 
     if (itemRecords.isEmpty) {
       return <CartItemModel>[];
@@ -104,12 +116,21 @@ class CartService {
       }
 
       try {
-        final productRecord = await pb.collection('products').getOne(productId);
+        dynamic productRecord;
+
+        try {
+          final expandedProducts = itemRecord.expand['product'];
+          if (expandedProducts != null && expandedProducts.isNotEmpty) {
+            productRecord = expandedProducts.first;
+          }
+        } catch (_) {}
+
+        productRecord ??= await pb
+            .collection('products')
+            .getOne(productId, expand: 'category');
 
         final productData = productRecord.data;
 
-        // Nếu field isAvailable chưa tồn tại ở dữ liệu cũ thì mặc định
-        // vẫn coi sản phẩm đang bán để tránh xóa nhầm cart item.
         final dynamic rawAvailability = productData['isAvailable'];
 
         final bool isAvailable =
@@ -117,9 +138,6 @@ class CartService {
 
         final double originalPrice = _toDouble(productData['price']);
 
-        // Trước checkout/cart refresh:
-        // món đã ngừng bán hoặc có giá không hợp lệ sẽ bị loại khỏi
-        // active cart trên PocketBase, không cho đi tiếp sang Payment.
         if (!isAvailable || originalPrice <= 0) {
           try {
             await pb.collection('cart_items').delete(itemRecord.id);
@@ -136,8 +154,7 @@ class CartService {
 
         result.add(item);
       } catch (_) {
-        // Product đã bị xóa thật khỏi database:
-        // dọn luôn cart_item mồ côi để active cart sạch.
+
         try {
           await pb.collection('cart_items').delete(itemRecord.id);
         } catch (_) {}
@@ -272,115 +289,42 @@ class CartService {
     }
   }
 
-  // =========================================================
-  // REMOVE PURCHASED ITEMS AFTER PARTIAL CHECKOUT
-  // =========================================================
-
   Future<void> removePurchasedItems(List<CartItemModel> purchasedItems) async {
-    if (purchasedItems.isEmpty) {
-      return;
-    }
+    if (purchasedItems.isEmpty) return;
 
     final cartId = await getActiveCartId();
 
-    if (cartId == null || cartId.isEmpty) {
-      return;
-    }
+    if (cartId == null || cartId.isEmpty) return;
 
-    // Chỉ xóa đúng line được thanh toán:
-    // productId + note.
-    for (final item in purchasedItems) {
-      await _deleteExactCartLine(
-        cartId: cartId,
-        productId: item.productId,
-        note: item.note,
-      );
-    }
-
-    // Kiểm tra lại để tránh trường hợp request đầu tiên bị lỗi mạng tạm thời.
-    for (final item in purchasedItems) {
-      final remainingMatches = await _findCartItemRecords(
-        cartId: cartId,
-        productId: item.productId,
-        note: item.note,
-      );
-
-      if (remainingMatches.isNotEmpty) {
-        await _deleteExactCartLine(
-          cartId: cartId,
-          productId: item.productId,
-          note: item.note,
-        );
-      }
-    }
-
-    // Xác nhận các dòng đã mua thực sự không còn trong active cart.
-    for (final item in purchasedItems) {
-      final remainingMatches = await _findCartItemRecords(
-        cartId: cartId,
-        productId: item.productId,
-        note: item.note,
-      );
-
-      if (remainingMatches.isNotEmpty) {
-        throw Exception(
-          'Đơn hàng đã tạo nhưng chưa thể cập nhật hết giỏ hàng. '
-          'Vui lòng tải lại giỏ hàng.',
-        );
-      }
-    }
-
-    // Nếu cart không còn item nào thì chuyển cart -> converted.
-    // Nếu còn item chưa chọn thanh toán thì GIỮ status = active.
-    final remainingItems = await pb
+    final records = await pb
         .collection('cart_items')
         .getFullList(filter: 'cart = "$cartId"');
 
-    if (remainingItems.isEmpty) {
-      await pb
-          .collection('carts')
-          .update(cartId, body: {'status': 'converted'});
+    final purchasedKeys = purchasedItems
+        .map((item) => '${item.productId}|${item.note.trim()}')
+        .toSet();
 
-      _cachedActiveCartId = null;
-    }
-  }
+    final recordsToDelete = records.where((record) {
+      final productId = (record.data['product'] ?? '').toString().trim();
+      final note = (record.data['note'] ?? '').toString().trim();
+      return purchasedKeys.contains('$productId|$note');
+    }).toList();
 
-  Future<void> _deleteExactCartLine({
-    required String cartId,
-    required String productId,
-    required String note,
-  }) async {
-    final records = await _findCartItemRecords(
-      cartId: cartId,
-      productId: productId,
-      note: note,
+    await Future.wait(
+      recordsToDelete.map(
+        (record) => pb.collection('cart_items').delete(record.id),
+      ),
     );
 
-    for (final record in records) {
-      await pb.collection('cart_items').delete(record.id);
+    final remainingCount = records.length - recordsToDelete.length;
+
+    if (remainingCount <= 0) {
+      await pb.collection('carts').update(
+        cartId,
+        body: {'status': 'converted'},
+      );
+      _cachedActiveCartId = null;
     }
-  }
-
-  Future<List<dynamic>> _findCartItemRecords({
-    required String cartId,
-    required String productId,
-    required String note,
-  }) async {
-    final records = await pb
-        .collection('cart_items')
-        .getFullList(
-          filter:
-              'cart = "$cartId" && '
-              'product = "$productId"',
-        );
-
-    final normalizedNote = note.trim();
-
-    return records.where((record) {
-      final serverNote = (record.data['note'] ?? '').toString().trim();
-
-      return serverNote == normalizedNote;
-    }).toList();
   }
 
   Future<void> clearActiveCartItems() async {
@@ -534,6 +478,19 @@ class CartService {
 
       if (category == null) {
         try {
+          final expandedCategories = productRecord.expand['category'];
+          if (expandedCategories != null && expandedCategories.isNotEmpty) {
+            final categoryRecord = expandedCategories.first;
+            category = {
+              'title': (categoryRecord.data['title'] ?? 'Khác').toString(),
+              'slug': (categoryRecord.data['slug'] ?? 'khac').toString(),
+            };
+          }
+        } catch (_) {}
+      }
+
+      if (category == null) {
+        try {
           final categoryRecord = await pb
               .collection('categories')
               .getOne(categoryId);
@@ -542,13 +499,12 @@ class CartService {
             'title': (categoryRecord.data['title'] ?? 'Khác').toString(),
             'slug': (categoryRecord.data['slug'] ?? 'khac').toString(),
           };
-
-          categoryCache[categoryId] = category;
         } catch (_) {
           category = {'title': 'Khác', 'slug': 'khac'};
         }
       }
 
+      categoryCache[categoryId] = category;
       categoryTitle = category['title'] ?? 'Khác';
       categorySlug = category['slug'] ?? 'khac';
     }

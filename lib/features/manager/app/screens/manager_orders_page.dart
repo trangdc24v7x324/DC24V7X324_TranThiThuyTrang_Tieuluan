@@ -1,14 +1,41 @@
+
 import 'package:project_trangdc24v7x324/models/order_model.dart';
 import 'package:project_trangdc24v7x324/models/payment_record_model.dart';
 import 'package:project_trangdc24v7x324/providers/order_provider.dart';
 import 'package:project_trangdc24v7x324/services/payment_service.dart';
+import 'package:project_trangdc24v7x324/services/map_navigation_service.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
 import 'package:project_trangdc24v7x324/utils/order_status_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+Future<void> _openDeliveryDirections(
+  BuildContext context,
+  OrderModel order,
+) async {
+  if (!order.hasDeliveryCoordinates) return;
+
+  try {
+    await MapNavigationService.openDirections(
+      latitude: order.deliveryLatitude,
+      longitude: order.deliveryLongitude,
+    );
+  } catch (error) {
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          error.toString().replaceFirst('Exception: ', ''),
+        ),
+      ),
+    );
+  }
+}
+
 class ManagerOrdersPage extends StatefulWidget {
+
   const ManagerOrdersPage({super.key});
 
   @override
@@ -64,23 +91,28 @@ class _ManagerOrdersPageState extends State<ManagerOrdersPage> {
 
     if (missingOrders.isEmpty) return;
 
-    final entries = await Future.wait(
-      missingOrders.map((order) async {
-        try {
-          final payment = await _paymentService.fetchByOrderId(order.id);
+    try {
+      final loaded = await _paymentService.fetchLatestByOrderIds(
+        missingOrders.map((order) => order.id),
+      );
 
-          return MapEntry<String, PaymentRecordModel?>(order.id, payment);
-        } catch (_) {
-          return MapEntry<String, PaymentRecordModel?>(order.id, null);
+      if (!mounted) return;
+
+      setState(() {
+        for (final order in missingOrders) {
+          _paymentsByOrderId[order.id] = loaded[order.id];
         }
-      }),
-    );
+      });
+    } catch (error) {
+      debugPrint('Manager load payment records error: $error');
 
-    if (!mounted) return;
-
-    setState(() {
-      _paymentsByOrderId.addEntries(entries);
-    });
+      if (!mounted) return;
+      setState(() {
+        for (final order in missingOrders) {
+          _paymentsByOrderId.putIfAbsent(order.id, () => null);
+        }
+      });
+    }
   }
 
   String _getNextStatus(String status) {
@@ -215,7 +247,7 @@ class _ManagerOrdersPageState extends State<ManagerOrdersPage> {
       }
     }
 
-    return '${buffer}đ';
+    return '$bufferđ';
   }
 
   String _shortOrderId(String orderId) {
@@ -646,6 +678,7 @@ class _SummaryItem extends StatelessWidget {
 }
 
 class _SummaryDivider extends StatelessWidget {
+
   const _SummaryDivider();
 
   @override
@@ -699,13 +732,13 @@ class _OrderCard extends StatelessWidget {
         border: Border.all(
           color:
               isUpdating
-                  ? statusColor.withOpacity(0.55)
+                  ? statusColor.withValues(alpha: 0.55)
                   : const Color(0xFFE5E7EB),
           width: isUpdating ? 1.5 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.045),
+            color: Colors.black.withValues(alpha: 0.045),
             blurRadius: 12,
             offset: const Offset(0, 5),
           ),
@@ -721,7 +754,7 @@ class _OrderCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 minHeight: 3,
                 color: statusColor,
-                backgroundColor: statusColor.withOpacity(0.12),
+                backgroundColor: statusColor.withValues(alpha: 0.12),
               ),
             ),
           Padding(
@@ -736,7 +769,7 @@ class _OrderCard extends StatelessWidget {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.12),
+                        color: statusColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Icon(
@@ -822,6 +855,17 @@ class _OrderCard extends StatelessWidget {
                     ),
                   ],
                 ),
+                if (order.hasDeliveryCoordinates) ...[
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: OutlinedButton.icon(
+                      onPressed: () => _openDeliveryDirections(context, order),
+                      icon: const Icon(Icons.directions_outlined, size: 18),
+                      label: const Text('Mở chỉ đường'),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 10),
                 Wrap(
                   spacing: 8,
@@ -840,6 +884,11 @@ class _OrderCard extends StatelessWidget {
                       icon: Icons.restaurant_menu_rounded,
                       text: '${order.items.length} món',
                     ),
+                    if (order.distanceKm > 0)
+                      _InfoChip(
+                        icon: Icons.route_outlined,
+                        text: '${order.distanceKm.toStringAsFixed(1)} km',
+                      ),
                   ],
                 ),
                 if (order.note.trim().isNotEmpty) ...[
@@ -1151,7 +1200,7 @@ class _StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.11),
+        color: color.withValues(alpha: 0.11),
         borderRadius: BorderRadius.circular(99),
       ),
       child: Text(
@@ -1180,7 +1229,7 @@ class _InfoChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
       decoration: BoxDecoration(
-        color: effectiveColor.withOpacity(0.08),
+        color: effectiveColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(99),
       ),
       child: Row(
@@ -1203,6 +1252,7 @@ class _InfoChip extends StatelessWidget {
 }
 
 class _EmptyOrders extends StatelessWidget {
+
   const _EmptyOrders();
 
   @override
@@ -1216,7 +1266,7 @@ class _EmptyOrders extends StatelessWidget {
             Icon(
               Icons.receipt_long_outlined,
               size: 68,
-              color: Colors.grey.withOpacity(0.45),
+              color: Colors.grey.withValues(alpha: 0.45),
             ),
             const SizedBox(height: 12),
             const Text(

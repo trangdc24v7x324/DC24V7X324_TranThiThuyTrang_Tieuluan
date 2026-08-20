@@ -1,3 +1,4 @@
+
 class ProductModel {
   final String id;
 
@@ -11,43 +12,20 @@ class ProductModel {
   final String description;
   final String deliveryTime;
 
-  // =========================================================
-  // PRICE
-  // =========================================================
-
-  /// Giá bán thông thường.
   final double price;
 
-  /// Giá khuyến mãi.
-  ///
-  /// Giá trị 0 nghĩa là chưa thiết lập giá sale.
   final double salePrice;
 
-  /// Manager bật/tắt chương trình khuyến mãi.
   final bool isOnSale;
 
-  /// Thời gian bắt đầu khuyến mãi.
-  ///
-  /// null = không giới hạn thời gian bắt đầu.
   final DateTime? saleStartAt;
 
-  /// Thời gian kết thúc khuyến mãi.
-  ///
-  /// null = không giới hạn thời gian kết thúc.
   final DateTime? saleEndAt;
-
-  // =========================================================
-  // CATEGORY
-  // =========================================================
 
   final String categoryId;
 
   final String categoryTitle;
   final String categorySlug;
-
-  // =========================================================
-  // STATUS
-  // =========================================================
 
   final bool isAvailable;
 
@@ -65,7 +43,6 @@ class ProductModel {
     this.deliveryTime = '',
     this.price = 0,
 
-    // Sale
     this.salePrice = 0,
     this.isOnSale = false,
     this.saleStartAt,
@@ -79,12 +56,6 @@ class ProductModel {
     this.updated,
   });
 
-  // =========================================================
-  // SALE STATUS
-  // =========================================================
-
-  /// Kiểm tra sản phẩm có đang trong thời gian khuyến mãi
-  /// và giá sale có hợp lệ hay không.
   bool get hasActiveSale {
     if (!isOnSale) {
       return false;
@@ -104,13 +75,11 @@ class ProductModel {
 
     final DateTime now = DateTime.now();
 
-    // Chưa đến thời gian sale.
     if (saleStartAt != null &&
         now.isBefore(saleStartAt!)) {
       return false;
     }
 
-    // Đã hết thời gian sale.
     if (saleEndAt != null &&
         now.isAfter(saleEndAt!)) {
       return false;
@@ -119,14 +88,6 @@ class ProductModel {
     return true;
   }
 
-  // =========================================================
-  // EFFECTIVE PRICE
-  // =========================================================
-
-  /// Giá thực tế mà khách hàng phải trả.
-  ///
-  /// Có sale hợp lệ → salePrice.
-  /// Không sale       → price.
   double get effectivePrice {
     if (hasActiveSale) {
       return salePrice;
@@ -135,11 +96,6 @@ class ProductModel {
     return price;
   }
 
-  // =========================================================
-  // DISCOUNT AMOUNT
-  // =========================================================
-
-  /// Số tiền được giảm.
   double get discountAmount {
     if (!hasActiveSale) {
       return 0;
@@ -148,17 +104,6 @@ class ProductModel {
     return price - salePrice;
   }
 
-  // =========================================================
-  // DISCOUNT PERCENT
-  // =========================================================
-
-  /// Phần trăm giảm giá dùng để hiển thị UI.
-  ///
-  /// Ví dụ:
-  /// price     = 50.000
-  /// salePrice = 40.000
-  ///
-  /// discountPercent = 20
   int get discountPercent {
     if (!hasActiveSale || price <= 0) {
       return 0;
@@ -167,10 +112,6 @@ class ProductModel {
     return (((price - salePrice) / price) * 100)
         .round();
   }
-
-  // =========================================================
-  // FROM JSON
-  // =========================================================
 
   factory ProductModel.fromJson(
     Map<String, dynamic> json,
@@ -204,10 +145,6 @@ class ProductModel {
           json['deliveryTime']?.toString() ??
           '',
 
-      // ==============================
-      // PRICE
-      // ==============================
-
       price:
           _toDouble(
             json['price'],
@@ -231,10 +168,6 @@ class ProductModel {
             json['saleEndAt'],
           ),
 
-      // ==============================
-      // CATEGORY
-      // ==============================
-
       categoryId:
           json['category']?.toString() ??
           '',
@@ -246,10 +179,6 @@ class ProductModel {
       categorySlug:
           json['categorySlug']?.toString() ??
           'khac',
-
-      // ==============================
-      // STATUS
-      // ==============================
 
       isAvailable:
           json['isAvailable'] != false,
@@ -265,10 +194,6 @@ class ProductModel {
           ),
     );
   }
-
-  // =========================================================
-  // TO JSON
-  // =========================================================
 
   Map<String, dynamic> toJson() {
     return {
@@ -290,10 +215,6 @@ class ProductModel {
       'deliveryTime':
           deliveryTime,
 
-      // ==============================
-      // PRICE
-      // ==============================
-
       'price':
           price,
 
@@ -309,25 +230,13 @@ class ProductModel {
       'saleEndAt':
           saleEndAt?.toIso8601String(),
 
-      // ==============================
-      // CATEGORY
-      // ==============================
-
       'category':
           categoryId,
-
-      // ==============================
-      // STATUS
-      // ==============================
 
       'isAvailable':
           isAvailable,
     };
   }
-
-  // =========================================================
-  // COPY WITH
-  // =========================================================
 
   ProductModel copyWith({
     String? id,
@@ -370,9 +279,9 @@ class ProductModel {
       rating:
           rating ??
           this.rating,
-      
-      reviewCount: 
-          reviewCount ?? 
+
+      reviewCount:
+          reviewCount ??
           this.reviewCount,
 
       image:
@@ -433,10 +342,6 @@ class ProductModel {
     );
   }
 
-  // =========================================================
-  // PARSE DOUBLE
-  // =========================================================
-
   static double _toDouble(
     dynamic value,
   ) {
@@ -454,10 +359,6 @@ class ProductModel {
         0;
   }
 
-  // =========================================================
-  // PARSE DATETIME
-  // =========================================================
-
   static DateTime? _toDateTime(
     dynamic value,
   ) {
@@ -474,6 +375,7 @@ class ProductModel {
 
     return DateTime.tryParse(text);
   }
+
   static int _toInt(dynamic value) {
     if (value is num) {
       return value.toInt();

@@ -1,3 +1,4 @@
+
 import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
 import 'package:project_trangdc24v7x324/models/app_notification_model.dart';
 
@@ -106,10 +107,6 @@ class NotificationService {
     }
   }
 
-  // =========================================================
-  // FETCH
-  // =========================================================
-
   Future<List<AppNotificationModel>> fetchCustomerNotifications({
     required String userId,
   }) async {
@@ -119,9 +116,6 @@ class NotificationService {
       return <AppNotificationModel>[];
     }
 
-    // Chỉ đọc notification personal của chính Customer.
-    // Không đọc broadcast targetRole=customer cũ vì isRead của loại đó
-    // dùng chung giữa tất cả Customer.
     final records = await pb
         .collection('notifications')
         .getFullList(
@@ -141,13 +135,6 @@ class NotificationService {
           });
         }).toList();
 
-    // =========================================================
-    // GỘP NOTIFICATION ĐƠN HÀNG CŨ
-    // =========================================================
-    // Các bản test cũ có thể đã tạo 4-5 record cho cùng một order.
-    // UI Customer chỉ giữ record mới nhất của mỗi orderId.
-    //
-    // Notification marketing không có orderId nên vẫn giữ nguyên từng record.
     final List<AppNotificationModel> result = [];
     final Set<String> seenOrderIds = {};
 
@@ -185,10 +172,6 @@ class NotificationService {
     }).toList();
   }
 
-  // =========================================================
-  // MANAGER -> CUSTOMER BROADCAST
-  // =========================================================
-
   Future<List<String>> _fetchActiveCustomerIds() async {
     try {
       final records = await pb
@@ -200,7 +183,7 @@ class NotificationService {
 
       return records.map((record) => record.id).toList();
     } catch (_) {
-      // Fallback cho schema cũ hoặc rule chưa dùng được isActive.
+
       final records = await pb
           .collection('users')
           .getFullList(sort: 'created', filter: 'role = "customer"');
@@ -209,13 +192,6 @@ class NotificationService {
     }
   }
 
-  /// Manager gửi 1 nội dung cho toàn bộ Customer.
-  ///
-  /// Mỗi Customer nhận 1 record personal riêng:
-  /// -> isRead riêng cho từng người.
-  ///
-  /// Đồng thời tạo 1 record targetRole=manager:
-  /// -> dùng làm lịch sử thông báo Manager đã gửi.
   Future<void> createCustomerNotification({
     required String title,
     required String body,
@@ -249,8 +225,6 @@ class NotificationService {
       );
     }
 
-    // Log của Manager: đây là lịch sử đã gửi nên đánh dấu read=true
-    // để không làm tăng badge thông báo mới của Manager.
     await create(
       title: safeTitle,
       body: safeBody,
@@ -259,10 +233,6 @@ class NotificationService {
       isRead: true,
     );
   }
-
-  // =========================================================
-  // CREATE CORE
-  // =========================================================
 
   Future<void> create({
     required String title,
@@ -309,17 +279,6 @@ class NotificationService {
       data['orderId'] = safeOrderId;
     }
 
-    // ---------------------------------------------------------
-    // 1 ĐƠN HÀNG = 1 THÔNG BÁO CUSTOMER
-    // ---------------------------------------------------------
-    // Nếu đây là notification personal có orderId thì tìm record
-    // đã tồn tại của đúng Customer + đúng order.
-    //
-    // Khi Manager cập nhật trạng thái:
-    // - KHÔNG tạo record mới;
-    // - cập nhật chính record cũ;
-    // - isRead = false để Customer nhận biết có trạng thái mới;
-    // - PocketBase tự cập nhật trường system "updated".
     if (safeRole == 'personal' &&
         safeTargetUser.isNotEmpty &&
         safeOrderId.isNotEmpty) {
@@ -344,10 +303,6 @@ class NotificationService {
 
     await pb.collection('notifications').create(body: data);
   }
-
-  // =========================================================
-  // CUSTOMER ORDER NOTIFICATIONS
-  // =========================================================
 
   Future<void> createOrderCreatedNotificationForCustomer({
     required String customerId,
@@ -387,11 +342,6 @@ class NotificationService {
     );
   }
 
-  // =========================================================
-  // MANAGER ORDER NOTIFICATION
-  // GIỮ NGUYÊN CONTRACT VÌ OrderService ĐANG GỌI HÀM NÀY.
-  // =========================================================
-
   Future<void> createNewOrderNotificationForManager({
     required String orderId,
     required String receiverName,
@@ -425,12 +375,8 @@ class NotificationService {
       }
     }
 
-    return '${buffer}đ';
+    return '$bufferđ';
   }
-
-  // =========================================================
-  // READ / DELETE
-  // =========================================================
 
   Future<void> markAsRead(String notificationId) async {
     final safeId = notificationId.trim();

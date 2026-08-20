@@ -1,7 +1,7 @@
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
 import 'package:project_trangdc24v7x324/models/product_model.dart';
 import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 
@@ -11,8 +11,8 @@ class FoodCard extends StatefulWidget {
   final VoidCallback onFavoriteToggle;
   final VoidCallback onAddToCart;
 
-  /// Tăng giá trị này khi màn hình cha muốn ép tải lại rating thật.
-  final int ratingRefreshVersion;
+  final double rating;
+  final int reviewCount;
 
   const FoodCard({
     super.key,
@@ -20,7 +20,8 @@ class FoodCard extends StatefulWidget {
     required this.isFavorited,
     required this.onFavoriteToggle,
     required this.onAddToCart,
-    this.ratingRefreshVersion = 0,
+    this.rating = 0,
+    this.reviewCount = 0,
   });
 
   @override
@@ -29,105 +30,6 @@ class FoodCard extends StatefulWidget {
 
 class _FoodCardState extends State<FoodCard> {
   bool _isCartAnimating = false;
-
-  double _realRating = 0;
-  int _realReviewCount = 0;
-  bool _isLoadingRating = true;
-
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(_loadRealReviewStats);
-  }
-
-  @override
-  void didUpdateWidget(covariant FoodCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    if (oldWidget.product.id != widget.product.id ||
-        oldWidget.ratingRefreshVersion != widget.ratingRefreshVersion) {
-      Future.microtask(_loadRealReviewStats);
-    }
-  }
-
-  Future<void> _loadRealReviewStats() async {
-    final productId = widget.product.id.trim();
-
-    if (mounted) {
-      setState(() {
-        _isLoadingRating = true;
-      });
-    }
-
-    if (productId.isEmpty) {
-      if (!mounted) return;
-
-      setState(() {
-        _realRating = 0;
-        _realReviewCount = 0;
-        _isLoadingRating = false;
-      });
-      return;
-    }
-
-    try {
-      List<dynamic> records;
-
-      try {
-        records = await pb
-            .collection('product_reviews')
-            .getFullList(filter: 'product = "$productId"', sort: '-created');
-      } catch (_) {
-        records = await pb
-            .collection('product_reviews')
-            .getFullList(filter: 'productId = "$productId"', sort: '-created');
-      }
-
-      double total = 0;
-      int validCount = 0;
-
-      for (final record in records) {
-        final raw = record.data['rating'];
-
-        final double rating;
-        if (raw is num) {
-          rating = raw.toDouble();
-        } else {
-          rating = double.tryParse(raw?.toString() ?? '') ?? 0;
-        }
-
-        if (rating >= 1 && rating <= 5) {
-          total += rating;
-          validCount++;
-        }
-      }
-
-      final average = validCount == 0 ? 0.0 : total / validCount;
-
-      if (!mounted || widget.product.id.trim() != productId) return;
-
-      setState(() {
-        _realRating = average;
-        _realReviewCount = validCount;
-        _isLoadingRating = false;
-      });
-    } catch (e) {
-      debugPrint(
-        'LOAD FOOD CARD REVIEW STATS ERROR '
-        'product=${widget.product.id}: $e',
-      );
-
-      if (!mounted) return;
-
-      // Không fallback về product.rating/reviewCount vì dữ liệu sản phẩm cũ
-      // có thể chưa có reviewCount và gây lỗi Null -> int trên Flutter Web.
-      setState(() {
-        _realRating = 0;
-        _realReviewCount = 0;
-        _isLoadingRating = false;
-      });
-    }
-  }
 
   bool get _hasActiveSale {
     final product = widget.product;
@@ -183,7 +85,7 @@ class _FoodCardState extends State<FoodCard> {
       }
     }
 
-    return '${buffer}đ';
+    return '$bufferđ';
   }
 
   Widget _buildImage() {
@@ -265,7 +167,7 @@ class _FoodCardState extends State<FoodCard> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
             decoration: BoxDecoration(
-              color: const Color(0xFFEF2A39).withOpacity(0.10),
+              color: const Color(0xFFEF2A39).withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(99),
             ),
             child: Text(
@@ -288,7 +190,7 @@ class _FoodCardState extends State<FoodCard> {
       color: Colors.white,
       borderRadius: BorderRadius.circular(18),
       elevation: 2,
-      shadowColor: Colors.black.withOpacity(0.10),
+      shadowColor: Colors.black.withValues(alpha: 0.10),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
         onTap: () async {
@@ -300,9 +202,6 @@ class _FoodCardState extends State<FoodCard> {
 
           if (!mounted) return;
 
-          // Customer có thể vừa thêm/sửa/xóa đánh giá ở ProductPage.
-          // Tải lại trực tiếp từ product_reviews khi quay về Home.
-          await _loadRealReviewStats();
         },
         child: Padding(
           padding: const EdgeInsets.fromLTRB(10, 10, 10, 9),
@@ -348,46 +247,47 @@ class _FoodCardState extends State<FoodCard> {
               const SizedBox(height: 7),
               Row(
                 children: [
-                  Icon(
-                    _realReviewCount > 0
-                        ? Icons.star_rounded
-                        : Icons.star_border_rounded,
-                    color:
-                        _realReviewCount > 0
-                            ? Colors.orange
-                            : Colors.grey.shade400,
-                    size: 15,
-                  ),
-                  const SizedBox(width: 3),
-                  if (_isLoadingRating)
-                    SizedBox(
-                      width: 12,
-                      height: 12,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 1.5,
-                        color: Colors.grey.shade400,
-                      ),
-                    )
-                  else
-                    Text(
-                      _realReviewCount > 0
-                          ? '${_realRating.toStringAsFixed(1)} '
-                              '($_realReviewCount đánh giá)'
-                          : 'Chưa có đánh giá',
-                      style: const TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF555555),
-                      ),
+                  Expanded(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          widget.reviewCount > 0
+                              ? Icons.star_rounded
+                              : Icons.star_border_rounded,
+                          color:
+                              widget.reviewCount > 0
+                                  ? Colors.orange
+                                  : Colors.grey.shade400,
+                          size: 15,
+                        ),
+                        const SizedBox(width: 3),
+                        Flexible(
+                          child: Text(
+                            widget.reviewCount > 0
+                                ? '${widget.rating.toStringAsFixed(1)} '
+                                    '(${widget.reviewCount})'
+                                : 'Chưa có',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF555555),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  const Spacer(),
+                  ),
+                  const SizedBox(width: 4),
                   _ActionIcon(
                     icon: CupertinoIcons.cart_badge_plus,
                     color: const Color(0xFFEF2A39),
                     onTap: _handleAddToCart,
                     isAnimating: _isCartAnimating,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 5),
                   _ActionIcon(
                     icon:
                         widget.isFavorited
@@ -431,9 +331,9 @@ class _ActionIcon extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(18),
         child: SizedBox(
-          width: 26,
+          width: 24,
           height: 26,
-          child: Icon(icon, color: color, size: 20),
+          child: Icon(icon, color: color, size: 19),
         ),
       ),
     );

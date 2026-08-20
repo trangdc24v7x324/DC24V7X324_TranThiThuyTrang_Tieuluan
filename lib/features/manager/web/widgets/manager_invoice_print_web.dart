@@ -1,7 +1,11 @@
+
 import 'dart:convert';
-import 'dart:html' as html;
+import 'dart:js_interop';
 
 import 'package:project_trangdc24v7x324/models/order_model.dart';
+
+@JS('window.open')
+external JSAny? _openBrowserWindow(String url, String target);
 
 void printManagerInvoice({required OrderModel order}) {
   final htmlContent = _buildInvoiceHtml(order);
@@ -12,8 +16,7 @@ void printManagerInvoice({required OrderModel order}) {
     encoding: utf8,
   );
 
-  // Mở hóa đơn ở cửa sổ riêng. Script trong trang sẽ tự mở hộp thoại in.
-  html.window.open(uri.toString(), '_blank');
+  _openBrowserWindow(uri.toString(), '_blank');
 }
 
 String _buildInvoiceHtml(OrderModel order) {
@@ -254,7 +257,7 @@ String _money(double value) {
     }
   }
 
-  return '${buffer}đ';
+  return '$bufferđ';
 }
 
 String _statusLabel(String status) {

@@ -1,24 +1,19 @@
+
+import 'package:flutter/foundation.dart';
+
 import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
 import 'package:project_trangdc24v7x324/models/cart_item_model.dart';
 import 'package:project_trangdc24v7x324/models/order_item_model.dart';
 import 'package:project_trangdc24v7x324/models/order_model.dart';
 import 'package:project_trangdc24v7x324/services/notification_service.dart';
 import 'package:project_trangdc24v7x324/services/delivery_service.dart';
+import 'package:project_trangdc24v7x324/utils/delivery_location_helper.dart';
 
 class OrderService {
   final NotificationService _notificationService = NotificationService();
   final DeliveryService _deliveryService = DeliveryService();
 
-  // =========================================================
-  // CREATE ORDER
-  // =========================================================
-  //
-  // Contract này khớp với OrderProvider hiện tại:
-  // - KHÔNG nhận totalAmount từ client.
-  // - Tự đọc lại giá sản phẩm từ PocketBase.
-  // - Trả về orderId sau khi tạo thành công.
-  //
-  Future<String> createOrder({
+  Future<OrderModel> createOrder({
     required List<CartItemModel> items,
     required String receiverName,
     required String receiverPhone,
@@ -38,33 +33,29 @@ class OrderService {
       throw Exception('Giỏ hàng đang trống');
     }
 
-    // Đọc lại giá hiện tại từ PocketBase trước khi tạo order.
-    final List<_ResolvedOrderItem> resolvedItems = [];
+    final resolvedItems = await Future.wait(
+      items.map((item) async {
+        if (item.productId.trim().isEmpty) {
+          throw Exception('Sản phẩm "${item.title}" bị thiếu productId');
+        }
 
-    for (final item in items) {
-      if (item.productId.trim().isEmpty) {
-        throw Exception('Sản phẩm "${item.title}" bị thiếu productId');
-      }
+        return _resolveOrderItem(item);
+      }),
+    );
 
-      final resolved = await _resolveOrderItem(item);
-      resolvedItems.add(resolved);
-    }
-
-    final double subtotal = resolvedItems.fold<double>(
+    final subtotal = resolvedItems.fold<double>(
       0,
       (sum, item) => sum + item.subtotal,
     );
 
-    final double originalSubtotal = resolvedItems.fold<double>(
+    final originalSubtotal = resolvedItems.fold<double>(
       0,
       (sum, item) => sum + item.originalSubtotal,
     );
 
-    final double discountAmount =
+    final discountAmount =
         originalSubtotal > subtotal ? originalSubtotal - subtotal : 0;
 
-    // Tính lại khoảng cách/phí ngay trước khi tạo order.
-    // Không dùng trực tiếp số tiền hiển thị từ PaymentPage.
     final deliveryQuote = await _deliveryService.quoteForCoordinates(
       latitude: deliveryLatitude,
       longitude: deliveryLongitude,
@@ -74,35 +65,36 @@ class OrderService {
       throw Exception(deliveryQuote.message);
     }
 
-    final double deliveryFee = deliveryQuote.deliveryFee;
+    final deliveryFee = deliveryQuote.deliveryFee;
+    final distanceKm = deliveryQuote.distanceKm;
+    final totalAmount = subtotal + deliveryFee;
 
-    final double distanceKm = deliveryQuote.distanceKm;
+    final storedDeliveryAddress = DeliveryLocationHelper.encode(
+      address: deliveryAddress,
+      latitude: deliveryLatitude,
+      longitude: deliveryLongitude,
+    );
 
-    final double totalAmount = subtotal + deliveryFee;
+    final orderRecord = await pb.collection('orders').create(
+      body: {
+        'user': authUser.id,
+        'receiver_name': receiverName.trim(),
+        'receiver_phone': receiverPhone.trim(),
+        'delivery_address': storedDeliveryAddress,
+        'payment_method': paymentMethod.trim(),
+        'payment_status': _getInitialPaymentStatus(paymentMethod),
+        'order_status': 'placed',
+        'subtotal': subtotal,
+        'delivery_fee': deliveryFee,
+        'distance_km': distanceKm,
+        'discount_amount': discountAmount,
+        'total_amount': totalAmount,
+        'note': note.trim(),
+        'cancel_reason': '',
+      },
+    );
 
-    final orderRecord = await pb
-        .collection('orders')
-        .create(
-          body: {
-            'user': authUser.id,
-            'receiver_name': receiverName.trim(),
-            'receiver_phone': receiverPhone.trim(),
-            'delivery_address': deliveryAddress.trim(),
-            'payment_method': paymentMethod.trim(),
-            'payment_status': _getInitialPaymentStatus(paymentMethod),
-            'order_status': 'placed',
-            'subtotal': subtotal,
-            'delivery_fee': deliveryFee,
-            'distance_km': distanceKm,
-            'discount_amount': discountAmount,
-            'total_amount': totalAmount,
-
-            // Ghi chú chung của đơn hàng.
-            'note': note.trim(),
-
-            'cancel_reason': '',
-          },
-        );
+    final createdItems = <OrderItemModel>[];
 
     try {
       for (final resolved in resolvedItems) {
@@ -113,16 +105,10 @@ class OrderService {
           'product': item.productId,
           'product_name': item.title,
           'product_image': item.image,
-
-          // Giá cuối cùng đã được đọc lại từ products.
           'unit_price': resolved.unitPrice,
-
           'quantity': item.quantity,
           'subtotal': resolved.subtotal,
-
-          // Ghi chú RIÊNG của dòng sản phẩm.
           'note': item.note.trim(),
-
           'category_title': item.categoryTitle,
           'category_slug': item.categorySlug,
         };
@@ -131,45 +117,63 @@ class OrderService {
           body['category'] = item.categoryId;
         }
 
-        await pb.collection('order_items').create(body: body);
+        final itemRecord = await pb.collection('order_items').create(body: body);
+
+        createdItems.add(
+          OrderItemModel.fromJson({
+            'id': itemRecord.id,
+            ...itemRecord.data,
+            'created': itemRecord.created,
+            'updated': itemRecord.updated,
+          }),
+        );
       }
-    } catch (e) {
-      // Nếu tạo order_items lỗi thì rollback order cha.
+    } catch (error) {
+
+      for (final item in createdItems) {
+        try {
+          await pb.collection('order_items').delete(item.id);
+        } catch (_) {}
+      }
+
       try {
         await pb.collection('orders').delete(orderRecord.id);
       } catch (deleteError) {
-        print(
-          'Không thể rollback đơn hàng '
-          '${orderRecord.id}: $deleteError',
+        debugPrint(
+          'Không thể rollback đơn hàng ${orderRecord.id}: $deleteError',
         );
       }
 
-      throw Exception('Không thể tạo chi tiết đơn hàng: $e');
+      throw Exception('Không thể tạo chi tiết đơn hàng: $error');
     }
 
-    // Notification không được phép làm thất bại đơn hàng.
     try {
-      await _notificationService.createOrderCreatedNotificationForCustomer(
-        customerId: authUser.id,
-        orderId: orderRecord.id,
-      );
-
-      await _notificationService.createNewOrderNotificationForManager(
-        orderId: orderRecord.id,
-        receiverName: receiverName,
-        totalAmount: totalAmount,
-        paymentMethod: paymentMethod,
-      );
-    } catch (e) {
-      print('Tạo đơn thành công nhưng tạo thông báo lỗi: $e');
+      await Future.wait([
+        _notificationService.createOrderCreatedNotificationForCustomer(
+          customerId: authUser.id,
+          orderId: orderRecord.id,
+        ),
+        _notificationService.createNewOrderNotificationForManager(
+          orderId: orderRecord.id,
+          receiverName: receiverName,
+          totalAmount: totalAmount,
+          paymentMethod: paymentMethod,
+        ),
+      ]);
+    } catch (error) {
+      debugPrint('Tạo đơn thành công nhưng tạo thông báo lỗi: $error');
     }
 
-    return orderRecord.id;
+    return OrderModel.fromJson(
+      {
+        'id': orderRecord.id,
+        ...orderRecord.data,
+        'created': orderRecord.created,
+        'updated': orderRecord.updated,
+      },
+      items: createdItems,
+    );
   }
-
-  // =========================================================
-  // RE-CHECK PRODUCT PRICE
-  // =========================================================
 
   Future<_ResolvedOrderItem> _resolveOrderItem(CartItemModel item) async {
     final record = await pb.collection('products').getOne(item.productId);
@@ -204,9 +208,6 @@ class OrderService {
 
     final double unitPrice = hasActiveSale ? salePrice : originalPrice;
 
-    // Chặn race-condition:
-    // nếu giá thay đổi sau lúc Cart/Payment vừa refresh nhưng trước khi
-    // OrderService tạo đơn thì KHÔNG âm thầm tạo đơn theo giá mới.
     final bool effectivePriceChanged = (unitPrice - item.price).abs() > 0.001;
 
     final bool originalPriceChanged =
@@ -252,10 +253,6 @@ class OrderService {
     return true;
   }
 
-  // =========================================================
-  // FETCH ORDERS
-  // =========================================================
-
   Future<List<OrderModel>> fetchMyOrders() async {
     final authUser = pb.authStore.model;
 
@@ -291,10 +288,6 @@ class OrderService {
     }, items: items);
   }
 
-  // =========================================================
-  // PURCHASE CHECK FOR REVIEW
-  // =========================================================
-
   Future<bool> hasCompletedPurchase(String productId) async {
     final safeProductId = productId.trim();
 
@@ -307,11 +300,6 @@ class OrderService {
     return purchasedIds.contains(safeProductId);
   }
 
-  /// Chỉ trả về sản phẩm mà Customer thực sự đủ điều kiện đánh giá:
-  /// - đúng user đang đăng nhập;
-  /// - order_status = completed;
-  /// - thanh toán thực tế = paid;
-  /// - order_items có chứa sản phẩm.
   Future<Set<String>> fetchCompletedPurchasedProductIds() async {
     final authUser = pb.authStore.model;
 
@@ -332,66 +320,66 @@ class OrderService {
       return <String>{};
     }
 
-    final Set<String> productIds = <String>{};
+    final latestPaymentStatus = <String, String>{};
 
-    for (final order in completedOrders) {
-      final orderPaymentStatus =
-          (order.data['payment_status'] ?? '').toString().trim();
+    if (completedOrders.any(
+      (order) => (order.data['payment_status'] ?? '').toString().trim() != 'paid',
+    )) {
+      try {
+        final paymentRecords = await pb
+            .collection('payments')
+            .getFullList(sort: '-updated');
 
-      bool isPaid = orderPaymentStatus == 'paid';
+        for (final record in paymentRecords) {
+          final orderId = (record.data['order'] ?? '').toString().trim();
+          final status = (record.data['status'] ?? '').toString().trim();
 
-      // QR/MoMo demo: trạng thái thanh toán thật nằm ở collection payments.
-      if (!isPaid) {
-        try {
-          final paymentRecords = await pb
-              .collection('payments')
-              .getFullList(
-                filter: 'order = "${order.id}"',
-                sort: '-updated',
-              );
-
-          if (paymentRecords.isNotEmpty) {
-            final paymentStatus =
-                (paymentRecords.first.data['status'] ?? '')
-                    .toString()
-                    .trim();
-
-            isPaid = paymentStatus == 'paid';
+          if (orderId.isNotEmpty && status.isNotEmpty) {
+            latestPaymentStatus.putIfAbsent(orderId, () => status);
           }
-        } catch (e) {
-          print(
-            'Không thể kiểm tra payment của order '
-            '${order.id}: $e',
-          );
         }
+      } catch (error) {
+        debugPrint('Không thể tải trạng thái payment khi kiểm tra review: $error');
       }
+    }
 
-      if (!isPaid) {
-        continue;
-      }
+    final paidOrderIds = completedOrders
+        .where((order) {
+          final orderStatus =
+              (order.data['payment_status'] ?? '').toString().trim();
+          return orderStatus == 'paid' ||
+              latestPaymentStatus[order.id] == 'paid';
+        })
+        .map((order) => order.id.toString())
+        .where((id) => id.isNotEmpty)
+        .toList();
 
-      final itemRecords = await pb
-          .collection('order_items')
-          .getFullList(filter: 'order = "${order.id}"');
+    if (paidOrderIds.isEmpty) {
+      return <String>{};
+    }
 
+    final itemGroups = await Future.wait(
+      paidOrderIds.map(
+        (orderId) => pb
+            .collection('order_items')
+            .getFullList(filter: 'order = "$orderId"'),
+      ),
+    );
+
+    final productIds = <String>{};
+
+    for (final itemRecords in itemGroups) {
       for (final itemRecord in itemRecords) {
-        final purchasedProductId =
-            (itemRecord.data['product'] ?? '')
-                .toString()
-                .trim();
-
-        if (purchasedProductId.isNotEmpty) {
-          productIds.add(purchasedProductId);
+        final productId =
+            (itemRecord.data['product'] ?? '').toString().trim();
+        if (productId.isNotEmpty) {
+          productIds.add(productId);
         }
       }
     }
 
     return productIds;
   }
-
-  // =========================================================
-  // UPDATE STATUS
-  // =========================================================
 
   Future<void> updateOrderStatus({
     required String orderId,
@@ -464,8 +452,8 @@ class OrderService {
         cancelReason: safeCancelReason,
       );
     } catch (e) {
-      // Đơn đã cập nhật thành công nên notification không được rollback đơn.
-      print('Cập nhật đơn thành công nhưng tạo thông báo lỗi: $e');
+
+      debugPrint('Cập nhật đơn thành công nhưng tạo thông báo lỗi: $e');
     }
   }
 
@@ -496,27 +484,22 @@ class OrderService {
         .update(orderId, body: {'payment_status': paymentStatus});
   }
 
-  // =========================================================
-  // PRIVATE FETCH HELPERS
-  // =========================================================
-
   Future<List<OrderModel>> _mapOrderRecords(List<dynamic> orderRecords) async {
-    final List<OrderModel> orders = [];
+    return Future.wait(
+      orderRecords.map((orderRecord) async {
+        final items = await _fetchOrderItems(orderRecord.id);
 
-    for (final orderRecord in orderRecords) {
-      final items = await _fetchOrderItems(orderRecord.id);
-
-      orders.add(
-        OrderModel.fromJson({
-          'id': orderRecord.id,
-          ...orderRecord.data,
-          'created': orderRecord.created,
-          'updated': orderRecord.updated,
-        }, items: items),
-      );
-    }
-
-    return orders;
+        return OrderModel.fromJson(
+          {
+            'id': orderRecord.id,
+            ...orderRecord.data,
+            'created': orderRecord.created,
+            'updated': orderRecord.updated,
+          },
+          items: items,
+        );
+      }),
+    );
   }
 
   Future<List<OrderItemModel>> _fetchOrderItems(String orderId) async {
@@ -534,24 +517,10 @@ class OrderService {
     }).toList();
   }
 
-  // =========================================================
-  // PAYMENT
-  // =========================================================
-
   String _getInitialPaymentStatus(String paymentMethod) {
-    // Database orders.payment_status hiện tại không nhận "pending".
-    //
-    // Order chỉ phản ánh trạng thái thanh toán tổng quát:
-    // - unpaid: chưa xác nhận đã thu tiền
-    // - paid: đã xác nhận thanh toán
-    //
-    // Trạng thái chi tiết pending / failed được lưu ở collection payments.
+
     return 'unpaid';
   }
-
-  // =========================================================
-  // PARSE HELPERS
-  // =========================================================
 
   double _toDouble(dynamic value) {
     if (value == null) return 0;
@@ -595,10 +564,6 @@ class OrderService {
     return DateTime.tryParse(text)?.toLocal();
   }
 }
-
-// ===========================================================
-// INTERNAL SNAPSHOT MODEL
-// ===========================================================
 
 class _ResolvedOrderItem {
   final CartItemModel cartItem;

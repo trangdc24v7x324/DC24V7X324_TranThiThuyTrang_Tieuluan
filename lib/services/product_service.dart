@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -8,6 +7,7 @@ import 'package:project_trangdc24v7x324/models/category_model.dart';
 import 'package:project_trangdc24v7x324/models/product_model.dart';
 
 class ProductService {
+
   Future<List<CategoryModel>> getCategories() async {
     try {
       final records = await pb

@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -10,6 +11,7 @@ import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
 
 class ManagerChatListPage extends StatefulWidget {
+
   const ManagerChatListPage({super.key});
 
   @override
@@ -163,7 +165,7 @@ class _ChatUserTile extends StatelessWidget {
             border: Border.all(
               color:
                   hasUnread
-                      ? Colors.red.withOpacity(0.25)
+                      ? Colors.red.withValues(alpha: 0.25)
                       : Colors.grey.shade200,
             ),
           ),
@@ -281,6 +283,7 @@ class _UnreadBadge extends StatelessWidget {
 }
 
 class _EmptyManagerChat extends StatelessWidget {
+
   const _EmptyManagerChat();
 
   @override

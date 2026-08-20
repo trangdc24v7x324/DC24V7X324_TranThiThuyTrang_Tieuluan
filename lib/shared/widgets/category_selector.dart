@@ -1,13 +1,12 @@
+
 import 'package:flutter/material.dart';
 
 class CategorySelector extends StatelessWidget {
   final String selectedCategory;
   final ValueChanged<String> onCategorySelected;
 
-  // Nhận categories từ provider.
   final List<dynamic> categories;
 
-  // Chỉ HomePage bật tùy chọn này để thêm tab khuyến mãi ảo.
   final bool showPromotion;
 
   const CategorySelector({

@@ -1,3 +1,4 @@
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -15,16 +16,10 @@ class CartProvider extends ChangeNotifier {
   bool _isSyncing = false;
   String? _errorMessage;
 
-  // Hàng đợi giúp các thao tác + / - / xóa chạy tuần tự,
-  // tránh request PocketBase hoàn thành sai thứ tự khi người dùng bấm nhanh.
   Future<void> _operationQueue = Future<void>.value();
 
   CartProvider({CartService? cartService})
     : _cartService = cartService ?? CartService();
-
-  // =========================================================
-  // GETTERS
-  // =========================================================
 
   List<CartItemModel> get items => List.unmodifiable(_items);
 
@@ -58,10 +53,6 @@ class CartProvider extends ChangeNotifier {
 
   bool get hasDiscount => totalDiscount > 0;
 
-  // =========================================================
-  // LOAD FROM POCKETBASE
-  // =========================================================
-
   Future<bool> loadCart() async {
     if (_isLoading) {
       return false;
@@ -92,17 +83,11 @@ class CartProvider extends ChangeNotifier {
   }
 
   Future<bool> refreshCart() async {
-    // Quan trọng trước checkout:
-    // chờ toàn bộ thao tác + / - / xóa đang xếp hàng ghi PocketBase xong
-    // rồi mới đọc lại cart từ server.
+
     await _operationQueue;
 
     return loadCart();
   }
-
-  // =========================================================
-  // FIND
-  // =========================================================
 
   bool containsProduct(String productId) {
     return _items.any((item) => item.productId == productId);
@@ -129,10 +114,6 @@ class CartProvider extends ChangeNotifier {
     );
   }
 
-  // =========================================================
-  // ADD PRODUCT
-  // =========================================================
-
   Future<bool> addProduct(
     ProductModel product, {
     int quantity = 1,
@@ -147,17 +128,12 @@ class CartProvider extends ChangeNotifier {
     return addItem(item);
   }
 
-  // =========================================================
-  // ADD ITEM
-  // =========================================================
-
   Future<bool> addItem(CartItemModel item) async {
     if (item.quantity <= 0) {
       _setError('Số lượng sản phẩm không hợp lệ');
       return false;
     }
 
-    // Cập nhật UI ngay.
     final index = _indexOfItem(item);
 
     if (index >= 0) {
@@ -175,16 +151,11 @@ class CartProvider extends ChangeNotifier {
     _clearError();
     notifyListeners();
 
-    // Sau đó ghi xuống PocketBase theo đúng thứ tự thao tác.
     return _enqueueOperation(
       () => _cartService.addItem(item),
       operationName: 'addItem',
     );
   }
-
-  // =========================================================
-  // REMOVE ITEM
-  // =========================================================
 
   Future<bool> removeItem(CartItemModel item) async {
     final index = _indexOfItem(item);
@@ -221,10 +192,6 @@ class CartProvider extends ChangeNotifier {
     );
   }
 
-  // =========================================================
-  // INCREASE
-  // =========================================================
-
   Future<bool> increaseQty(CartItemModel item) async {
     final index = _indexOfItem(item);
 
@@ -249,7 +216,6 @@ class CartProvider extends ChangeNotifier {
     );
   }
 
-  // Legacy: thao tác dòng đầu tiên có productId.
   Future<bool> increaseQuantity(String productId) async {
     final index = _items.indexWhere((item) => item.productId == productId);
 
@@ -259,10 +225,6 @@ class CartProvider extends ChangeNotifier {
 
     return increaseQty(_items[index]);
   }
-
-  // =========================================================
-  // DECREASE
-  // =========================================================
 
   Future<bool> decreaseQty(CartItemModel item) async {
     final index = _indexOfItem(item);
@@ -300,7 +262,6 @@ class CartProvider extends ChangeNotifier {
     );
   }
 
-  // Legacy: thao tác dòng đầu tiên có productId.
   Future<bool> decreaseQuantity(String productId) async {
     final index = _items.indexWhere((item) => item.productId == productId);
 
@@ -311,10 +272,6 @@ class CartProvider extends ChangeNotifier {
     return decreaseQty(_items[index]);
   }
 
-  // =========================================================
-  // UPDATE QUANTITY
-  // =========================================================
-
   Future<bool> updateQuantity({
     required String productId,
     required int quantity,
@@ -322,7 +279,6 @@ class CartProvider extends ChangeNotifier {
   }) async {
     int index = _indexOfProductAndNote(productId, note);
 
-    // Tương thích code cũ chưa truyền note.
     if (index == -1 && note.trim().isEmpty) {
       index = _items.indexWhere((item) => item.productId == productId);
     }
@@ -357,16 +313,9 @@ class CartProvider extends ChangeNotifier {
     );
   }
 
-  // =========================================================
-  // REMOVE ONLY PURCHASED ITEMS
-  // =========================================================
-
   Future<bool> removePurchasedItems(List<CartItemModel> purchasedItems) async {
-    if (purchasedItems.isEmpty) {
-      return true;
-    }
+    if (purchasedItems.isEmpty) return true;
 
-    // Chờ toàn bộ thao tác +/-/xóa trước đó ghi xuống PocketBase xong.
     await _operationQueue;
 
     _isSyncing = true;
@@ -376,24 +325,21 @@ class CartProvider extends ChangeNotifier {
     try {
       await _cartService.removePurchasedItems(purchasedItems);
 
-      // Đọc lại server để local state chính xác tuyệt đối:
-      // item chưa mua vẫn còn, item đã mua biến mất.
-      final result = await _cartService.fetchActiveCartItems();
+      final purchasedKeys = purchasedItems
+          .map((item) => '${item.productId}|${item.normalizedNote}')
+          .toSet();
 
-      _items
-        ..clear()
-        ..addAll(result);
+      _items.removeWhere(
+        (item) => purchasedKeys.contains('${item.productId}|${item.normalizedNote}'),
+      );
 
       return true;
-    } catch (e) {
-      _setError(e.toString().replaceFirst('Exception: ', ''));
+    } catch (error) {
+      _setError(error.toString().replaceFirst('Exception: ', ''));
+      debugPrint('removePurchasedItems cart sync error: $error');
 
-      debugPrint('removePurchasedItems cart sync error: $e');
-
-      // Dù có lỗi, vẫn cố đọc lại server để UI phản ánh trạng thái thật.
       try {
         final result = await _cartService.fetchActiveCartItems();
-
         _items
           ..clear()
           ..addAll(result);
@@ -406,10 +352,6 @@ class CartProvider extends ChangeNotifier {
     }
   }
 
-  // =========================================================
-  // CLEAR CART
-  // =========================================================
-
   Future<bool> clearCart() async {
     _items.clear();
     _clearError();
@@ -421,8 +363,6 @@ class CartProvider extends ChangeNotifier {
     );
   }
 
-  // Dùng sau khi create order thành công ở bước Order/Checkout:
-  // cart hiện tại -> converted, lần mua tiếp theo sẽ tạo cart active mới.
   Future<bool> convertCartAfterOrder() async {
     _items.clear();
     _clearError();
@@ -434,28 +374,16 @@ class CartProvider extends ChangeNotifier {
     );
   }
 
-  // =========================================================
-  // LOGOUT / ACCOUNT CHANGE
-  // =========================================================
-
-  /// Chờ các thao tác giỏ hàng đang xếp hàng hoàn tất trước khi đổi tài khoản.
-  /// Tránh request của tài khoản cũ tiếp tục chạy sau khi authStore đã bị xóa.
   Future<void> waitForPendingOperations() async {
     await _operationQueue;
   }
 
-  /// Chỉ xóa state local và cache khi đăng xuất/đổi tài khoản.
-  /// Không gọi API xóa giỏ hàng trên PocketBase.
   void resetCart() {
     _items.clear();
     _clearError();
     _cartService.resetCache();
     notifyListeners();
   }
-
-  // =========================================================
-  // OPERATION QUEUE
-  // =========================================================
 
   Future<bool> _enqueueOperation(
     Future<void> Function() action, {
@@ -488,10 +416,6 @@ class CartProvider extends ChangeNotifier {
 
     return completer.future;
   }
-
-  // =========================================================
-  // ERROR
-  // =========================================================
 
   void clearError() {
     _clearError();

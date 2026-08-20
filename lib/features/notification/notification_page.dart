@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:project_trangdc24v7x324/models/app_notification_model.dart';
 import 'package:project_trangdc24v7x324/providers/notification_provider.dart';
@@ -10,6 +11,7 @@ import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
 import 'package:provider/provider.dart';
 
 class NotificationsPage extends StatefulWidget {
+
   const NotificationsPage({super.key});
 
   @override
@@ -23,6 +25,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   void initState() {
     super.initState();
     Future.microtask(() {
+      if (!mounted) return;
       context.read<NotificationProvider>().loadCustomerNotifications();
     });
   }
@@ -180,8 +183,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
       return;
     }
 
-    // Khuyến mãi / sản phẩm mới / thông báo chung chỉ cần đánh dấu đã đọc.
-    // Không hiển thị cảnh báo "không liên kết với đơn hàng".
   }
 
   Widget _buildFilterChips(NotificationProvider provider) {
@@ -263,7 +264,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
               onPressed: () async {
                 final success = await provider.markAllAsRead();
 
-                if (!success && context.mounted) {
+                if (!success && mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
@@ -290,7 +291,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         Icon(
           Icons.notifications_off_rounded,
           size: 70,
-          color: AppColors.textGrey.withOpacity(0.45),
+          color: AppColors.textGrey.withValues(alpha: 0.45),
         ),
         const SizedBox(height: 14),
         Text(
@@ -373,7 +374,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
+                color: color.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               child: Icon(_getIcon(item.type), color: color, size: 24),
@@ -430,7 +431,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                           vertical: 5,
                         ),
                         decoration: BoxDecoration(
-                          color: color.withOpacity(0.1),
+                          color: color.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(

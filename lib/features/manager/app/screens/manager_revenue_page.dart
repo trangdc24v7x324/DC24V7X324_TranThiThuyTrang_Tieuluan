@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -8,6 +9,7 @@ import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
 
 class ManagerRevenuePage extends StatefulWidget {
+
   const ManagerRevenuePage({super.key});
 
   @override
@@ -57,9 +59,6 @@ class _ManagerRevenuePageState extends State<ManagerRevenuePage> {
     final ratingMap = <String, _RatingStat>{};
     final errors = <String>[];
 
-    // =========================================================
-    // PAYMENT STATUS THẬT
-    // =========================================================
     try {
       final records = await pb
           .collection('payments')
@@ -73,7 +72,6 @@ class _ManagerRevenuePageState extends State<ManagerRevenuePage> {
           continue;
         }
 
-        // Đã sort -updated nên chỉ giữ trạng thái mới nhất của mỗi order.
         paymentMap.putIfAbsent(orderId, () => status);
       }
     } catch (e) {
@@ -81,9 +79,6 @@ class _ManagerRevenuePageState extends State<ManagerRevenuePage> {
       errors.add('thanh toán');
     }
 
-    // =========================================================
-    // PRODUCT NAME
-    // =========================================================
     try {
       final products = await pb
           .collection('products')
@@ -99,9 +94,6 @@ class _ManagerRevenuePageState extends State<ManagerRevenuePage> {
       errors.add('sản phẩm');
     }
 
-    // =========================================================
-    // RATING THẬT
-    // =========================================================
     try {
       final reviews = await pb
           .collection('product_reviews')
@@ -169,10 +161,6 @@ class _ManagerRevenuePageState extends State<ManagerRevenuePage> {
           errors.isEmpty ? null : 'Chưa tải được dữ liệu ${errors.join(', ')}';
     });
   }
-
-  // =========================================================
-  // DATE RANGE
-  // =========================================================
 
   DateTimeRange? get _activeRange {
     final now = DateTime.now();
@@ -289,23 +277,17 @@ class _ManagerRevenuePageState extends State<ManagerRevenuePage> {
     }
   }
 
-  // =========================================================
-  // FILTER DATA
-  // =========================================================
-
   String _effectivePaymentStatus(OrderModel order) {
-    // Manager xác nhận paid (đặc biệt COD/tiền mặt) được ưu tiên.
+
     if (order.paymentStatus == 'paid') {
       return 'paid';
     }
 
-    // QR/MoMo lấy trạng thái chi tiết từ payments.
     return _paymentStatusByOrderId[order.id] ?? order.paymentStatus;
   }
 
   DateTime _businessDate(OrderModel order) {
-    // Model chưa có completed_at riêng.
-    // Dùng updated của đơn hoàn thành và chuyển local timezone.
+
     return (order.updated ?? order.created ?? order.orderDate).toLocal();
   }
 
@@ -388,10 +370,6 @@ class _ManagerRevenuePageState extends State<ManagerRevenuePage> {
     return result;
   }
 
-  // =========================================================
-  // BOTTOM SHEETS
-  // =========================================================
-
   Future<void> _showAllSoldProducts(List<_ProductSaleStat> products) async {
     await showModalBottomSheet<void>(
       context: context,
@@ -458,7 +436,7 @@ class _ManagerRevenuePageState extends State<ManagerRevenuePage> {
                           height: 42,
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF59E0B).withOpacity(0.10),
+                            color: const Color(0xFFF59E0B).withValues(alpha: 0.10),
                             borderRadius: BorderRadius.circular(13),
                           ),
                           child: const Icon(
@@ -491,10 +469,6 @@ class _ManagerRevenuePageState extends State<ManagerRevenuePage> {
       },
     );
   }
-
-  // =========================================================
-  // BUILD
-  // =========================================================
 
   @override
   Widget build(BuildContext context) {
@@ -747,10 +721,6 @@ class _ManagerRevenuePageState extends State<ManagerRevenuePage> {
   }
 }
 
-// ===========================================================
-// FILTER
-// ===========================================================
-
 class _RangeFilterCard extends StatelessWidget {
   final String selectedRange;
   final String rangeLabel;
@@ -885,10 +855,6 @@ class _RangeChip extends StatelessWidget {
   }
 }
 
-// ===========================================================
-// KPI
-// ===========================================================
-
 class _RevenueHeroCard extends StatelessWidget {
   final double totalRevenue;
   final int orderCount;
@@ -914,7 +880,7 @@ class _RevenueHeroCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(21),
         boxShadow: [
           BoxShadow(
-            color: _ManagerRevenuePageState.primaryRed.withOpacity(0.20),
+            color: _ManagerRevenuePageState.primaryRed.withValues(alpha: 0.20),
             blurRadius: 16,
             offset: const Offset(0, 7),
           ),
@@ -926,7 +892,7 @@ class _RevenueHeroCard extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.16),
+              color: Colors.white.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(15),
             ),
             child: const Icon(
@@ -963,7 +929,7 @@ class _RevenueHeroCard extends StatelessWidget {
                 Text(
                   '$orderCount đơn • $rangeLabel',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.88),
+                    color: Colors.white.withValues(alpha: 0.88),
                     fontSize: 10.5,
                   ),
                 ),
@@ -1000,7 +966,7 @@ class _MiniKpiCard extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.10),
+              color: color.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(11),
             ),
             child: Icon(icon, color: color, size: 19),
@@ -1107,10 +1073,6 @@ class _SoldQuantityCard extends StatelessWidget {
     );
   }
 }
-
-// ===========================================================
-// SPLIT
-// ===========================================================
 
 class _RevenueSplitCard extends StatelessWidget {
   final double totalRevenue;
@@ -1228,10 +1190,6 @@ class _RevenuePartRow extends StatelessWidget {
   }
 }
 
-// ===========================================================
-// SOLD PRODUCTS
-// ===========================================================
-
 class _SoldProductRow extends StatelessWidget {
   final int rank;
   final _ProductSaleStat item;
@@ -1305,10 +1263,6 @@ class _SoldProductRow extends StatelessWidget {
   }
 }
 
-// ===========================================================
-// RATING
-// ===========================================================
-
 class _RatingBadge extends StatelessWidget {
   final double average;
   final int count;
@@ -1349,7 +1303,7 @@ class _RatingBadge extends StatelessWidget {
         vertical: compact ? 4 : 5,
       ),
       decoration: BoxDecoration(
-        color: const Color(0xFFF59E0B).withOpacity(0.10),
+        color: const Color(0xFFF59E0B).withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(99),
       ),
       child: Row(
@@ -1372,10 +1326,6 @@ class _RatingBadge extends StatelessWidget {
     );
   }
 }
-
-// ===========================================================
-// COMMON
-// ===========================================================
 
 class _SectionCard extends StatelessWidget {
   final String title;
@@ -1405,7 +1355,7 @@ class _SectionCard extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: _ManagerRevenuePageState.primaryRed.withOpacity(0.08),
+                  color: _ManagerRevenuePageState.primaryRed.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -1471,7 +1421,7 @@ class _WhiteCard extends StatelessWidget {
         border: Border.all(color: const Color(0xFFEDEDF1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.025),
+            color: Colors.black.withValues(alpha: 0.025),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1618,10 +1568,6 @@ class _BottomSheetContainer extends StatelessWidget {
   }
 }
 
-// ===========================================================
-// DATA
-// ===========================================================
-
 class _ProductSaleStat {
   final String productId;
   final String name;
@@ -1648,10 +1594,6 @@ class _RatingStat {
   });
 }
 
-// ===========================================================
-// FORMAT
-// ===========================================================
-
 String _formatDay(DateTime date) {
   String two(int value) => value.toString().padLeft(2, '0');
 
@@ -1674,5 +1616,5 @@ String _formatMoney(double value) {
     }
   }
 
-  return '${negative ? '-' : ''}${buffer}đ';
+  return '${negative ? '-' : ''}$bufferđ';
 }

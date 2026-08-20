@@ -1,3 +1,4 @@
+
 import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
 import 'package:project_trangdc24v7x324/providers/chat_provider.dart';
 import 'package:project_trangdc24v7x324/providers/order_provider.dart';
@@ -8,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class ManagerHomePage extends StatefulWidget {
+
   const ManagerHomePage({super.key});
 
   @override
@@ -15,6 +17,7 @@ class ManagerHomePage extends StatefulWidget {
 }
 
 class _ManagerHomePageState extends State<ManagerHomePage> {
+
   @override
   void initState() {
     super.initState();
@@ -26,7 +29,6 @@ class _ManagerHomePageState extends State<ManagerHomePage> {
 
     final managerId = pb.authStore.model?.id ?? '';
 
-    // Không để một API lỗi làm toàn bộ ManagerHome bị crash trên Flutter Web.
     try {
       await context.read<OrderProvider>().loadAllOrders();
     } catch (e, st) {
@@ -37,7 +39,7 @@ class _ManagerHomePageState extends State<ManagerHomePage> {
     if (!mounted) return;
 
     try {
-      await context.read<ProfileProvider>().loadProfile(forceReload: true);
+      await context.read<ProfileProvider>().loadProfile();
     } catch (e, st) {
       debugPrint('MANAGER HOME - PROFILE ERROR: $e');
       debugPrintStack(stackTrace: st);
@@ -232,7 +234,7 @@ class _HeaderSection extends StatelessWidget {
                     'Bảng điều khiển quản lý',
                     style: TextStyle(
                       fontSize: isSmall ? 13 : 14,
-                      color: Colors.white.withOpacity(0.85),
+                      color: Colors.white.withValues(alpha: 0.85),
                     ),
                   ),
                 ],
@@ -350,7 +352,7 @@ class _DashboardItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -359,7 +361,7 @@ class _DashboardItem extends StatelessWidget {
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: color.withOpacity(0.12),
+            backgroundColor: color.withValues(alpha: 0.12),
             child: Icon(icon, color: color),
           ),
           const SizedBox(width: 10),
@@ -422,7 +424,7 @@ class _ActionCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundColor: color.withOpacity(0.12),
+                  backgroundColor: color.withValues(alpha: 0.12),
                   child: Icon(icon, color: color),
                 ),
                 const SizedBox(width: 12),
@@ -481,6 +483,7 @@ class _ActionCard extends StatelessWidget {
 }
 
 class _BottomRedDecor extends StatelessWidget {
+
   const _BottomRedDecor();
 
   @override

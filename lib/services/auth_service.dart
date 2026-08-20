@@ -1,13 +1,11 @@
+
 import 'package:pocketbase/pocketbase.dart';
 
 import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
 
 class AuthService {
-  PocketBase get _pb => getPocketBase();
 
-  // =========================================================
-  // REGISTER
-  // =========================================================
+  PocketBase get _pb => getPocketBase();
 
   Future<void> register({
     required String email,
@@ -20,10 +18,6 @@ class AuthService {
     final String normalizedFullName = fullName.trim();
 
     final String normalizedPhone = phoneNumber.trim();
-
-    // =======================================================
-    // VALIDATION
-    // =======================================================
 
     if (normalizedEmail.isEmpty) {
       throw Exception('Email không được để trống.');
@@ -52,7 +46,6 @@ class AuthService {
 
               'phoneNumber': normalizedPhone,
 
-              // Mobile chỉ đăng ký tài khoản Customer.
               'role': 'customer',
 
               'isActive': true,
@@ -62,10 +55,6 @@ class AuthService {
       rethrow;
     }
   }
-
-  // =========================================================
-  // LOGIN
-  // =========================================================
 
   Future<void> login({required String email, required String password}) async {
     final String normalizedEmail = email.trim().toLowerCase();
@@ -79,14 +68,9 @@ class AuthService {
     }
 
     try {
-      // =====================================================
-      // AUTHENTICATE
-      // =====================================================
 
       await _pb.collection('users').authWithPassword(normalizedEmail, password);
 
-      // Phiên bản PocketBase hiện tại
-      // của dự án sử dụng authStore.model.
       final model = _pb.authStore.model;
 
       if (model == null) {
@@ -97,10 +81,6 @@ class AuthService {
 
       final Map<String, dynamic> data = model.toJson();
 
-      // =====================================================
-      // CHECK ACTIVE
-      // =====================================================
-
       final bool active = data['isActive'] != false;
 
       if (!active) {
@@ -108,10 +88,6 @@ class AuthService {
 
         throw Exception('Tài khoản của bạn đã bị khóa.');
       }
-
-      // =====================================================
-      // CHECK ROLE
-      // =====================================================
 
       final String role = (data['role'] ?? '').toString().trim().toLowerCase();
 
@@ -125,17 +101,9 @@ class AuthService {
     }
   }
 
-  // =========================================================
-  // LOGOUT
-  // =========================================================
-
   Future<void> logout() async {
     _pb.authStore.clear();
   }
-
-  // =========================================================
-  // CHANGE PASSWORD
-  // =========================================================
 
   Future<void> changePassword({
     required String oldPassword,
@@ -173,7 +141,6 @@ class AuthService {
             },
           );
 
-      // Refresh lại token và thông tin user.
       await _pb.collection('users').authRefresh();
     } catch (error) {
       throw Exception(
@@ -182,10 +149,6 @@ class AuthService {
       );
     }
   }
-
-  // =========================================================
-  // FORGOT PASSWORD
-  // =========================================================
 
   Future<void> requestPasswordReset({required String email}) async {
     final String normalizedEmail = email.trim().toLowerCase();
@@ -200,10 +163,6 @@ class AuthService {
       rethrow;
     }
   }
-
-  // =========================================================
-  // REFRESH CURRENT USER
-  // =========================================================
 
   Future<Map<String, dynamic>?> refreshCurrentUser() async {
     if (!_pb.authStore.isValid) {
@@ -225,17 +184,9 @@ class AuthService {
     }
   }
 
-  // =========================================================
-  // AUTH STATUS
-  // =========================================================
-
   bool get isLoggedIn => _pb.authStore.isValid;
 
   String? get currentUserId => _pb.authStore.model?.id;
-
-  // =========================================================
-  // CURRENT USER
-  // =========================================================
 
   Map<String, dynamic>? get currentUser {
     final model = _pb.authStore.model;
@@ -246,10 +197,6 @@ class AuthService {
 
     return {'id': model.id, ...model.toJson()};
   }
-
-  // =========================================================
-  // CURRENT USER ROLE
-  // =========================================================
 
   String get currentUserRole {
     final model = _pb.authStore.model;
@@ -263,10 +210,6 @@ class AuthService {
     return (data['role'] ?? '').toString().trim().toLowerCase();
   }
 
-  // =========================================================
-  // CURRENT USER FULL NAME
-  // =========================================================
-
   String get currentUserFullName {
     final model = _pb.authStore.model;
 
@@ -278,10 +221,6 @@ class AuthService {
 
     return (data['fullName'] ?? '').toString().trim();
   }
-
-  // =========================================================
-  // CURRENT USER EMAIL
-  // =========================================================
 
   String get currentUserEmail {
     final model = _pb.authStore.model;
@@ -295,10 +234,6 @@ class AuthService {
     return (data['email'] ?? '').toString().trim();
   }
 
-  // =========================================================
-  // CURRENT USER PHONE
-  // =========================================================
-
   String get currentUserPhoneNumber {
     final model = _pb.authStore.model;
 
@@ -311,17 +246,9 @@ class AuthService {
     return (data['phoneNumber'] ?? '').toString().trim();
   }
 
-  // =========================================================
-  // PERMISSION HELPERS
-  // =========================================================
-
   bool get isManager => currentUserRole == 'manager';
 
   bool get isCustomer => currentUserRole == 'customer';
-
-  // =========================================================
-  // ACCOUNT STATUS
-  // =========================================================
 
   bool get isActive {
     final model = _pb.authStore.model;

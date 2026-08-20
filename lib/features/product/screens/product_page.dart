@@ -1,3 +1,4 @@
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -370,6 +371,7 @@ class _ReviewEligibilityNotice extends StatelessWidget {
 }
 
 class ProductPage extends StatefulWidget {
+
   const ProductPage({super.key});
 
   @override
@@ -381,19 +383,11 @@ class _ProductPageState extends State<ProductPage> {
 
   final TextEditingController noteController = TextEditingController();
 
-  // =========================================================
-  // DISPOSE
-  // =========================================================
-
   @override
   void dispose() {
     noteController.dispose();
     super.dispose();
   }
-
-  // =========================================================
-  // FORMAT PRICE
-  // =========================================================
 
   String formatPrice(double price) {
     final String value = price.round().toString();
@@ -410,12 +404,8 @@ class _ProductPageState extends State<ProductPage> {
       }
     }
 
-    return '${buffer}đ';
+    return '$bufferđ';
   }
-
-  // =========================================================
-  // PRODUCT IMAGE
-  // =========================================================
 
   Widget _buildProductImage(String image) {
     if (image.isEmpty) {
@@ -450,12 +440,8 @@ class _ProductPageState extends State<ProductPage> {
     );
   }
 
-  // =========================================================
-  // PRICE SECTION
-  // =========================================================
-
   Widget _buildPriceSection(ProductModel product) {
-    // Không sale.
+
     if (!product.hasActiveSale) {
       return Text(
         formatPrice(product.price),
@@ -469,15 +455,12 @@ class _ProductPageState extends State<ProductPage> {
       );
     }
 
-    // Có sale.
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            // ===============================================
-            // SALE PRICE
-            // ===============================================
+
             Text(
               formatPrice(product.effectivePrice),
               style: GoogleFonts.roboto(
@@ -491,9 +474,6 @@ class _ProductPageState extends State<ProductPage> {
 
             const SizedBox(width: 10),
 
-            // ===============================================
-            // SALE BADGE
-            // ===============================================
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
               decoration: BoxDecoration(
@@ -514,9 +494,6 @@ class _ProductPageState extends State<ProductPage> {
 
         const SizedBox(height: 5),
 
-        // =================================================
-        // ORIGINAL PRICE
-        // =================================================
         Text(
           formatPrice(product.price),
           style: GoogleFonts.roboto(
@@ -531,9 +508,6 @@ class _ProductPageState extends State<ProductPage> {
 
         const SizedBox(height: 5),
 
-        // =================================================
-        // SAVING
-        // =================================================
         Text(
           'Tiết kiệm ${formatPrice(product.discountAmount)}',
           style: GoogleFonts.roboto(
@@ -547,10 +521,6 @@ class _ProductPageState extends State<ProductPage> {
       ],
     );
   }
-
-  // =========================================================
-  // BUILD
-  // =========================================================
 
   @override
   Widget build(BuildContext context) {
@@ -589,9 +559,7 @@ class _ProductPageState extends State<ProductPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // =================================================
-            // CONTENT
-            // =================================================
+
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -599,9 +567,7 @@ class _ProductPageState extends State<ProductPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // =========================================
-                    // IMAGE
-                    // =========================================
+
                     Center(
                       child: Container(
                         height: 280,
@@ -618,9 +584,6 @@ class _ProductPageState extends State<ProductPage> {
                               child: _buildProductImage(product.image),
                             ),
 
-                            // ===============================
-                            // SALE BADGE
-                            // ===============================
                             if (product.hasActiveSale)
                               Positioned(
                                 top: 4,
@@ -644,14 +607,11 @@ class _ProductPageState extends State<ProductPage> {
                                 ),
                               ),
 
-                            // ===============================
-                            // OUT OF STOCK
-                            // ===============================
                             if (!product.isAvailable)
                               Positioned.fill(
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.7),
+                                    color: Colors.white.withValues(alpha: 0.7),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   alignment: Alignment.center,
@@ -681,9 +641,6 @@ class _ProductPageState extends State<ProductPage> {
 
                     const SizedBox(height: 24),
 
-                    // =========================================
-                    // TITLE
-                    // =========================================
                     Text(
                       product.title,
                       style: GoogleFonts.roboto(
@@ -695,9 +652,6 @@ class _ProductPageState extends State<ProductPage> {
                       ),
                     ),
 
-                    // =========================================
-                    // SUBTITLE
-                    // =========================================
                     if (product.subtitle.isNotEmpty) ...[
                       const SizedBox(height: 6),
 
@@ -714,9 +668,6 @@ class _ProductPageState extends State<ProductPage> {
 
                     const SizedBox(height: 10),
 
-                    // =========================================
-                    // RATING + DELIVERY
-                    // =========================================
                     Consumer<ReviewProvider>(
                       builder: (context, reviewProvider, _) {
                         return Row(
@@ -773,16 +724,10 @@ class _ProductPageState extends State<ProductPage> {
 
                     const SizedBox(height: 18),
 
-                    // =========================================
-                    // PRICE
-                    // =========================================
                     _buildPriceSection(product),
 
                     const SizedBox(height: 22),
 
-                    // =========================================
-                    // DESCRIPTION
-                    // =========================================
                     Text(
                       product.description.isEmpty
                           ? 'Chưa có mô tả cho sản phẩm này.'
@@ -798,9 +743,6 @@ class _ProductPageState extends State<ProductPage> {
 
                     const SizedBox(height: 24),
 
-                    // =========================================
-                    // NOTE
-                    // =========================================
                     Text(
                       'Ghi chú',
                       style: GoogleFonts.roboto(
@@ -844,9 +786,6 @@ class _ProductPageState extends State<ProductPage> {
 
                     const SizedBox(height: 28),
 
-                    // =========================================
-                    // QUANTITY
-                    // =========================================
                     Row(
                       children: [
                         Text(
@@ -862,9 +801,6 @@ class _ProductPageState extends State<ProductPage> {
 
                         const Spacer(),
 
-                        // =====================================
-                        // MINUS
-                        // =====================================
                         GestureDetector(
                           onTap:
                               product.isAvailable
@@ -913,9 +849,6 @@ class _ProductPageState extends State<ProductPage> {
 
                         const SizedBox(width: 14),
 
-                        // =====================================
-                        // PLUS
-                        // =====================================
                         GestureDetector(
                           onTap:
                               product.isAvailable
@@ -945,9 +878,6 @@ class _ProductPageState extends State<ProductPage> {
                       ],
                     ),
 
-                    // =========================================
-                    // TOTAL SAVING
-                    // =========================================
                     if (product.hasActiveSale && quantity > 1) ...[
                       const SizedBox(height: 16),
 
@@ -976,9 +906,6 @@ class _ProductPageState extends State<ProductPage> {
               ),
             ),
 
-            // =================================================
-            // BOTTOM CART AREA
-            // =================================================
             Container(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
               decoration: const BoxDecoration(
@@ -998,9 +925,7 @@ class _ProductPageState extends State<ProductPage> {
 
               child: Row(
                 children: [
-                  // ===========================================
-                  // TOTAL PRICE
-                  // ===========================================
+
                   Expanded(
                     flex: 2,
                     child: Container(
@@ -1026,9 +951,6 @@ class _ProductPageState extends State<ProductPage> {
 
                   const SizedBox(width: 14),
 
-                  // ===========================================
-                  // ADD CART
-                  // ===========================================
                   Expanded(
                     flex: 4,
                     child: SizedBox(

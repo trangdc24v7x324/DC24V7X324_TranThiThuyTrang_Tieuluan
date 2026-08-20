@@ -1,3 +1,4 @@
+
 import 'dart:math' as math;
 
 import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
@@ -8,8 +9,10 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 
 class DeliveryService {
-  // Không khởi tạo Geocoding ngay lập tức.
-  // Package geocoding không hỗ trợ Flutter Web.
+  static _StoreLocation? _cachedStore;
+  static DateTime? _cachedStoreAt;
+  static const Duration _storeCacheDuration = Duration(minutes: 5);
+
   Geocoding? _geocoding;
 
   Geocoding get _nativeGeocoding {
@@ -21,10 +24,6 @@ class DeliveryService {
 
     return _geocoding ??= Geocoding();
   }
-
-  // =========================================================
-  // CURRENT GPS
-  // =========================================================
 
   Future<Position> getCurrentPosition() async {
     final bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -64,10 +63,6 @@ class DeliveryService {
 
     return Geolocator.getCurrentPosition(locationSettings: settings);
   }
-
-  // =========================================================
-  // MANUAL ADDRESS -> COORDINATES
-  // =========================================================
 
   Future<({double latitude, double longitude})> resolveAddressText(
     String addressText,
@@ -109,7 +104,6 @@ class DeliveryService {
         lastError = e;
       }
 
-      // Cho native geocoder nghỉ ngắn trước lần retry.
       await Future<void>.delayed(const Duration(milliseconds: 350));
     }
 
@@ -124,9 +118,6 @@ class DeliveryService {
       'phường/xã, quận/huyện và tỉnh/thành.',
     );
   }
-  // =========================================================
-  // COORDINATES -> HUMAN READABLE ADDRESS
-  // =========================================================
 
   Future<String> resolveCoordinatesToAddress({
     required double latitude,
@@ -136,12 +127,8 @@ class DeliveryService {
       throw Exception('Tọa độ không hợp lệ.');
     }
 
-    // Flutter Web:
-    // Không gọi plugin geocoding native.
     if (kIsWeb) {
-      return 'Vị trí GPS '
-          '${latitude.toStringAsFixed(6)}, '
-          '${longitude.toStringAsFixed(6)}';
+      return 'Vị trí giao hàng đã chọn bằng GPS';
     }
 
     final placemarks = await _nativeGeocoding.placemarkFromCoordinates(
@@ -184,17 +171,11 @@ class DeliveryService {
     }
 
     if (parts.isEmpty) {
-      return 'Vị trí GPS '
-          '${latitude.toStringAsFixed(6)}, '
-          '${longitude.toStringAsFixed(6)}';
+      return 'Vị trí giao hàng đã chọn bằng GPS';
     }
 
     return parts.join(', ');
   }
-
-  // =========================================================
-  // SAVED ADDRESS COORDINATES
-  // =========================================================
 
   Future<DeliveryQuote?> quoteFromSavedAddress(String addressId) async {
     if (addressId.trim().isEmpty) {
@@ -238,10 +219,6 @@ class DeliveryService {
           body: {'latitude': latitude, 'longitude': longitude},
         );
   }
-
-  // =========================================================
-  // DELIVERY QUOTE
-  // =========================================================
 
   Future<DeliveryQuote> quoteForCoordinates({
     required double latitude,
@@ -311,44 +288,52 @@ class DeliveryService {
     );
   }
 
-  // =========================================================
-  // STORE
-  // =========================================================
-
   Future<_StoreLocation> _loadActiveStore() async {
+    final cached = _cachedStore;
+    final cachedAt = _cachedStoreAt;
+
+    if (cached != null &&
+        cachedAt != null &&
+        DateTime.now().difference(cachedAt) < _storeCacheDuration) {
+      return cached;
+    }
+
     final records = await pb
         .collection('stores')
         .getFullList(filter: 'isActive = true', sort: '-updated');
 
     if (records.isEmpty) {
       throw Exception(
-        'Chưa cấu hình cửa hàng giao hàng '
-        'trong PocketBase.',
+        'Chưa cấu hình cửa hàng giao hàng trong PocketBase.',
       );
     }
 
     final record = records.first;
-
     final latitude = _toDouble(record.data['latitude']);
-
     final longitude = _toDouble(record.data['longitude']);
 
     if (!_validCoordinate(latitude, longitude)) {
       throw Exception('Tọa độ cửa hàng chưa được cấu hình đúng.');
     }
 
-    return _StoreLocation(
+    final store = _StoreLocation(
       id: record.id,
       name: (record.data['name'] ?? 'YourFood').toString(),
       latitude: latitude,
       longitude: longitude,
       deliveryRadiusKm: _toDouble(record.data['deliveryRadius']),
     );
+
+    _cachedStore = store;
+    _cachedStoreAt = DateTime.now();
+
+    return store;
   }
 
-  // =========================================================
-  // HAVERSINE
-  // =========================================================
+  static void invalidateStoreCache() {
+    _cachedStore = null;
+    _cachedStoreAt = null;
+  }
 
   double _haversineKm(double lat1, double lon1, double lat2, double lon2) {
     const earthRadiusKm = 6371.0;
@@ -376,10 +361,6 @@ class DeliveryService {
   double _toRadians(double degree) {
     return degree * math.pi / 180;
   }
-
-  // =========================================================
-  // HELPERS
-  // =========================================================
 
   bool _validCoordinate(double latitude, double longitude) {
     return latitude >= -90 &&

@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 
 import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
@@ -30,7 +31,7 @@ class ManagerStatCard extends StatelessWidget {
         border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.035),
+            color: Colors.black.withValues(alpha: 0.035),
             blurRadius: 18,
             offset: const Offset(0, 7),
           ),
@@ -42,7 +43,7 @@ class ManagerStatCard extends StatelessWidget {
             width: 52,
             height: 52,
             decoration: BoxDecoration(
-              color: accentColor.withOpacity(0.12),
+              color: accentColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(icon, color: accentColor, size: 27),

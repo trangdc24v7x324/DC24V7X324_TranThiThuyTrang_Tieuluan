@@ -1,15 +1,20 @@
+
 import 'dart:typed_data';
 
 import 'package:project_trangdc24v7x324/models/category_model.dart';
 import 'package:project_trangdc24v7x324/models/product_model.dart';
+import 'package:project_trangdc24v7x324/models/product_review_model.dart';
 import 'package:project_trangdc24v7x324/services/product_service.dart';
+import 'package:project_trangdc24v7x324/services/review_service.dart';
 import 'package:flutter/material.dart';
 
 class ProductProvider extends ChangeNotifier {
   final ProductService _productService = ProductService();
+  final ReviewService _reviewService = ReviewService();
 
   final List<ProductModel> _products = [];
   final List<CategoryModel> _categories = [];
+  final Map<String, ProductRatingStats> _ratingStats = {};
 
   bool _isLoading = false;
   bool _isSaving = false;
@@ -22,6 +27,10 @@ class ProductProvider extends ChangeNotifier {
   List<ProductModel> get products => List.unmodifiable(_products);
 
   List<CategoryModel> get categories => List.unmodifiable(_categories);
+
+  ProductRatingStats ratingStatsForProduct(String productId) {
+    return _ratingStats[productId] ?? const ProductRatingStats();
+  }
 
   bool get isLoading => _isLoading;
 
@@ -64,6 +73,26 @@ class ProductProvider extends ChangeNotifier {
     return filteredProducts.where((product) => product.isAvailable).toList();
   }
 
+  Future<Map<String, ProductRatingStats>> _loadRatingStatsSafely() async {
+    try {
+      return await _reviewService.getAllRatingStats();
+    } catch (error) {
+      debugPrint('loadRatingStats error: $error');
+      return <String, ProductRatingStats>{};
+    }
+  }
+
+  Future<ProductRatingStats> _loadRatingStatsForProductSafely(
+    String productId,
+  ) async {
+    try {
+      return await _reviewService.getRatingStatsForProduct(productId);
+    } catch (error) {
+      debugPrint('loadProductRatingStats error: $error');
+      return const ProductRatingStats();
+    }
+  }
+
   Future<void> loadInitialData() async {
     _setLoading(true);
     _clearError();
@@ -72,6 +101,7 @@ class ProductProvider extends ChangeNotifier {
       final results = await Future.wait([
         _productService.getCategories(),
         _productService.getProducts(),
+        _loadRatingStatsSafely(),
       ]);
 
       _categories
@@ -81,6 +111,10 @@ class ProductProvider extends ChangeNotifier {
       _products
         ..clear()
         ..addAll(results[1] as List<ProductModel>);
+
+      _ratingStats
+        ..clear()
+        ..addAll(results[2] as Map<String, ProductRatingStats>);
     } catch (error) {
       _setError('Không thể tải dữ liệu sản phẩm');
       debugPrint('loadInitialData error: $error');
@@ -112,11 +146,18 @@ class ProductProvider extends ChangeNotifier {
     _clearError();
 
     try {
-      final result = await _productService.getProducts();
+      final results = await Future.wait([
+        _productService.getProducts(),
+        _loadRatingStatsSafely(),
+      ]);
 
       _products
         ..clear()
-        ..addAll(result);
+        ..addAll(results[0] as List<ProductModel>);
+
+      _ratingStats
+        ..clear()
+        ..addAll(results[1] as Map<String, ProductRatingStats>);
     } catch (error) {
       _setError('Không thể tải sản phẩm');
       debugPrint('loadProducts error: $error');
@@ -140,14 +181,6 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
-  // =========================================================
-  // REFRESH PRODUCT RATING
-  // =========================================================
-
-  /// Đọc lại một sản phẩm sau khi Customer thêm, sửa hoặc xóa đánh giá.
-  ///
-  /// Không bật trạng thái loading toàn trang để tránh làm ProductPage
-  /// nhấp nháy sau khi lưu review.
   Future<void> refreshProductRating(String productId) async {
     final normalizedId = productId.trim();
 
@@ -158,9 +191,13 @@ class ProductProvider extends ChangeNotifier {
     _clearError();
 
     try {
-      final refreshedProduct = await _productService.getProductById(
-        normalizedId,
-      );
+      final results = await Future.wait([
+        _productService.getProductById(normalizedId),
+        _loadRatingStatsForProductSafely(normalizedId),
+      ]);
+
+      final refreshedProduct = results[0] as ProductModel;
+      final ratingStats = results[1] as ProductRatingStats;
 
       final index = _products.indexWhere(
         (product) => product.id == normalizedId,
@@ -172,6 +209,7 @@ class ProductProvider extends ChangeNotifier {
         _products.add(refreshedProduct);
       }
 
+      _ratingStats[normalizedId] = ratingStats;
       notifyListeners();
     } catch (error) {
       _setError('Không thể cập nhật điểm đánh giá sản phẩm');

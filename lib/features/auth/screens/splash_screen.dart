@@ -1,3 +1,4 @@
+
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:project_trangdc24v7x324/core/pocketbase_client.dart';
 import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 
 class SplashScreen extends StatefulWidget {
+
   const SplashScreen({super.key});
 
   @override
@@ -14,6 +16,7 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+
   @override
   void initState() {
     super.initState();
@@ -21,18 +24,13 @@ class _SplashScreenState extends State<SplashScreen> {
     _startSplashFlow();
   }
 
-  /// Kiểm tra phiên đăng nhập và điều hướng người dùng.
   Future<void> _startSplashFlow() async {
-    // Hiển thị Splash ngắn để giữ nhận diện thương hiệu.
+
     await Future.delayed(const Duration(seconds: 2));
 
     if (!mounted) return;
 
     final client = getPocketBase();
-
-    // =========================================================
-    // 1. KIỂM TRA PHIÊN ĐĂNG NHẬP
-    // =========================================================
 
     if (!client.authStore.isValid) {
       _goToLogin();
@@ -40,16 +38,11 @@ class _SplashScreenState extends State<SplashScreen> {
     }
 
     try {
-      // =======================================================
-      // 2. LÀM MỚI THÔNG TIN TÀI KHOẢN
-      // =======================================================
 
       await client.collection('users').authRefresh();
 
       if (!mounted) return;
 
-      // Phiên bản PocketBase hiện tại của dự án
-      // sử dụng authStore.model.
       final model = client.authStore.model;
 
       if (model == null) {
@@ -61,12 +54,6 @@ class _SplashScreenState extends State<SplashScreen> {
 
       final Map<String, dynamic> data = model.toJson();
 
-      // =======================================================
-      // 3. KIỂM TRA TRẠNG THÁI TÀI KHOẢN
-      // =======================================================
-
-      // Nếu dữ liệu cũ chưa có isActive,
-      // tạm xem tài khoản là đang hoạt động.
       final bool isActive = data['isActive'] != false;
 
       if (!isActive) {
@@ -75,10 +62,6 @@ class _SplashScreenState extends State<SplashScreen> {
         _goToLogin();
         return;
       }
-
-      // =======================================================
-      // 4. KIỂM TRA ROLE
-      // =======================================================
 
       final String role = (data['role'] ?? '').toString().trim().toLowerCase();
 
@@ -92,7 +75,7 @@ class _SplashScreenState extends State<SplashScreen> {
           break;
 
         default:
-          // Role không hợp lệ.
+
           client.authStore.clear();
 
           _goToLogin();
@@ -101,7 +84,6 @@ class _SplashScreenState extends State<SplashScreen> {
     } catch (error) {
       debugPrint('Splash auth refresh error: $error');
 
-      // Phiên không thể refresh.
       client.authStore.clear();
 
       if (!mounted) return;
@@ -109,10 +91,6 @@ class _SplashScreenState extends State<SplashScreen> {
       _goToLogin();
     }
   }
-
-  // =========================================================
-  // NAVIGATION
-  // =========================================================
 
   void _goToLogin() {
     if (!mounted) return;
@@ -131,10 +109,6 @@ class _SplashScreenState extends State<SplashScreen> {
 
     Navigator.pushReplacementNamed(context, AppRoutes.managerHome);
   }
-
-  // =========================================================
-  // UI
-  // =========================================================
 
   @override
   Widget build(BuildContext context) {
@@ -162,9 +136,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             child: Stack(
               children: [
-                // =================================================
-                // TÊN APP + SLOGAN
-                // =================================================
+
                 Positioned(
                   top: screenHeight * 0.32,
                   left: 0,
@@ -198,9 +170,6 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                 ),
 
-                // =================================================
-                // HÌNH MINH HỌA
-                // =================================================
                 Positioned(
                   left: 0,
                   right: 0,
@@ -229,9 +198,6 @@ class _SplashScreenState extends State<SplashScreen> {
                           ),
                         ),
 
-                        // =========================================
-                        // HOTLINE
-                        // =========================================
                         Positioned(
                           right: screenWidth * 0.05,
                           bottom: screenHeight * 0.04,
@@ -253,9 +219,6 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                 ),
 
-                // =================================================
-                // HIỆU ỨNG BLUR
-                // =================================================
                 Positioned(
                   right: -screenWidth * 0.1,
                   bottom: screenHeight * 0.15,

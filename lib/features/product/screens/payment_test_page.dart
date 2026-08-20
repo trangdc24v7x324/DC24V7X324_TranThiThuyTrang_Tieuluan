@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -251,7 +252,7 @@ class _PaymentTestPageState extends State<PaymentTestPage> {
       }
     }
 
-    return '${result}đ';
+    return '$resultđ';
   }
 
   Color _statusColor(String status) {
@@ -362,7 +363,7 @@ class _PaymentTestPageState extends State<PaymentTestPage> {
                         vertical: 5,
                       ),
                       decoration: BoxDecoration(
-                        color: _statusColor(payment.status).withOpacity(0.12),
+                        color: _statusColor(payment.status).withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(99),
                       ),
                       child: Text(

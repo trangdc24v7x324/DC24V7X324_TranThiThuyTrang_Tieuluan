@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -8,6 +9,7 @@ import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
 
 class ManagerProductsPage extends StatefulWidget {
+
   const ManagerProductsPage({super.key});
 
   @override
@@ -15,24 +17,20 @@ class ManagerProductsPage extends StatefulWidget {
 }
 
 class _ManagerProductsPageState extends State<ManagerProductsPage> {
+
   @override
   void initState() {
     super.initState();
 
-    Future.microtask(() => context.read<ProductProvider>().loadInitialData());
+    Future.microtask(() {
+      if (!mounted) return;
+      context.read<ProductProvider>().loadInitialData();
+    });
   }
-
-  // =========================================================
-  // REFRESH
-  // =========================================================
 
   Future<void> _refreshData() async {
     await context.read<ProductProvider>().loadInitialData();
   }
-
-  // =========================================================
-  // CREATE PRODUCT
-  // =========================================================
 
   Future<void> _openCreatePage() async {
     final bool? result = await Navigator.push<bool>(
@@ -40,14 +38,9 @@ class _ManagerProductsPageState extends State<ManagerProductsPage> {
       MaterialPageRoute(builder: (_) => const ProductFormPage()),
     );
 
-    if (result == true && mounted) {
-      await context.read<ProductProvider>().loadProducts();
-    }
+    if (result != true || !mounted) return;
+    await context.read<ProductProvider>().loadProducts();
   }
-
-  // =========================================================
-  // EDIT PRODUCT
-  // =========================================================
 
   Future<void> _openEditPage(ProductModel product) async {
     final bool? result = await Navigator.push<bool>(
@@ -55,14 +48,9 @@ class _ManagerProductsPageState extends State<ManagerProductsPage> {
       MaterialPageRoute(builder: (_) => ProductFormPage(product: product)),
     );
 
-    if (result == true && mounted) {
-      await context.read<ProductProvider>().loadProducts();
-    }
+    if (result != true || !mounted) return;
+    await context.read<ProductProvider>().loadProducts();
   }
-
-  // =========================================================
-  // DELETE PRODUCT
-  // =========================================================
 
   Future<void> _confirmDelete(ProductModel product) async {
     final bool? confirm = await showDialog<bool>(
@@ -95,7 +83,7 @@ class _ManagerProductsPageState extends State<ManagerProductsPage> {
       },
     );
 
-    if (confirm != true) {
+    if (confirm != true || !mounted) {
       return;
     }
 
@@ -111,10 +99,6 @@ class _ManagerProductsPageState extends State<ManagerProductsPage> {
       ),
     );
   }
-
-  // =========================================================
-  // BODY
-  // =========================================================
 
   Widget _buildBody(ProductProvider provider) {
     if (provider.isLoading && provider.products.isEmpty) {
@@ -158,10 +142,6 @@ class _ManagerProductsPageState extends State<ManagerProductsPage> {
     );
   }
 
-  // =========================================================
-  // BUILD
-  // =========================================================
-
   @override
   Widget build(BuildContext context) {
     final ProductProvider provider = context.watch<ProductProvider>();
@@ -179,10 +159,6 @@ class _ManagerProductsPageState extends State<ManagerProductsPage> {
   }
 }
 
-// ===========================================================
-// PRODUCT CARD
-// ===========================================================
-
 class _ProductCard extends StatelessWidget {
   final ProductModel product;
 
@@ -197,10 +173,6 @@ class _ProductCard extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
   });
-
-  // =========================================================
-  // FORMAT PRICE
-  // =========================================================
 
   String _formatPrice(double price) {
     final String value = price.round().toString();
@@ -217,12 +189,8 @@ class _ProductCard extends StatelessWidget {
       }
     }
 
-    return '${buffer}đ';
+    return '$bufferđ';
   }
-
-  // =========================================================
-  // PRICE UI
-  // =========================================================
 
   Widget _buildPrice() {
     if (!product.hasActiveSale) {
@@ -286,10 +254,6 @@ class _ProductCard extends StatelessWidget {
     );
   }
 
-  // =========================================================
-  // BUILD
-  // =========================================================
-
   @override
   Widget build(BuildContext context) {
     final bool isSmall = MediaQuery.sizeOf(context).width < 380;
@@ -302,7 +266,7 @@ class _ProductCard extends StatelessWidget {
         border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -310,9 +274,7 @@ class _ProductCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // ===============================================
-          // IMAGE
-          // ===============================================
+
           _ProductImage(
             imageUrl: product.image,
             size: isSmall ? 72 : 84,
@@ -322,9 +284,6 @@ class _ProductCard extends StatelessWidget {
 
           const SizedBox(width: 12),
 
-          // ===============================================
-          // INFORMATION
-          // ===============================================
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -342,25 +301,16 @@ class _ProductCard extends StatelessWidget {
 
                 const SizedBox(height: 6),
 
-                // =========================
-                // PRICE
-                // =========================
                 _buildPrice(),
 
                 const SizedBox(height: 7),
 
-                // =========================
-                // SALE STATUS
-                // =========================
                 if (product.hasActiveSale) ...[
                   const _SaleChip(),
 
                   const SizedBox(height: 6),
                 ],
 
-                // =========================
-                // AVAILABILITY
-                // =========================
                 _StatusChip(isAvailable: product.isAvailable),
               ],
             ),
@@ -368,9 +318,6 @@ class _ProductCard extends StatelessWidget {
 
           const SizedBox(width: 8),
 
-          // ===============================================
-          // ACTION
-          // ===============================================
           Column(
             children: [
               _CircleIconButton(
@@ -393,10 +340,6 @@ class _ProductCard extends StatelessWidget {
     );
   }
 }
-
-// ===========================================================
-// PRODUCT IMAGE
-// ===========================================================
 
 class _ProductImage extends StatelessWidget {
   final String imageUrl;
@@ -466,11 +409,8 @@ class _ProductImage extends StatelessWidget {
   }
 }
 
-// ===========================================================
-// SALE CHIP
-// ===========================================================
-
 class _SaleChip extends StatelessWidget {
+
   const _SaleChip();
 
   @override
@@ -502,10 +442,6 @@ class _SaleChip extends StatelessWidget {
   }
 }
 
-// ===========================================================
-// AVAILABILITY STATUS
-// ===========================================================
-
 class _StatusChip extends StatelessWidget {
   final bool isAvailable;
 
@@ -518,7 +454,7 @@ class _StatusChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(99),
       ),
       child: Text(
@@ -528,10 +464,6 @@ class _StatusChip extends StatelessWidget {
     );
   }
 }
-
-// ===========================================================
-// ACTION BUTTON
-// ===========================================================
 
 class _CircleIconButton extends StatelessWidget {
   final IconData icon;
@@ -551,7 +483,7 @@ class _CircleIconButton extends StatelessWidget {
       onTap: onTap,
       child: CircleAvatar(
         radius: 18,
-        backgroundColor: color.withOpacity(0.1),
+        backgroundColor: color.withValues(alpha: 0.1),
         child: Icon(icon, color: color, size: 18),
       ),
     );

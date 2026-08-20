@@ -1,9 +1,11 @@
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:project_trangdc24v7x324/services/auth_service.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
+
   const ForgotPasswordPage({super.key});
 
   @override
@@ -20,19 +22,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   String? _error;
 
-  // =========================================================
-  // EMAIL VALIDATION
-  // =========================================================
-
   bool _isValidEmail(String email) {
     final RegExp emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
     return emailRegex.hasMatch(email);
   }
-
-  // =========================================================
-  // SEND RESET EMAIL
-  // =========================================================
 
   Future<void> _sendResetEmail() async {
     if (_isLoading) return;
@@ -83,10 +77,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     }
   }
 
-  // =========================================================
-  // INPUT DECORATION
-  // =========================================================
-
   InputDecoration _inputDecoration({
     required String label,
     required IconData icon,
@@ -113,20 +103,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     );
   }
 
-  // =========================================================
-  // DISPOSE
-  // =========================================================
-
   @override
   void dispose() {
     _emailController.dispose();
 
     super.dispose();
   }
-
-  // =========================================================
-  // UI
-  // =========================================================
 
   @override
   Widget build(BuildContext context) {
@@ -156,9 +138,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ===========================================
-                  // BACK BUTTON
-                  // ===========================================
+
                   IconButton(
                     onPressed:
                         _isLoading
@@ -174,9 +154,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                   const SizedBox(height: 30),
 
-                  // ===========================================
-                  // LOGO
-                  // ===========================================
                   Center(
                     child: Column(
                       children: [
@@ -195,7 +172,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 15,
-                            color: Colors.white.withOpacity(0.95),
+                            color: Colors.white.withValues(alpha: 0.95),
                           ),
                         ),
                       ],
@@ -204,9 +181,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                   const SizedBox(height: 32),
 
-                  // ===========================================
-                  // FORM
-                  // ===========================================
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
@@ -215,7 +189,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.12),
+                          color: Colors.black.withValues(alpha: 0.12),
                           blurRadius: 14,
                           offset: const Offset(0, 6),
                         ),
@@ -248,9 +222,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                         const SizedBox(height: 20),
 
-                        // =====================================
-                        // EMAIL
-                        // =====================================
                         TextField(
                           controller: _emailController,
                           enabled: !_isLoading,
@@ -268,9 +239,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           ),
                         ),
 
-                        // =====================================
-                        // ERROR
-                        // =====================================
                         if (_error != null) ...[
                           const SizedBox(height: 14),
 
@@ -296,9 +264,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           ),
                         ],
 
-                        // =====================================
-                        // SUCCESS
-                        // =====================================
                         if (_isSuccess) ...[
                           const SizedBox(height: 14),
 
@@ -343,9 +308,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                         const SizedBox(height: 20),
 
-                        // =====================================
-                        // SEND BUTTON
-                        // =====================================
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
@@ -381,9 +343,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                         const SizedBox(height: 12),
 
-                        // =====================================
-                        // BACK LOGIN
-                        // =====================================
                         SizedBox(
                           width: double.infinity,
                           child: TextButton(

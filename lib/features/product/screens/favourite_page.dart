@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -12,6 +13,7 @@ import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
 
 class FavouritePage extends StatelessWidget {
+
   const FavouritePage({super.key});
 
   @override
@@ -34,6 +36,7 @@ class FavouritePage extends StatelessWidget {
 }
 
 class _EmptyFavourite extends StatelessWidget {
+
   const _EmptyFavourite();
 
   @override

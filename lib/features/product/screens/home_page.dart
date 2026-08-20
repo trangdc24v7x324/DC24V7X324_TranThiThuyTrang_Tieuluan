@@ -1,3 +1,4 @@
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -16,6 +17,7 @@ import 'package:project_trangdc24v7x324/shared/widgets/category_selector.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/nav_icon.dart';
 
 class HomePage extends StatefulWidget {
+
   const HomePage({super.key});
 
   @override
@@ -28,14 +30,13 @@ class AppColors {
 
   static const bg = Color(0xFFF7F7F7);
 
-  // Gradient giống splash
   static const gradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xffFF8A95), // hồng sáng
-      Color(0xffFF3D4F), // đỏ tươi
-      Color(0xffD91F2D), // đỏ đậm
+      Color(0xffFF8A95),
+      Color(0xffFF3D4F),
+      Color(0xffD91F2D),
     ],
     stops: [0.0, 0.45, 1.0],
   );
@@ -47,10 +48,6 @@ class _HomePageState extends State<HomePage> {
   String selectedCategory = 'all';
   int selectedIndex = 0;
 
-  /// Mỗi lần kéo làm mới Home, tăng version để FoodCard
-  /// đọc lại số sao và số đánh giá thật từ product_reviews.
-  int _ratingRefreshVersion = 0;
-
   @override
   void initState() {
     super.initState();
@@ -58,55 +55,41 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _initData() async {
-    final productProvider = context.read<ProductProvider>();
-
-    if (!productProvider.isLoading) {
-      await productProvider.loadInitialData();
-    }
-
-    if (!mounted) return;
-
-    // Khôi phục giỏ hàng active từ PocketBase sau khi user vào Home.
-    await context.read<CartProvider>().loadCart();
-
-    if (!mounted) return;
-    await context.read<ProfileProvider>().loadProfile();
-
-    if (!mounted) return;
     final userId = pb.authStore.model?.id ?? '';
 
-    await context.read<ChatProvider>().loadCustomerChatSummary(
-      customerId: userId,
-    );
-
-    try {
-      await context.read<NotificationProvider>().loadCustomerNotifications();
-    } catch (_) {}
+    await Future.wait([
+      context.read<ProductProvider>().loadInitialData(),
+      context.read<CartProvider>().loadCart(),
+      context.read<ProfileProvider>().loadProfile(),
+      if (userId.isNotEmpty)
+        context.read<ChatProvider>().loadCustomerChatSummary(
+          customerId: userId,
+        ),
+      _loadCustomerNotificationsSafely(),
+    ]);
   }
 
   Future<void> _refreshData() async {
-    await Future.wait([
-      context.read<ProductProvider>().loadCategories(),
-      context.read<ProductProvider>().loadProducts(),
-      context.read<CartProvider>().refreshCart(),
-      context.read<ProfileProvider>().loadProfile(forceReload: true),
-    ]);
-
     final userId = pb.authStore.model?.id ?? '';
 
-    await context.read<ChatProvider>().loadCustomerChatSummary(
-      customerId: userId,
-    );
+    await Future.wait([
+      context.read<ProductProvider>().loadInitialData(),
+      context.read<CartProvider>().refreshCart(),
+      context.read<ProfileProvider>().loadProfile(forceReload: true),
+      if (userId.isNotEmpty)
+        context.read<ChatProvider>().loadCustomerChatSummary(
+          customerId: userId,
+        ),
+      _loadCustomerNotificationsSafely(),
+    ]);
+  }
 
+  Future<void> _loadCustomerNotificationsSafely() async {
     try {
       await context.read<NotificationProvider>().loadCustomerNotifications();
-    } catch (_) {}
-
-    if (!mounted) return;
-
-    setState(() {
-      _ratingRefreshVersion++;
-    });
+    } catch (error) {
+      debugPrint('Load customer notifications error: $error');
+    }
   }
 
   void toggleFavorite(ProductModel item) {
@@ -148,7 +131,6 @@ class _HomePageState extends State<HomePage> {
 
       if (!mounted) return;
 
-      // Chỉ load lại sau khi quay về, KHÔNG tự markAllAsRead ở đây.
       try {
         await context.read<NotificationProvider>().loadCustomerNotifications();
       } catch (e) {
@@ -268,7 +250,6 @@ class _HomePageState extends State<HomePage> {
                           favoritedItems: favoritedItems,
                           searchQuery: searchQuery,
                           selectedCategory: selectedCategory,
-                          ratingRefreshVersion: _ratingRefreshVersion,
                           onFavoriteToggle: toggleFavorite,
                         ),
                       ),
@@ -307,7 +288,6 @@ class _ProductContent extends StatelessWidget {
   final List<ProductModel> favoritedItems;
   final String searchQuery;
   final String selectedCategory;
-  final int ratingRefreshVersion;
   final ValueChanged<ProductModel> onFavoriteToggle;
 
   const _ProductContent({
@@ -315,7 +295,6 @@ class _ProductContent extends StatelessWidget {
     required this.favoritedItems,
     required this.searchQuery,
     required this.selectedCategory,
-    required this.ratingRefreshVersion,
     required this.onFavoriteToggle,
   });
 
@@ -334,7 +313,6 @@ class _ProductContent extends StatelessWidget {
       onFavoriteToggle: onFavoriteToggle,
       searchQuery: searchQuery,
       selectedCategory: selectedCategory,
-      ratingRefreshVersion: ratingRefreshVersion,
     );
   }
 }
@@ -366,8 +344,8 @@ class _CurvedBottomNavBar extends StatelessWidget {
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                     colors: [
-                      Color(0xffFF3D4F), // đỏ tươi
-                      Color(0xffD91F2D), // đỏ đậm
+                      Color(0xffFF3D4F),
+                      Color(0xffD91F2D),
                     ],
                     stops: [0.0, 1.0],
                   ),
@@ -401,6 +379,7 @@ class _CurvedBottomNavBar extends StatelessWidget {
 }
 
 class _BottomSoftCurveClipper extends CustomClipper<Path> {
+
   @override
   Path getClip(Size size) {
     const curveHeight = 18.0;
@@ -487,7 +466,7 @@ class _HeaderTitle extends StatelessWidget {
             style: TextStyle(
               fontSize: isSmall ? 13 : 14,
               fontWeight: FontWeight.w500,
-              color: Colors.white.withOpacity(0.86),
+              color: Colors.white.withValues(alpha: 0.86),
             ),
           ),
         ],
@@ -540,6 +519,7 @@ class _AvatarButton extends StatelessWidget {
 }
 
 class _PersonIcon extends StatelessWidget {
+
   const _PersonIcon();
 
   @override
@@ -652,7 +632,7 @@ BoxDecoration _boxDecoration({
         borderColor == null ? null : Border.all(color: borderColor, width: 2),
     boxShadow: [
       BoxShadow(
-        color: shadowColor.withOpacity(shadowOpacity),
+        color: shadowColor.withValues(alpha: shadowOpacity),
         blurRadius: blurRadius,
         offset: const Offset(0, 4),
       ),

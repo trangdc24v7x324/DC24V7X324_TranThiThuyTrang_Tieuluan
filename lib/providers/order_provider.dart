@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:project_trangdc24v7x324/models/cart_item_model.dart';
 import 'package:project_trangdc24v7x324/models/order_model.dart';
@@ -151,7 +152,7 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final String orderId = await _orderService.createOrder(
+      final createdOrder = await _orderService.createOrder(
         items: cartItems,
         receiverName: receiverName,
         receiverPhone: receiverPhone,
@@ -162,9 +163,9 @@ class OrderProvider extends ChangeNotifier {
         note: note,
       );
 
-      await loadOrders();
-
-      _selectedOrder = findOrderById(orderId);
+      _selectedOrder = createdOrder;
+      _orders.removeWhere((order) => order.id == createdOrder.id);
+      _orders.insert(0, createdOrder);
 
       return true;
     } catch (error) {
@@ -185,8 +186,7 @@ class OrderProvider extends ChangeNotifier {
     bool reloadAll = true,
     String cancelReason = '',
   }) async {
-    // reloadAll được giữ lại để tương thích với code cũ.
-    // Phiên bản tối ưu luôn chỉ refresh đúng order vừa cập nhật.
+
     if (_isUpdatingStatus) {
       _setError('Hệ thống đang xử lý một cập nhật khác');
       return false;
@@ -223,8 +223,7 @@ class OrderProvider extends ChangeNotifier {
     required String paymentStatus,
     bool reloadAll = true,
   }) async {
-    // reloadAll được giữ lại để tương thích với code cũ.
-    // Phiên bản tối ưu luôn chỉ refresh đúng order vừa cập nhật.
+
     if (_isUpdatingStatus) {
       _setError('Hệ thống đang xử lý một cập nhật khác');
       return false;

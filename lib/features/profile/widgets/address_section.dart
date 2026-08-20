@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 
 import 'package:project_trangdc24v7x324/models/address_model.dart';
@@ -55,7 +56,7 @@ class _AddressSectionState extends State<AddressSection> {
     setState(() {
       _localAddresses.add(
         AddressModel(
-          // Record mới chưa có PocketBase id.
+
           id: '',
           userId: '',
           label: _localAddresses.isEmpty ? 'Nhà' : 'Khác',
@@ -133,12 +134,12 @@ class _AddressSectionState extends State<AddressSection> {
       });
 
       if (showMessage) {
-        _showMessage('Đã xác định tọa độ địa chỉ.');
+        _showMessage('Đã xác định vị trí giao hàng.');
       }
     } catch (e) {
       if (showMessage && mounted) {
         _showMessage(
-          'Chưa xác định được tọa độ. '
+          'Chưa xác định được vị trí. '
           'Bạn vẫn có thể lưu và tính lại ở bước thanh toán.',
         );
       }
@@ -217,8 +218,7 @@ class _AddressSectionState extends State<AddressSection> {
     });
 
     try {
-      // Cố gắng resolve tọa độ trước khi lưu.
-      // Không chặn lưu nếu native geocoding không resolve được.
+
       await _resolveMissingCoordinates();
 
       await widget.onSave(_localAddresses);
@@ -348,8 +348,8 @@ class _AddressSectionState extends State<AddressSection> {
               Expanded(
                 child: Text(
                   address.hasCoordinates
-                      ? 'Đã có tọa độ giao hàng'
-                      : 'Chưa có tọa độ; hệ thống sẽ xác định khi thanh toán',
+                      ? 'Đã xác định vị trí giao hàng'
+                      : 'Chưa xác định vị trí; hệ thống sẽ xử lý khi thanh toán',
                   style: TextStyle(
                     fontSize: 11,
                     color:
@@ -466,7 +466,7 @@ class _AddressSectionState extends State<AddressSection> {
             ),
             maxLines: 2,
             onChanged: (value) {
-              // Address text đổi thì tọa độ cũ không còn đáng tin.
+
               _localAddresses[index] = _localAddresses[index].copyWith(
                 addressLine: value,
                 latitude: 0,
@@ -494,20 +494,27 @@ class _AddressSectionState extends State<AddressSection> {
                       : const Icon(Icons.location_searching),
               label: Text(
                 address.hasCoordinates
-                    ? 'Xác định lại tọa độ'
-                    : 'Xác định tọa độ từ địa chỉ',
+                    ? 'Xác định lại vị trí'
+                    : 'Xác định vị trí từ địa chỉ',
               ),
             ),
           ),
 
           if (address.hasCoordinates) ...[
             const SizedBox(height: 6),
-            Align(
+            const Align(
               alignment: Alignment.centerLeft,
-              child: Text(
-                'Lat: ${address.latitude.toStringAsFixed(6)}  •  '
-                'Lng: ${address.longitude.toStringAsFixed(6)}',
-                style: const TextStyle(fontSize: 11, color: Colors.green),
+              child: Row(
+                children: [
+                  Icon(Icons.check_circle_outline, size: 16, color: Colors.green),
+                  SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Đã xác định vị trí để tính phí và chỉ đường giao hàng.',
+                      style: TextStyle(fontSize: 11, color: Colors.green),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -5,7 +6,6 @@ import 'package:project_trangdc24v7x324/providers/order_provider.dart';
 import 'package:project_trangdc24v7x324/utils/order_status_helper.dart';
 import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 
-// DESIGN SYSTEM
 import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 import 'package:project_trangdc24v7x324/shared/theme/app_text.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_layout.dart';
@@ -13,6 +13,7 @@ import 'package:project_trangdc24v7x324/shared/widgets/app_body.dart';
 import 'package:project_trangdc24v7x324/shared/widgets/app_card.dart';
 
 class OrdersPage extends StatefulWidget {
+
   const OrdersPage({super.key});
 
   @override
@@ -20,10 +21,14 @@ class OrdersPage extends StatefulWidget {
 }
 
 class _OrdersPageState extends State<OrdersPage> {
+
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => context.read<OrderProvider>().loadOrders());
+    Future.microtask(() {
+      if (!mounted) return;
+      context.read<OrderProvider>().loadOrders();
+    });
   }
 
   String formatPrice(double price) {
@@ -39,7 +44,7 @@ class _OrdersPageState extends State<OrdersPage> {
       }
     }
 
-    return '${result}đ';
+    return '$resultđ';
   }
 
   @override
@@ -97,6 +102,7 @@ class _OrdersPageState extends State<OrdersPage> {
 }
 
 class _EmptyOrders extends StatelessWidget {
+
   const _EmptyOrders();
 
   @override
@@ -254,7 +260,7 @@ class _StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(

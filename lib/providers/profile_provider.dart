@@ -1,3 +1,4 @@
+
 import 'dart:io';
 
 import 'package:project_trangdc24v7x324/models/address_model.dart';
@@ -26,6 +27,11 @@ class ProfileProvider extends ChangeNotifier {
 
   bool _isLoading = false;
   bool _isChangingPassword = false;
+  bool _isSavingGeneralInfo = false;
+  bool _isSavingAddresses = false;
+  bool _isSavingPaymentMethods = false;
+  bool _isUploadingAvatar = false;
+  Future<bool>? _profileLoadFuture;
 
   bool _isEditingGeneralInfo = false;
 
@@ -40,6 +46,22 @@ class ProfileProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   bool get isChangingPassword => _isChangingPassword;
+
+  bool get isSavingGeneralInfo => _isSavingGeneralInfo;
+
+  bool get isSavingAddresses => _isSavingAddresses;
+
+  bool get isSavingPaymentMethods => _isSavingPaymentMethods;
+
+  bool get isUploadingAvatar => _isUploadingAvatar;
+
+  bool get isBusy =>
+      _isLoading ||
+      _isChangingPassword ||
+      _isSavingGeneralInfo ||
+      _isSavingAddresses ||
+      _isSavingPaymentMethods ||
+      _isUploadingAvatar;
 
   bool get isEditingGeneralInfo => _isEditingGeneralInfo;
 
@@ -74,10 +96,6 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
-  // =========================================================
-  // EDIT STATE
-  // =========================================================
-
   void toggleAddressEdit() {
     _isEditingAddress = !_isEditingAddress;
 
@@ -96,21 +114,32 @@ class ProfileProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // =========================================================
-  // LOAD
-  // =========================================================
-
-  Future<bool> loadProfile({bool forceReload = false}) async {
+  Future<bool> loadProfile({bool forceReload = false}) {
     if (_profile != null && !forceReload) {
-      return true;
+      return Future<bool>.value(true);
     }
 
+    final running = _profileLoadFuture;
+    if (running != null) {
+      return running;
+    }
+
+    final future = _loadProfileInternal();
+    _profileLoadFuture = future;
+
+    return future.whenComplete(() {
+      if (identical(_profileLoadFuture, future)) {
+        _profileLoadFuture = null;
+      }
+    });
+  }
+
+  Future<bool> _loadProfileInternal() async {
     if (!_authService.isLoggedIn) {
       _profile = null;
       _isLoading = false;
       _errorMessage = 'Chưa đăng nhập';
       notifyListeners();
-
       return false;
     }
 
@@ -118,18 +147,11 @@ class ProfileProvider extends ChangeNotifier {
     _clearError();
 
     try {
-      final loaded = await _profileService.fetchProfile();
-
-      _profile = loaded;
-
+      _profile = await _profileService.fetchProfile();
       return true;
-    } catch (e) {
-      // Không logout chỉ vì refresh Profile thất bại.
-      // Nếu đã có cache thì giữ lại để UI không biến mất dữ liệu.
+    } catch (error) {
       _setError('Không thể tải thông tin tài khoản');
-
-      debugPrint('PROFILE ERROR: $e');
-
+      debugPrint('PROFILE ERROR: $error');
       return false;
     } finally {
       _setLoading(false);
@@ -140,10 +162,6 @@ class ProfileProvider extends ChangeNotifier {
     return loadProfile(forceReload: true);
   }
 
-  // =========================================================
-  // GENERAL INFO
-  // =========================================================
-
   Future<bool> updateGeneralInfo({
     required String fullName,
     required String email,
@@ -151,12 +169,12 @@ class ProfileProvider extends ChangeNotifier {
     required String gender,
     required DateTime? dateOfBirth,
   }) async {
-    if (_profile == null) {
-      return false;
-    }
+    final current = _profile;
+    if (current == null || _isSavingGeneralInfo) return false;
 
-    _setLoading(true);
+    _isSavingGeneralInfo = true;
     _clearError();
+    notifyListeners();
 
     try {
       await _profileService.updateGeneralInfo(
@@ -167,114 +185,102 @@ class ProfileProvider extends ChangeNotifier {
         dateOfBirth: dateOfBirth,
       );
 
-      await _profileService.fetchProfile().then((value) {
-        _profile = value;
-      });
-
+      _profile = current.copyWith(
+        fullName: fullName.trim(),
+        email: email.trim(),
+        phoneNumber: phoneNumber.trim(),
+        gender: gender.trim(),
+        dateOfBirth: dateOfBirth,
+        clearDateOfBirth: dateOfBirth == null,
+      );
       _isEditingGeneralInfo = false;
-
+      notifyListeners();
       return true;
-    } catch (e) {
+    } catch (error) {
       _setError('Cập nhật thông tin thất bại');
-
-      debugPrint('updateGeneralInfo error: $e');
-
+      debugPrint('updateGeneralInfo error: $error');
       return false;
     } finally {
-      _setLoading(false);
+      _isSavingGeneralInfo = false;
+      notifyListeners();
     }
   }
-
-  // =========================================================
-  // ADDRESSES
-  // =========================================================
 
   Future<bool> updateAddresses(List<AddressModel> newAddresses) async {
-    if (_profile == null) {
-      return false;
-    }
+    if (_profile == null || _isSavingAddresses) return false;
 
-    _setLoading(true);
+    _isSavingAddresses = true;
     _clearError();
+    notifyListeners();
 
     try {
-      await _profileService.updateAddresses(newAddresses);
-
-      // Đọc lại PocketBase để nhận:
-      // - id record mới
-      // - lat/lng
-      // - default chuẩn hóa.
-      _profile = await _profileService.fetchProfile();
-
+      final freshAddresses = await _profileService.updateAddresses(newAddresses);
+      final current = _profile;
+      if (current != null) {
+        _profile = current.copyWith(addresses: freshAddresses);
+      }
       _isEditingAddress = false;
-
       return true;
-    } catch (e) {
+    } catch (error) {
       _setError('Cập nhật địa chỉ thất bại');
-
-      debugPrint('updateAddresses error: $e');
-
+      debugPrint('updateAddresses error: $error');
       return false;
     } finally {
-      _setLoading(false);
+      _isSavingAddresses = false;
+      notifyListeners();
     }
   }
-
-  // =========================================================
-  // PAYMENT METHODS
-  // =========================================================
 
   Future<bool> updatePaymentMethods(
     List<PaymentMethodModel> updatedMethods,
   ) async {
-    if (_profile == null) {
-      return false;
-    }
+    if (_profile == null || _isSavingPaymentMethods) return false;
 
-    _setLoading(true);
+    _isSavingPaymentMethods = true;
     _clearError();
+    notifyListeners();
 
     try {
-      await _profileService.updatePaymentMethods(updatedMethods);
-
-      _profile = await _profileService.fetchProfile();
-
+      final freshMethods = await _profileService.updatePaymentMethods(
+        updatedMethods,
+      );
+      final current = _profile;
+      if (current != null) {
+        _profile = current.copyWith(paymentMethods: freshMethods);
+      }
       _isEditingPaymentMethods = false;
-
       return true;
-    } catch (e) {
+    } catch (error) {
       _setError('Cập nhật phương thức thanh toán thất bại');
-
-      debugPrint('updatePaymentMethods error: $e');
-
+      debugPrint('updatePaymentMethods error: $error');
       return false;
     } finally {
-      _setLoading(false);
+      _isSavingPaymentMethods = false;
+      notifyListeners();
     }
   }
 
-  // =========================================================
-  // AVATAR
-  // =========================================================
-
   Future<bool> updateAvatar(File file) async {
-    _setLoading(true);
+    if (_isUploadingAvatar) return false;
+
+    _isUploadingAvatar = true;
     _clearError();
+    notifyListeners();
 
     try {
-      await _profileService.updateAvatar(file);
-
-      _profile = await _profileService.fetchProfile();
-
+      final avatarUrl = await _profileService.updateAvatar(file);
+      final current = _profile;
+      if (current != null) {
+        _profile = current.copyWith(avatarUrl: avatarUrl);
+      }
       return true;
-    } catch (e) {
+    } catch (error) {
       _setError('Cập nhật ảnh đại diện thất bại');
-
-      debugPrint('updateAvatar error: $e');
-
+      debugPrint('updateAvatar error: $error');
       return false;
     } finally {
-      _setLoading(false);
+      _isUploadingAvatar = false;
+      notifyListeners();
     }
   }
 
@@ -298,10 +304,6 @@ class ProfileProvider extends ChangeNotifier {
       return false;
     }
   }
-
-  // =========================================================
-  // PASSWORD
-  // =========================================================
 
   Future<void> changePassword({
     required String oldPassword,
@@ -342,14 +344,9 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
-  // =========================================================
-  // LOGOUT
-  // =========================================================
-
   Future<void> logout(BuildContext context) async {
     if (!context.mounted) return;
 
-    // Lấy reference trước khi await để không truy cập context sau khi route đổi.
     final cartProvider = context.read<CartProvider>();
     final orderProvider = context.read<OrderProvider>();
     final notificationProvider = context.read<NotificationProvider>();
@@ -359,11 +356,9 @@ class ProfileProvider extends ChangeNotifier {
     _clearError();
 
     try {
-      // Chờ các thao tác giỏ hàng đang ghi PocketBase hoàn tất.
-      // Sau đó mới xóa phiên đăng nhập để tránh request cũ thất bại giữa chừng.
+
       await cartProvider.waitForPendingOperations();
 
-      // Hủy realtime trước khi xóa authStore.
       try {
         await chatProvider.unsubscribe();
       } catch (e) {
@@ -372,7 +367,6 @@ class ProfileProvider extends ChangeNotifier {
 
       await _authService.logout();
 
-      // Chỉ xóa state/cache local, không xóa dữ liệu thật trên server.
       cartProvider.resetCart();
       orderProvider.clearOrders();
       notificationProvider.clearNotifications();
@@ -411,6 +405,11 @@ class ProfileProvider extends ChangeNotifier {
     _profile = null;
     _isLoading = false;
     _isChangingPassword = false;
+    _isSavingGeneralInfo = false;
+    _isSavingAddresses = false;
+    _isSavingPaymentMethods = false;
+    _isUploadingAvatar = false;
+    _profileLoadFuture = null;
     _isEditingGeneralInfo = false;
     _isEditingAddress = false;
     _isEditingPaymentMethods = false;
@@ -421,10 +420,6 @@ class ProfileProvider extends ChangeNotifier {
     _resetProfileState();
     notifyListeners();
   }
-
-  // =========================================================
-  // INTERNAL
-  // =========================================================
 
   void _setLoading(bool value) {
     _isLoading = value;

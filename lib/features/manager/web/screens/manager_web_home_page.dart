@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -11,6 +12,7 @@ import 'package:project_trangdc24v7x324/routes/app_routes.dart';
 import 'package:project_trangdc24v7x324/shared/theme/app_colors.dart';
 
 class ManagerWebHomePage extends StatefulWidget {
+
   const ManagerWebHomePage({super.key});
 
   @override
@@ -18,6 +20,7 @@ class ManagerWebHomePage extends StatefulWidget {
 }
 
 class _ManagerWebHomePageState extends State<ManagerWebHomePage> {
+
   @override
   void initState() {
     super.initState();
@@ -29,7 +32,7 @@ class _ManagerWebHomePageState extends State<ManagerWebHomePage> {
 
     final futures = <Future<void>>[
       context.read<OrderProvider>().loadAllOrders(),
-      context.read<ProfileProvider>().loadProfile(forceReload: true),
+      context.read<ProfileProvider>().loadProfile(),
     ];
 
     if (managerId.isNotEmpty) {
@@ -249,7 +252,7 @@ class _WelcomeBanner extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.22),
+            color: AppColors.primary.withValues(alpha: 0.22),
             blurRadius: 28,
             offset: const Offset(0, 12),
           ),
@@ -280,7 +283,7 @@ class _WelcomeBanner extends StatelessWidget {
                   'Hôm nay hệ thống có $pendingOrders đơn cần xử lý '
                   'và $unreadMessages tin nhắn chưa đọc.',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                     fontSize: isCompact ? 14 : 16,
                     height: 1.5,
                   ),
@@ -292,9 +295,9 @@ class _WelcomeBanner extends StatelessWidget {
             width: 126,
             height: 126,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white.withOpacity(0.28)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
             ),
             child: const Icon(
               Icons.storefront_rounded,
@@ -466,7 +469,7 @@ class _QuickActionCard extends StatelessWidget {
                     width: 54,
                     height: 54,
                     decoration: BoxDecoration(
-                      color: action.color.withOpacity(0.11),
+                      color: action.color.withValues(alpha: 0.11),
                       borderRadius: BorderRadius.circular(17),
                     ),
                     child: Icon(action.icon, color: action.color, size: 28),

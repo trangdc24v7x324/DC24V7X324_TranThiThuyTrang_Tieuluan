@@ -1,3 +1,4 @@
+
 import 'package:project_trangdc24v7x324/models/payment_method_model.dart';
 import 'package:flutter/material.dart';
 
@@ -146,38 +147,47 @@ class _PaymentMethodsSectionState extends State<PaymentMethodsSection> {
                   ],
                 ],
               )
-              : Column(
-                children:
-                    widget.methods.map((method) {
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: Icon(_getIcon(method.type)),
-                        title: Text(
-                          method.title,
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        subtitle: Text(method.subtitle),
-                        trailing:
-                            widget.isEditing
-                                ? Radio<String>(
-                                  value: method.id,
-                                  groupValue: defaultMethodId,
-                                  onChanged:
-                                      _isSaving
-                                          ? null
-                                          : (_) => _setDefault(method),
-                                )
-                                : method.isDefault
-                                ? const Text(
-                                  'Mặc định',
-                                  style: TextStyle(
-                                    color: Colors.red,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                )
-                                : null,
-                      );
-                    }).toList(),
+              : RadioGroup<String>(
+                groupValue: defaultMethodId,
+                onChanged: (value) {
+                  if (!widget.isEditing || _isSaving || value == null) return;
+
+                  for (final method in widget.methods) {
+                    if (method.id == value) {
+                      _setDefault(method);
+                      break;
+                    }
+                  }
+                },
+                child: Column(
+                  children:
+                      widget.methods.map((method) {
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(_getIcon(method.type)),
+                          title: Text(
+                            method.title,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          subtitle: Text(method.subtitle),
+                          trailing:
+                              widget.isEditing
+                                  ? Radio<String>(
+                                    value: method.id,
+                                    enabled: !_isSaving,
+                                  )
+                                  : method.isDefault
+                                  ? const Text(
+                                    'Mặc định',
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  )
+                                  : null,
+                        );
+                      }).toList(),
+                ),
               ),
     );
   }

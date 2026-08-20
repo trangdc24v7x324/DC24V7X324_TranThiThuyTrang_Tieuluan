@@ -1,3 +1,4 @@
+
 import 'dart:typed_data';
 
 import 'package:project_trangdc24v7x324/models/category_model.dart';
@@ -49,10 +50,6 @@ class _ProductFormPageState extends State<ProductFormPage> {
 
   bool get isEdit => widget.product != null;
 
-  // =========================================================
-  // INIT
-  // =========================================================
-
   @override
   void initState() {
     super.initState();
@@ -94,6 +91,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
     _saleEndAt = product?.saleEndAt;
 
     Future.microtask(() async {
+      if (!mounted) return;
       final ProductProvider provider = context.read<ProductProvider>();
 
       await provider.loadCategories();
@@ -108,10 +106,6 @@ class _ProductFormPageState extends State<ProductFormPage> {
     });
   }
 
-  // =========================================================
-  // DISPOSE
-  // =========================================================
-
   @override
   void dispose() {
     _titleController.dispose();
@@ -124,10 +118,6 @@ class _ProductFormPageState extends State<ProductFormPage> {
     super.dispose();
   }
 
-  // =========================================================
-  // MESSAGE
-  // =========================================================
-
   void _showMessage(String message) {
     if (!mounted) return;
 
@@ -135,10 +125,6 @@ class _ProductFormPageState extends State<ProductFormPage> {
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
   }
-
-  // =========================================================
-  // FORMAT DATE
-  // =========================================================
 
   String _formatDate(DateTime? date) {
     if (date == null) {
@@ -151,10 +137,6 @@ class _ProductFormPageState extends State<ProductFormPage> {
 
     return '$day/$month/${date.year}';
   }
-
-  // =========================================================
-  // PICK IMAGE
-  // =========================================================
 
   Future<void> _pickImage() async {
     if (_isSubmitting) return;
@@ -182,10 +164,6 @@ class _ProductFormPageState extends State<ProductFormPage> {
     });
   }
 
-  // =========================================================
-  // PICK SALE START DATE
-  // =========================================================
-
   Future<void> _pickSaleStartDate() async {
     if (_isSubmitting) return;
 
@@ -209,10 +187,6 @@ class _ProductFormPageState extends State<ProductFormPage> {
       _saleStartAt = DateTime(result.year, result.month, result.day);
     });
   }
-
-  // =========================================================
-  // PICK SALE END DATE
-  // =========================================================
 
   Future<void> _pickSaleEndDate() async {
     if (_isSubmitting) return;
@@ -258,10 +232,6 @@ class _ProductFormPageState extends State<ProductFormPage> {
     });
   }
 
-  // =========================================================
-  // CATEGORY
-  // =========================================================
-
   CategoryModel? _selectedCategory(ProductProvider provider) {
     if (_selectedCategoryId == null) {
       return null;
@@ -275,10 +245,6 @@ class _ProductFormPageState extends State<ProductFormPage> {
       return null;
     }
   }
-
-  // =========================================================
-  // SUBMIT
-  // =========================================================
 
   Future<void> _submit() async {
     if (_isSubmitting) return;
@@ -302,10 +268,6 @@ class _ProductFormPageState extends State<ProductFormPage> {
       _showMessage('Giá sản phẩm không hợp lệ');
       return;
     }
-
-    // =======================================================
-    // SALE
-    // =======================================================
 
     double salePrice = 0;
 
@@ -336,10 +298,6 @@ class _ProductFormPageState extends State<ProductFormPage> {
       salePrice = double.tryParse(_salePriceController.text.trim()) ?? 0;
     }
 
-    // =======================================================
-    // IMAGE
-    // =======================================================
-
     if (!isEdit && _selectedImageBytes == null) {
       _showMessage('Vui lòng chọn ảnh sản phẩm');
       return;
@@ -349,10 +307,6 @@ class _ProductFormPageState extends State<ProductFormPage> {
       _isSubmitting = true;
     });
 
-    // =======================================================
-    // BUILD PRODUCT
-    // =======================================================
-
     final ProductModel product = ProductModel(
       id: widget.product?.id ?? '',
 
@@ -360,7 +314,6 @@ class _ProductFormPageState extends State<ProductFormPage> {
 
       subtitle: _subtitleController.text.trim(),
 
-      // Rating thật đến từ product_reviews.
       rating: widget.product?.rating ?? 0,
 
       reviewCount: widget.product?.reviewCount ?? 0,
@@ -422,10 +375,6 @@ class _ProductFormPageState extends State<ProductFormPage> {
     _showMessage(provider.errorMessage ?? 'Lưu sản phẩm thất bại');
   }
 
-  // =========================================================
-  // IMAGE
-  // =========================================================
-
   Widget _buildImagePreview() {
     if (_selectedImageBytes != null) {
       return _imageBox(
@@ -484,10 +433,6 @@ class _ProductFormPageState extends State<ProductFormPage> {
     );
   }
 
-  // =========================================================
-  // DATE FIELD
-  // =========================================================
-
   Widget _buildDateField({
     required String title,
     required DateTime? date,
@@ -541,10 +486,6 @@ class _ProductFormPageState extends State<ProductFormPage> {
     );
   }
 
-  // =========================================================
-  // SALE SECTION
-  // =========================================================
-
   Widget _buildSaleSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -561,7 +502,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
                 : 'Sản phẩm đang bán theo giá gốc',
           ),
           value: _isOnSale,
-          activeColor: const Color(0xFFEF2A39),
+          activeThumbColor: const Color(0xFFEF2A39),
           onChanged:
               _isSubmitting
                   ? null
@@ -636,10 +577,6 @@ class _ProductFormPageState extends State<ProductFormPage> {
       ],
     );
   }
-
-  // =========================================================
-  // FORM
-  // =========================================================
 
   Widget _buildForm(ProductProvider provider) {
     final List<CategoryModel> categories = provider.categories;
@@ -736,7 +673,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
         const SizedBox(height: 10),
 
         DropdownButtonFormField<String>(
-          value: _selectedCategoryId,
+          initialValue: _selectedCategoryId,
           decoration: _decoration('Danh mục'),
           items:
               categories.map((category) {
@@ -769,7 +706,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
                 : 'Sản phẩm tạm ngừng bán',
           ),
           value: _isAvailable,
-          activeColor: const Color(0xFFEF2A39),
+          activeThumbColor: const Color(0xFFEF2A39),
           onChanged:
               _isSubmitting
                   ? null
